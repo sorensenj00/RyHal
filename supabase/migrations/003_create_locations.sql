@@ -1,0 +1,1 @@
+-- 003_create_locations.sql

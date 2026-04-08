@@ -1,0 +1,27 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install and Build Admin Dashboard
+        run: |
+          npm install
+          npm run build
+        working-directory: ./admin-dashboard
+      - name: Install and Build Employee App
+        run: |
+          npm install
+          npm run build
+        working-directory: ./employee-app

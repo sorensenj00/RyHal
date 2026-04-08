@@ -1,0 +1,1 @@
+export default function ShiftDetail() { return <div>ShiftDetail</div>; }
