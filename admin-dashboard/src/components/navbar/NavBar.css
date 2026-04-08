@@ -1,0 +1,281 @@
+.sidenav {
+  background: #003ea1;
+  transition: all 0.5s ease;
+  position: relative;
+  width: 16.5625rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidenav-collapsed {
+  width: 5rem;
+}
+
+/* ---------- Logo Section ---------- */
+.sidenav .logo-container {
+  display: flex;
+  align-items: center;
+  padding: 0.938rem;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.sidenav .logo-container .logo {
+  background: #3280fa;
+  text-align: center;
+  width: 3rem;
+  min-width: 3rem;
+  border-radius: 0.313rem;
+  padding: 0.313rem;
+  font-size: 24px;
+  font-weight: 900;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  color: #fff;
+}
+
+.sidenav .logo-container .logo.rotated {
+  transform: rotate(90deg);
+}
+
+
+.sidenav .logo-container .logo-text {
+  margin-left: 1.5rem;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  transition: opacity 0.3s ease;
+}
+
+/* ---------- Nav Links ---------- */
+.sidenav-nav {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 0.938rem;
+  display: flex;
+  flex-direction: column;
+  list-style-type: none;
+}
+
+.sidenav-nav-item {
+  width: 100%;
+  margin-bottom: 0.625rem;
+  position: relative;
+}
+
+.sidenav-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 3rem;
+  color: #f3f3f3;
+  text-decoration: none;
+  border-radius: 0.625rem;
+  transition: all 0.3s ease;
+  padding: 0 0.75rem;
+}
+
+.sidenav-link-icon {
+  font-size: 22px;
+  width: 2rem;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.sidenav-link-text {
+  margin-left: 1.5rem;
+  white-space: nowrap;
+}
+
+/* Fjern submenu-pilene helt */
+.submenu-arrow {
+  display: none !important;
+}
+
+/* Hover + Active States */
+.sidenav-nav-link:hover {
+  background-color: #ffffff;
+  color: #000;
+}
+
+.active {
+  background-color: #ffffff;
+  color: #000;
+}
+
+.active .sidenav-link-icon,
+.active .sidenav-link-text {
+  color: #000;
+}
+
+/* ---------- Collapsed Behavior ---------- */
+.sidenav-collapsed .sidenav-link-text,
+.sidenav-collapsed .logo-text,
+.sidenav-collapsed .btn-close {
+  display: none;
+}
+
+.sidenav-collapsed .sidenav-nav {
+  align-items: center;
+}
+
+.sidenav-collapsed .sidenav-nav-link {
+  justify-content: center;
+  padding: 0;
+  width: 100%;
+}
+
+.sidenav-collapsed .sidenav-link-icon {
+  margin: 0 auto;
+}
+
+/* ---------- Submenu Styles ---------- */
+.submenu {
+  list-style: none;
+  padding-left: 2.5rem;
+  margin: 0.3rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  transition: all 0.3s ease;
+}
+
+.submenu-item {
+  width: 100%;
+}
+
+.submenu-link {
+  display: flex;
+  align-items: center;
+  color: #ffff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.submenu-link:hover {
+  background: #ffffff40;
+  color: #fff;
+}
+
+/* Remove the white active background */
+.submenu-link.active {
+  background: rgba(255, 255, 255, 0.25); /* same as hover but slightly stronger if you like */
+  color: #fff;
+}
+
+/* ---------- Floating submenu ---------- */
+.submenu-float {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  position: fixed;
+  top: 0;
+  left: 80px;
+  display: flex;
+  flex-direction: column;
+  background: #003ea1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-radius: 0.5rem;
+  min-width: 12rem;
+  z-index: 9999;
+  pointer-events: auto;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Skjul submenu som standard (kun vist via React toggle) */
+.submenu-float.hidden {
+  display: none;
+}
+
+.submenu-float .submenu-item {
+  padding: 0;
+}
+
+.submenu-float .submenu-link {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.15s ease;
+  font-size: 0.95rem;
+}
+
+.submenu-float .submenu-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(4px);
+}
+
+/* SÃ¸rg for, at submenuer IKKE vises ved hover i collapsed mode */
+.sidenav-collapsed .submenu {
+  display: none !important;
+}
+
+/* Behold parent aktiv highlight */
+.sidenav-collapsed .sidenav-nav-link.active {
+  background-color: #ffff;
+  color: #000;
+}
+
+.sidenav-collapsed .sidenav-nav-link.active .sidenav-link-icon {
+  color: #000;
+}
+
+
+/* ---------- Logout Button ---------- */
+.logout-container {
+  flex-shrink: 0;
+  padding: 1rem;
+  background-color: #144ba1;
+}
+
+.logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #f3f3f3;
+  padding: 0.75rem;
+  border-radius: 0.625rem;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #ffffff;
+  color: #000
+}
+
+.sidenav-collapsed .logout-btn {
+  justify-content: center;
+}
+
+.sidenav-collapsed .logout-btn .sidenav-link-text {
+  display: none;
+}
+
+/* ---------- Page Layout ---------- */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden; /* Prevent body scroll */
+}
+
+.app-content {
+  flex-grow: 1;
+  min-width: 0;
+  padding: 20px;
+  overflow-y: auto; /* Allow content to scroll */
+  transition: margin 0.3s ease;
+ 
+}
