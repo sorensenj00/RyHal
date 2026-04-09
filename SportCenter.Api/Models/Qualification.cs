@@ -11,4 +11,10 @@ public class Qualification
         Name = name;
         Description = description;
     }
+
+    override
+    public string ToString()
+    {
+        return Name + "\n" + Description;
+    }
 }

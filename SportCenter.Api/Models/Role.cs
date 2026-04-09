@@ -10,4 +10,10 @@ public class Role
 		Name = name;
 		Description = description;
 	}
+
+	override
+	public string ToString()
+	{
+		return Name + "\n" + Description;
+	}
 }
