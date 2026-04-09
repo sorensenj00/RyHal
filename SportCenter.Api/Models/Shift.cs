@@ -3,15 +3,18 @@ public class Shift
 {
     public Shift(DateOnly date, DateTime startTime, DateTime endTime, ShiftCategory category)
     {
+        ShiftId = _id++;
         Date = date;
         StartTime = startTime;
         EndTime = endTime;
         Category = category;
     }
 
-    // link til employee her
+	private static int _id = 0;
 
-    public DateOnly Date {  get; set; }
+	public int ShiftId { get; set; }
+
+	public DateOnly Date {  get; set; }
 
     public DateTime StartTime { get; set; }
 
@@ -19,7 +22,9 @@ public class Shift
 
     public ShiftCategory Category { get; set; }
 
-    enum ShiftCategory
+    public Employee? Employee { get; set; }
+
+	enum ShiftCategory
     {
         HALL_BOY,
         CLEANER,
