@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using SportCenter.Api.Controllers;
 using SportCenter.Api.Models;
 namespace SportCenter.Api.Services
 {
@@ -105,5 +106,78 @@ namespace SportCenter.Api.Services
 
             return role;
         }
-    }
+
+
+		public void AddShiftToEmployee(int employeeId, Shift shiftId)
+		{
+            Employee employee = null; //TODO: koble til database for at finde employee baseret på id
+			Shift shift = null; //TODO: koble til database for at finde shift baseret på id
+			if (employee == null || shift == null)
+			{
+				throw new ArgumentNullException("Employee or Shift not found");
+			}
+            else 
+            {
+			    employee.Shifts.Add(shift);
+
+			    //tilføjer hos modparten
+			    if (shift.Employee != employee)
+			    {
+                    //TODO lave dette kald til shiftservices: setEmployee(shiftId, employeeId);
+			    }
+				//TODO opdater employee i database
+			}
+		}
+
+		public void removeShiftFromEmployee(int employeeId, int shiftId)
+		{
+			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
+			Shift shift = null; //TODO: koble til database for at finde shift baseret på id
+            if (employee == null || shift == null)
+            {
+                throw new ArgumentNullException("Employee or Shift not found");
+            }
+            else
+            {
+                employee.Shifts.Remove(shift);
+
+                //Fjerner hos modparten
+                if (shift.Employee == employee)
+                {
+                    //TODO lave dette kald til shiftservice: SetEmployee(shiftId, null);
+                }
+
+				//TODO opdater employee i database
+			}
+		}
+
+		public List<Shift> getFutureShiftsForEmployee(int employeeId)
+		{
+			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
+            if (employee == null)
+            {
+                throw new ArgumentNullException("Employee not found");
+            }
+            else
+            {
+                var futureShifts = employee.Shifts.Where(shift => shift.Date > DateOnly.FromDateTime(DateTime.Now)).ToList();
+                return futureShifts;
+            }
+		}
+
+		public double getTotalHoursForMonth(int employeeId, int month, int year)
+		{
+			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
+			if (employee == null)
+			{
+				throw new ArgumentNullException("Employee not found");
+			}
+            else 
+            {
+                var shiftsInMonth = employee.Shifts.Where(shift => shift.Date.Month == month && shift.Date.Year == year).ToList();
+			    double totalHours = shiftsInMonth.Sum(shift => (shift.EndTime - shift.StartTime).TotalHours);
+			    return totalHours;
+            }
+		}
+	}
 }
