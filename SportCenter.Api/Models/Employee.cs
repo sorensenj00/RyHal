@@ -29,7 +29,7 @@ public class Employee {
     override
     public string ToString()
     {
-        return FirstName + " " + LastName + "\nID: " + Id + "\n phone: " + Phone + "\n mail: " + Email;
+        return FirstName + " " + LastName + "\nID: " + EmployeeId + "\n phone: " + Phone + "\n mail: " + Email;
     }
 
 }
