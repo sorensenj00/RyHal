@@ -4,6 +4,7 @@ import {
   faUsers,
   faCalendar,
   faUserCircle,
+  faDumbbell,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const ActivePagesForNavBar  = [
@@ -36,5 +37,13 @@ export const ActivePagesForNavBar  = [
         { to: "/create-shift", label: "Opret Ny Vagt" },
       ]
   },
-
+  {
+    to: "/activities",
+    icon: faDumbbell,
+    label: "Aktiviteter",
+    children: [
+      { to: "/activities-list", label: "Aktivitets oversigt" },
+      { to: "/create-activity", label: "Opret ny aktivitet" },
+    ],
+  },
 ];
