@@ -19,13 +19,4 @@ public class Shift
 
     public ShiftCategory Category { get; set; }
 
-    public enum ShiftCategory
-    {
-        HALL_BOY,
-        CLEANER,
-        ADMIN,
-        CAFE_WORKER,
-        DISHWASHER,
-        OTHER
-    }
 }
