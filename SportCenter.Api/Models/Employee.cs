@@ -5,15 +5,15 @@ public class Employee {
 
     public string LastName { get; set; }
 
-    public string Phone { get; set; }
+    public string? Phone { get; set; }
     
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
     public int EmployeeId { get; set; }
 
-    public List<Role> Roles { get; set; }
+    public List<Role>? Roles { get; set; }
 
-    public List<Qualification> Qualifications { get; set; }
+    public List<Qualification>? Qualifications { get; set; }
 
     private static int _id = 0;
 
