@@ -9,7 +9,7 @@ public class Employee {
     
     public string Email { get; set; }
 
-    public int EmployeeId { get; set; }
+    public int EmployeeId { get; }
 
     public List<Role> Roles { get; set; }
 
