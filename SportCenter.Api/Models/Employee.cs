@@ -11,6 +11,10 @@ public class Employee {
 
     public int Id { get; set; }
 
+    public List<Role> Roles { get; set; }
+
+    public List<Qualification> Qualifications { get; set; }
+
     private static int _id = 0;
 
     public Employee(string firstName, string lastName)
@@ -18,6 +22,12 @@ public class Employee {
         FirstName = firstName;
         LastName = lastName;
         Id = _id++;
+    }
+
+    override
+    public string ToString()
+    {
+        return FirstName + " " + LastName + "\nID: " + Id + "\n phone: " + Phone + "\n mail: " + Email;
     }
 
 }
