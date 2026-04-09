@@ -18,9 +18,12 @@ public class Event
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string CreatedBy { get; set; } = string.Empty;
 
-    public Event(int id, string? description, DateTime startTime, DateTime endTime, EventCategory category, bool isRecurring, int locationId, Location? location, int? templateId)
+    private Event() { }
+
+    public Event(int id, string name, string? description, DateTime startTime, DateTime endTime, EventCategory category, bool isRecurring, int locationId, Location? location, int? templateId)
     {
         Id = id;
+        Name = name;
         Description = description;
         StartTime = startTime;
         EndTime = endTime;

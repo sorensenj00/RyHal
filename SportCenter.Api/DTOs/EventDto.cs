@@ -7,7 +7,10 @@ public record EventResponseDto(
     string Description, 
     DateTime StartTime, 
     DateTime EndTime, 
-    string Category
+    string Category,
+    bool IsRecurring,
+    int LocationId,
+    int? TemplateId
 );
 
 public record CreateEventDto(
@@ -16,5 +19,7 @@ public record CreateEventDto(
     DateTime StartTime, 
     DateTime EndTime, 
     EventCategory Category, 
-    int LocationId
+    int LocationId,
+    bool IsRecurring,
+    int? TemplateId
 );
