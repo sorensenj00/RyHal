@@ -43,5 +43,6 @@ public class ShiftTests
         shift.StartTime.Should().Be(newStart);
         shift.EndTime.Should().Be(newEnd);
         shift.Category.Should().Be(ShiftCategory.ADMIN);
-    }
+		//TODO: når vi har implementeret shiftservice, skal der testes at dennes metoder korrekt opdaterer shift-objekter
+	}
 }
