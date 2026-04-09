@@ -29,7 +29,7 @@ public class Event
     private Event() { }
 
     // Constructor til at oprette et nyt event i koden
-    public Event(string name, string? description, DateTime startTime, DateTime endTime, EventCategory category, int locationId, int? templateId, string createdBy, int? seriesId = null)
+    public Event(string name, string? description, DateTime startTime, DateTime endTime, EventCategory category, int locationId, int? templateId, int? seriesId = null)
     {
         Name = name;
         Description = description;
@@ -39,7 +39,5 @@ public class Event
         LocationId = locationId;
         TemplateId = templateId;
         SeriesId = seriesId;
-        CreatedBy = createdBy;
-        CreatedAt = DateTime.UtcNow;
     }
 }

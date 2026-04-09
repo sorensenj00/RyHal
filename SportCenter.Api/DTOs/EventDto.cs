@@ -12,8 +12,7 @@ public record EventResponseDto(
     bool IsModifiedFromSeries,
     bool IsCancelled,
     int LocationId,
-    int? TemplateId,
-    string CreatedBy
+    int? TemplateId
 );
 
 public record CreateEventDto(

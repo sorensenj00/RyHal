@@ -27,7 +27,6 @@ public class EventService
                 dto.Category,
                 dto.LocationId,
                 dto.TemplateId,
-                dto.CreatedBy,
                 null
             );
         
@@ -37,7 +36,7 @@ public class EventService
             return new EventResponseDto(
                 newEvent.Id, newEvent.Name, newEvent.Description ?? "", newEvent.StartTime, newEvent.EndTime, 
                 newEvent.Category.ToString(), newEvent.SeriesId, newEvent.IsModifiedFromSeries, newEvent.IsCancelled, 
-                newEvent.LocationId, newEvent.TemplateId, newEvent.CreatedBy
+                newEvent.LocationId, newEvent.TemplateId
             );
         }
         else
@@ -58,7 +57,7 @@ public class EventService
             {
                 var eventInstance = new Event(
                     dto.Name, dto.Description, date, date.Add(duration), dto.Category, 
-                    dto.LocationId, dto.TemplateId, dto.CreatedBy, series.Id
+                    dto.LocationId, dto.TemplateId, series.Id
                 );
                 series.Events.Add(eventInstance); // Knytter eventet til EF Core Collection
                 _context.Events.Add(eventInstance);
@@ -71,7 +70,7 @@ public class EventService
             return new EventResponseDto(
                 firstOcccurence.Id, firstOcccurence.Name, firstOcccurence.Description ?? "", firstOcccurence.StartTime, firstOcccurence.EndTime, 
                 firstOcccurence.Category.ToString(), firstOcccurence.SeriesId, firstOcccurence.IsModifiedFromSeries, firstOcccurence.IsCancelled, 
-                firstOcccurence.LocationId, firstOcccurence.TemplateId, firstOcccurence.CreatedBy
+                firstOcccurence.LocationId, firstOcccurence.TemplateId
             );
         }
     }
@@ -94,7 +93,7 @@ public class EventService
     {
         if (!isRecurring || recurrenceFrequency == null || recurrenceEndDate == null)
         {
-            var newEvent = new Event(name, description, startTime, endTime, category, locationId, templateId, createdBy, null);
+            var newEvent = new Event(name, description, startTime, endTime, category, locationId, templateId, null);
             newEvent.Id = _testEvents.Count > 0 ? _testEvents.Max(e => e.Id) + 1 : 1;
             _testEvents.Add(newEvent);
             return await Task.FromResult(newEvent);
@@ -114,7 +113,7 @@ public class EventService
 
             foreach (var date in occurrences)
             {
-                var eventInstance = new Event(name, description, date, date.Add(duration), category, locationId, templateId, createdBy, series.Id);
+                var eventInstance = new Event(name, description, date, date.Add(duration), category, locationId, templateId, series.Id);
                 eventInstance.Id = _testEvents.Count > 0 ? _testEvents.Max(e => e.Id) + 1 : 1;
                 
                 _testEvents.Add(eventInstance);
