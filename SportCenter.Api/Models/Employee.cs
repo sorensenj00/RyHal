@@ -12,12 +12,11 @@ public class Employee {
     public int Id { get; set; }
 
     private static int _id = 0;
-
+    
     public Employee(string firstName, string lastName)
     {
         FirstName = firstName;
         LastName = lastName;
         Id = _id++;
     }
-
 }
