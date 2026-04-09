@@ -20,6 +20,9 @@ public class ShiftTests
         shift.StartTime.Should().Be(start);
         shift.EndTime.Should().Be(end);
         shift.Category.Should().Be(ShiftCategory.CLEANER);
+
+        // ShiftId should be assigned by the constructor (non-negative)
+        shift.ShiftId.Should().BeGreaterThanOrEqualTo(0);
     }
 
     [Fact]

@@ -22,5 +22,5 @@ public class Shift
 
     public ShiftCategory Category { get; set; }
 
-    public Employee? employee { get; set; }
+    public Employee? Employee { get; set; }
 }
