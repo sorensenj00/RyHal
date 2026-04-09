@@ -46,10 +46,32 @@ public class EventService
     public async Task<List<Event>> GetAllAsync() => await _context.Events.ToListAsync();
 
     // In-memory CRUD for testing (no DTOs, no database)
-    public async Task CreateEventAsync(Event newEvent) 
+    public async Task<Event> CreateEventAsync(
+        int id, 
+        string name, 
+        string? description, 
+        DateTime startTime, 
+        DateTime endTime, 
+        EventCategory category, 
+        bool isRecurring, 
+        int locationId, 
+        int? templateId) 
     {
+        var newEvent = new Event(
+            id, 
+            name, 
+            description, 
+            startTime, 
+            endTime, 
+            category, 
+            isRecurring, 
+            locationId, 
+            null, 
+            templateId
+        );
+
         _testEvents.Add(newEvent);
-        await Task.CompletedTask;
+        return await Task.FromResult(newEvent);
     }
 
     public async Task<List<Event>> GetTestEventsAsync() 
