@@ -8,9 +8,12 @@ public record EventResponseDto(
     DateTime StartTime, 
     DateTime EndTime, 
     string Category,
-    bool IsRecurring,
+    int? SeriesId,
+    bool IsModifiedFromSeries,
+    bool IsCancelled,
     int LocationId,
-    int? TemplateId
+    int? TemplateId,
+    string CreatedBy
 );
 
 public record CreateEventDto(
@@ -20,6 +23,9 @@ public record CreateEventDto(
     DateTime EndTime, 
     EventCategory Category, 
     int LocationId,
+    int? TemplateId,
+    string CreatedBy,
     bool IsRecurring,
-    int? TemplateId
+    string? RecurrenceFrequency,
+    DateTime? RecurrenceEndDate
 );

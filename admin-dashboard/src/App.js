@@ -17,7 +17,8 @@ function App() {
             <Route path="/base-calendar" element={<BaseWeekCalendar />} />
             <Route path="/employee-card" element={<EmployeeBigCard />} />
             <Route path="/create-shift" element={<CreateNewShift />} />
-            <Route path="/activities-list" element={<ActivitiesList />} />
+            <Route path="/activities/recurring" element={<ActivitiesList type="recurring" />} />
+            <Route path="/activities/single" element={<ActivitiesList type="single" />} />
             <Route path="/create-activity" element={<CreateActivity />} />
             {/* ... Alle andre routes */}
           </Routes>

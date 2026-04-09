@@ -42,8 +42,9 @@ export const ActivePagesForNavBar  = [
     icon: faDumbbell,
     label: "Aktiviteter",
     children: [
-      { to: "/activities-list", label: "Aktivitets oversigt" },
-      { to: "/create-activity", label: "Opret ny aktivitet" },
+      { to: "/activities/recurring", label: "Oversigt: Faste aktiviteter" },
+      { to: "/activities/single", label: "Oversigt: Selvst. aktiviteter" },
+      { to: "/create-activity", label: "Opret aktivitet" }
     ],
   },
 ];

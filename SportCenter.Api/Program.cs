@@ -20,15 +20,14 @@ app.UseHttpsRedirection();
 var eventService = new EventService(null!); 
 
 await eventService.CreateEventAsync(
-    1, 
     "Test Event", 
     "Test Description", 
     DateTime.Now, 
     DateTime.Now.AddHours(1), 
     EventCategory.Other, 
-    false, 
     1, 
-    null
+    null,
+    "System"
 );
 
 var testEvents = await eventService.GetTestEventsAsync();

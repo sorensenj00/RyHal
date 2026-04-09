@@ -10,68 +10,121 @@ public class EventService
     private readonly AppDbContext _context;
     private static readonly List<Event> _testEvents = new();
     
+    private static readonly List<EventSeries> _testSeries = new();
+
     public EventService(AppDbContext context) => _context = context;
     
     public async Task<EventResponseDto> CreateAsync(CreateEventDto dto)
     {
-        var newEvent = new Event(
-            0,
-            dto.Name,
-            dto.Description,
-            dto.StartTime,
-            dto.EndTime,
-            dto.Category,
-            dto.IsRecurring,
-            dto.LocationId,
-            null,
-            dto.TemplateId
-        );
-    
-        _context.Events.Add(newEvent);
-        await _context.SaveChangesAsync();
-    
-        return new EventResponseDto(
-            newEvent.Id, 
-            newEvent.Name, 
-            newEvent.Description ?? "", 
-            newEvent.StartTime, 
-            newEvent.EndTime, 
-            newEvent.Category.ToString(),
-            newEvent.IsRecurring,
-            newEvent.LocationId,
-            newEvent.TemplateId
-        );
+        // Enkeltstående Event
+        if (!dto.IsRecurring || dto.RecurrenceFrequency == null || dto.RecurrenceEndDate == null)
+        {
+            var newEvent = new Event(
+                dto.Name,
+                dto.Description,
+                dto.StartTime,
+                dto.EndTime,
+                dto.Category,
+                dto.LocationId,
+                dto.TemplateId,
+                dto.CreatedBy,
+                null
+            );
+        
+            _context.Events.Add(newEvent);
+            await _context.SaveChangesAsync();
+        
+            return new EventResponseDto(
+                newEvent.Id, newEvent.Name, newEvent.Description ?? "", newEvent.StartTime, newEvent.EndTime, 
+                newEvent.Category.ToString(), newEvent.SeriesId, newEvent.IsModifiedFromSeries, newEvent.IsCancelled, 
+                newEvent.LocationId, newEvent.TemplateId, newEvent.CreatedBy
+            );
+        }
+        else
+        {
+            // Gentagende event (Event Series)
+            var frequency = Enum.Parse<RecurrenceFrequency>(dto.RecurrenceFrequency, true);
+            var rule = new RecurrenceRule(frequency, dto.RecurrenceEndDate.Value);
+            
+            var series = new EventSeries(
+                dto.Name, dto.Description, dto.Category, rule, dto.LocationId, dto.TemplateId, dto.CreatedBy
+            );
+            _context.Set<EventSeries>().Add(series); // Husk at EventSeries DbSet skal eksistere, antager det for EF Core
+            
+            var occurrences = rule.GenerateOccurrences(dto.StartTime);
+            var duration = dto.EndTime - dto.StartTime;
+
+            foreach (var date in occurrences)
+            {
+                var eventInstance = new Event(
+                    dto.Name, dto.Description, date, date.Add(duration), dto.Category, 
+                    dto.LocationId, dto.TemplateId, dto.CreatedBy, series.Id
+                );
+                series.Events.Add(eventInstance); // Knytter eventet til EF Core Collection
+                _context.Events.Add(eventInstance);
+            }
+
+            await _context.SaveChangesAsync();
+
+            var firstOcccurence = series.Events.First();
+
+            return new EventResponseDto(
+                firstOcccurence.Id, firstOcccurence.Name, firstOcccurence.Description ?? "", firstOcccurence.StartTime, firstOcccurence.EndTime, 
+                firstOcccurence.Category.ToString(), firstOcccurence.SeriesId, firstOcccurence.IsModifiedFromSeries, firstOcccurence.IsCancelled, 
+                firstOcccurence.LocationId, firstOcccurence.TemplateId, firstOcccurence.CreatedBy
+            );
+        }
     }
-    
+
     public async Task<List<Event>> GetAllAsync() => await _context.Events.ToListAsync();
 
     // In-memory CRUD for testing (no DTOs, no database)
     public async Task<Event> CreateEventAsync(
-        int id, 
         string name, 
         string? description, 
         DateTime startTime, 
         DateTime endTime, 
         EventCategory category, 
-        bool isRecurring, 
         int locationId, 
-        int? templateId) 
+        int? templateId,
+        string createdBy,
+        bool isRecurring = false,
+        string? recurrenceFrequency = null,
+        DateTime? recurrenceEndDate = null) 
     {
-        var newEvent = new Event(
-            id, 
-            name, 
-            description, 
-            startTime, 
-            endTime, 
-            category, 
-            isRecurring, 
-            locationId, 
-            null, 
-            templateId
-        );
+        if (!isRecurring || recurrenceFrequency == null || recurrenceEndDate == null)
+        {
+            var newEvent = new Event(name, description, startTime, endTime, category, locationId, templateId, createdBy, null);
+            newEvent.Id = _testEvents.Count > 0 ? _testEvents.Max(e => e.Id) + 1 : 1;
+            _testEvents.Add(newEvent);
+            return await Task.FromResult(newEvent);
+        }
+        else
+        {
+            var frequency = Enum.Parse<RecurrenceFrequency>(recurrenceFrequency, true);
+            var rule = new RecurrenceRule(frequency, recurrenceEndDate.Value);
+            
+            var series = new EventSeries(name, description, category, rule, locationId, templateId, createdBy);
+            series.Id = _testSeries.Count > 0 ? _testSeries.Max(s => s.Id) + 1 : 1;
+            _testSeries.Add(series);
 
-        _testEvents.Add(newEvent);
-        return await Task.FromResult(newEvent);
+            var occurrences = rule.GenerateOccurrences(startTime);
+            var duration = endTime - startTime;
+            Event? firstEvent = null;
+
+            foreach (var date in occurrences)
+            {
+                var eventInstance = new Event(name, description, date, date.Add(duration), category, locationId, templateId, createdBy, series.Id);
+                eventInstance.Id = _testEvents.Count > 0 ? _testEvents.Max(e => e.Id) + 1 : 1;
+                
+                _testEvents.Add(eventInstance);
+                series.Events.Add(eventInstance);
+
+                if (firstEvent == null) firstEvent = eventInstance;
+            }
+
+            return await Task.FromResult(firstEvent!);
+        }
     }
 
     public async Task<List<Event>> GetTestEventsAsync() 
