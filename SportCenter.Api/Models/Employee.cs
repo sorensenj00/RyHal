@@ -9,15 +9,17 @@ public class Employee {
     
     public string Email { get; set; }
 
-    public int Id { get; set; }
+    public int EmployeeId { get; set; }
 
     private static int _id = 0;
 
-    public Employee(string firstName, string lastName)
+    public List<Shift> Shifts { get; set; } = new List<Shift>();
+
+	public Employee(string firstName, string lastName)
     {
         FirstName = firstName;
         LastName = lastName;
-        Id = _id++;
+        EmployeeId = _id++;
     }
 
 }
