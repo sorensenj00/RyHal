@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   format, startOfMonth, endOfMonth, startOfWeek, 
-  endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday 
+  endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday 
 } from 'date-fns';
 import { da } from 'date-fns/locale'; // Dansk sprog
-import './BaseWeekCalendar.css';
+import './BaseMonthCalendar.css';
 
-const BaseWeekCalendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+const BaseWeekCalendar = ({ currentDate: currentDateProp = new Date(), onDateSelect }) => {
+  const [currentDate, setCurrentDate] = useState(currentDateProp);
+  const [selectedDate, setSelectedDate] = useState(currentDateProp);
+
+  useEffect(() => {
+    setCurrentDate(currentDateProp);
+    setSelectedDate(currentDateProp);
+  }, [currentDateProp]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
@@ -18,15 +23,17 @@ const BaseWeekCalendar = () => {
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
   const weekDays = ['Ma', 'Ti', 'On', 'To', 'Fr', 'Lø', 'Sø'];
 
+  const handleDateClick = (day) => {
+    setSelectedDate(day);
+    if (onDateSelect) {
+      onDateSelect(day);
+    }
+  };
+
   return (
     <div className="calendar-page-container">
       <header className="calendar-header">
-        <div>
-          <button className="nav-btn" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>Forrige</button>
-          <button className="nav-btn" style={{marginLeft: '10px'}} onClick={() => setCurrentDate(addMonths(currentDate, 1))}>Næste</button>
-        </div>
         <h2>{format(currentDate, 'MMMM yyyy', { locale: da })}</h2>
-        <button className="nav-btn" onClick={() => setCurrentDate(new Date())}>I dag</button>
       </header>
 
       <div className="calendar-grid">
@@ -37,8 +44,8 @@ const BaseWeekCalendar = () => {
         {calendarDays.map((day, idx) => (
           <div
             key={idx}
-            className={`calendar-day ${!isSameMonth(day, monthStart) ? 'outside-month' : ''} ${isToday(day) ? 'today' : ''}`}
-            onClick={() => setSelectedDate(day)}
+            className={`calendar-day ${!isSameMonth(day, monthStart) ? 'outside-month' : ''} ${isToday(day) ? 'today' : ''} ${isSameDay(day, selectedDate) ? 'selected' : ''}`}
+            onClick={() => handleDateClick(day)}
           >
             <span className="day-number">{format(day, 'd')}</span>
             {/* Her kan du senere mappe dine events ind */}

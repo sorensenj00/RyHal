@@ -1,0 +1,143 @@
+.day-calendar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+/* =========================
+   HEADER (SIDEBAR + HOURS)
+========================= */
+
+.timeline-header {
+  display: grid;
+  grid-template-columns: 220px repeat(24, 1fr);
+  height: 40px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.sidebar-header-spacer {
+  border-right: 1px solid #e5e7eb;
+}
+
+.timeline-hour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #9ca3af;
+  border-right: 1px solid #f3f4f6;
+}
+
+/* =========================
+   BODY (Grå baggrund uden linjer)
+========================= */
+
+.calendar-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  position: relative;
+  /* Dette farver bunden grå overalt, hvor der ikke er rækker */
+  background-color: #f3f4f6; 
+}
+
+/* =========================
+   ROW STRUCTURE
+========================= */
+
+.calendar-row {
+  display: grid;
+  grid-template-columns: 220px repeat(24, 1fr);
+  /* Hvid baggrund på selve rækken for at dække den grå body */
+  background-color: #ffffff;
+}
+
+.sidebar-cell {
+  border-right: 1px solid #e5e7eb;
+}
+
+.timeline-row-item {
+  grid-column: 2 / span 24;
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  height: 62px;
+  position: relative;
+  
+  /* Linjerne flyttes hertil, så de kun eksisterer i rækken */
+  background-image: linear-gradient(
+    90deg,
+    #f3f4f6 1px, 
+    transparent 1px
+  );
+  background-size: calc(100% / 24) 100%;
+}
+
+/* =========================
+   ROLE ROW
+========================= */
+
+.role-row {
+  background-color: #ffffff;
+}
+
+.employee-role-title {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+}
+
+.timeline-role-container {
+  grid-column: 2 / span 24;
+  height: 32px;
+  /* Vi tilføjer også linjerne i kategorioverskriften for sammenhæng */
+  background-image: linear-gradient(
+    90deg,
+    #f3f4f6 1px, 
+    transparent 1px
+  );
+  background-size: calc(100% / 24) 100%;
+}
+
+/* =========================
+   EMPLOYEE ROW
+========================= */
+
+.sidebar-row-item {
+  height: 62px;
+  display: flex;
+  align-items: center;
+}
+
+/* =========================
+   SHIFT LINE
+========================= */
+
+.shift-line {
+  height: 34px;
+  align-self: center;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.shift-line.role-hal-mand { background-color: #B8BB0B; }
+.shift-line.role-cafemedarbejder { background-color: #22C55E; }
+.shift-line.role-administration { background-color: #F59E0B; }
+.shift-line.role-rengøring { background-color: #7C3AED; }

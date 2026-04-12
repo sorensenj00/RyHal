@@ -1,26 +1,26 @@
 /* EmployeeBigCard Styles */
 
 .employee-big-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: var(--transition-base);
   max-width: 400px;
   width: 100%;
 }
 
 .employee-big-card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--box-shadow-lg);
   transform: translateY(-4px);
 }
 
 /* Header Section */
 .card-header {
-  padding: 32px 24px 24px;
+  padding: 2rem 1.5rem 1.5rem;
   text-align: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
-  border-bottom: 1px solid #e8ecf1;
+  background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+  border-bottom: var(--border-width) solid var(--gray-300);
 }
 
 .avatar-container {
@@ -34,8 +34,8 @@
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 4px solid var(--white);
+  box-shadow: var(--box-shadow);
   transition: transform 0.3s ease;
 }
 
@@ -44,73 +44,73 @@
 }
 
 .header-info {
-  margin-top: 16px;
+  margin-top: 1rem;
 }
 
 .employee-name {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 4px 0;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-900);
+  margin: 0 0 0.25rem 0;
   letter-spacing: -0.5px;
 }
 
 .employee-title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
-  color: #4b5563;
-  margin: 0 0 8px 0;
+  color: var(--gray-700);
+  margin: 0 0 0.5rem 0;
 }
 
 .employee-department {
   display: inline-block;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: #6b7280;
-  background: rgba(79, 172, 254, 0.1);
-  padding: 4px 12px;
-  border-radius: 16px;
+  color: var(--gray-600);
+  background: rgba(0, 123, 255, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 /* Body Section */
 .card-body {
-  padding: 24px;
+  padding: 1.5rem;
 }
 
 .contact-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-  transition: all 0.2s ease;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  transition: var(--transition-base);
 }
 
 .contact-icon {
-  color: #4facfe;
+  color: var(--primary-color);
   flex-shrink: 0;
   width: 18px;
   height: 18px;
 }
 
 .contact-value {
-  font-size: 14px;
-  color: #4b5563;
+  font-size: 0.875rem;
+  color: var(--gray-700);
   text-decoration: none;
   transition: color 0.2s ease;
   word-break: break-all;
 }
 
 .contact-value:hover {
-  color: #4facfe;
+  color: var(--primary-color);
 }
 
 a.contact-value {
@@ -120,32 +120,32 @@ a.contact-value {
 /* Actions Section */
 .card-actions {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
 .action-btn {
   flex: 1;
   min-width: 140px;
-  padding: 10px 16px;
+  padding: 0.625rem 1rem;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-base);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .action-btn-primary {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #00f2fe 100%);
+  color: var(--white);
 }
 
 .action-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
 }
 
 .action-btn-primary:active {

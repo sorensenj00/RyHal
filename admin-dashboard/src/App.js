@@ -1,9 +1,11 @@
 import NavBar from "./components/navbar/NavBar";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css';
-import BaseWeekCalendar from './components/calendar/BaseWeekCalendar';
 import EmployeeBigCard from './components/employee/EmployeeBigCard';
+import EmployeeListOverview from './pages/employee-list/Employee-list-overview';
 import CreateNewShift from './components/shift/CreateNewShift';
+import WorkCalendar from "./pages/work-calendar/WorkCalendar";
+import CreateNewEmployee from "./pages/create-new-employee/CreateNewEmployee";
 
 function App() {
   return (
@@ -12,9 +14,11 @@ function App() {
         <NavBar /> 
         <main className="app-content">
           <Routes>
-            <Route path="/base-calendar" element={<BaseWeekCalendar />} />
+            <Route path="/employee-list" element={<EmployeeListOverview />} />
             <Route path="/employee-card" element={<EmployeeBigCard />} />
             <Route path="/create-shift" element={<CreateNewShift />} />
+            <Route path="/work-calendar" element={<WorkCalendar />} />
+            <Route path="/create-employee" element={<CreateNewEmployee />} />
             {/* ... Alle andre routes */}
           </Routes>
         </main>

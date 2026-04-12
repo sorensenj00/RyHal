@@ -1,0 +1,53 @@
+/* Den mørke baggrund der dækker hele skærmen */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-gennemsigtig sort */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Meget høj z-index så den ligger over alt andet */
+  backdrop-filter: blur(2px); /* Valgfrit: gør baggrunden lidt sløret */
+}
+
+/* Selve pop-up vinduet */
+.modal-content {
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  animation: modalAppear 0.2s ease-out; /* Lille animation */
+}
+
+/* Luk-knappen (krydset) */
+.modal-close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #95a5a6;
+  transition: color 0.2s;
+}
+
+.modal-close-button:hover {
+  color: #e74c3c;
+}
+
+/* Simpel animation når den popper op */
+@keyframes modalAppear {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Calendar } from 'lucide-react';
+import { dummyEmployee } from '../../data/DummyData';
 import './EmployeeBigCard.css';
 
 /**
@@ -15,16 +16,6 @@ import './EmployeeBigCard.css';
  *  - phone: string - Phone number
  *  - avatar: string - URL to profile image
  */
-
-const dummyEmployee = {
-  id : '12345',
-  name : 'John Doe',
-  title : 'Job Title',
-  department : 'Department',
-  email : 'john.doe@example.com',
-  phone : '+1 (555) 123-4567',
-  avatar : 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
-};
 
 export default function EmployeeBigCard(employee) {
   const {

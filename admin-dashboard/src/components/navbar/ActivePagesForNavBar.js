@@ -15,7 +15,7 @@ export const ActivePagesForNavBar  = [
     children: [
       { to: "/employee-list", label: "Medarbejder oversigt" },
       { to: "/manage-employee", label: "Redigere medarbejder" },
-      { to: "/add-employee", label: "Tilføj ny medarbejder" },
+      { to: "/create-employee", label: "Tilføj ny medarbejder" },
     ],
   },
   {
@@ -23,9 +23,8 @@ export const ActivePagesForNavBar  = [
     icon: faCalendar,
     label: "Arbejdskalender",
     children: [
-      { to: "/day-calendar", label: "Dagskalender" },
-      { to: "/week-calendar", label: "Ugekalender" },
-      { to: "/month-calendar", label: "Månedskalender" },
+      { to: "/work-calendar", label: "Kalender" },
+      { to: "/calendar", label: "Vagtkalender" },
     ],
   },
   {

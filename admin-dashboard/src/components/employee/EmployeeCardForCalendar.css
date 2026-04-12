@@ -1,0 +1,69 @@
+/* EmployeeCardForCalendar.css */
+
+.employee-card-calendar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  height: 100%;
+  width: 100%; /* Sikrer den fylder sidebar-cellen ud */
+  box-sizing: border-box;
+  
+  /* Fjern generel baggrund herfra hvis den driller */
+  background-color: transparent;
+  border-bottom: none;
+  
+  /* Sørg for at kortet ikke kan gå ud over sin container */
+  overflow: hidden;
+}
+
+/* Farverne skal kun gælde selve kortet i sidebaren */
+.employee-card-calendar.role-hal-mand {
+  background-color: rgba(184, 187, 11, 0.15); /* Skruet lidt ned for gennemsigtighed */
+}
+
+.employee-card-calendar.role-cafemedarbejder {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.employee-card-calendar.role-administration {
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.employee-card-calendar.role-rengøring {
+  background-color: rgba(124, 58, 237, 0.1);
+}
+
+.employee-avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px; /* Forhindrer den i at blive mast */
+  border-radius: 50%;
+  background-color: #3b82f6; /* Fast blå eller brug din variabel */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.employee-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.employee-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.employee-role {
+  font-size: 0.7rem;
+  color: #6b7280;
+}
