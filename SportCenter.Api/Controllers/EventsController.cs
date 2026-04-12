@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 namespace SportCenter.Api.Controllers;
 using SportCenter.Api.Models;
 using SportCenter.Api.DTOs;

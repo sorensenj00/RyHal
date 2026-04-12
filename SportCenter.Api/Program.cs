@@ -1,7 +1,9 @@
+using SportCenter.Api.Models;
+using SportCenter.Api.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -14,28 +16,25 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// Testing EventService in-memory CRUD
+var eventService = new EventService(null!); 
 
-app.MapGet("/weatherforecast", () =>
+await eventService.CreateEventAsync(
+    "Test Event", 
+    "Test Description", 
+    DateTime.Now, 
+    DateTime.Now.AddHours(1), 
+    EventCategory.Other, 
+    1, 
+    null,
+    "System"
+);
+
+var testEvents = await eventService.GetTestEventsAsync();
+Console.WriteLine($"[Test] Number of events in memory: {testEvents.Count}");
+foreach (var e in testEvents)
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    Console.WriteLine($"[Test] Event Name: {e.Name}");
+}
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
