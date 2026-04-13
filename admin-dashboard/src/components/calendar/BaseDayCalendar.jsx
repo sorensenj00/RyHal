@@ -1,11 +1,10 @@
-import React, { useState } from 'react'; // Tilføjet useState
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import EmployeeCardForCalendar from '../employee/EmployeeCardForCalendar';
 import EditShift from '../shift/EditShift';
 import './BaseDayCalendar.css';
 
 const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => {
-  // --- STATE TIL VALGT VAGT ---
   const [selectedShift, setSelectedShift] = useState(null);
 
   const START_HOUR = 5;
@@ -15,15 +14,20 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => 
   const dateKey = format(date, 'yyyy-MM-dd');
   const roleOrder = ['Hal Mand', 'Cafemedarbejder', 'Administration', 'Rengøring'];
 
+  // --- OPDATERET LOGIK FOR GRID PLACERING ---
   const getShiftStyles = (startHour, endHour) => {
+    // gridStart er kolonnen, hvor vagten begynder
     let gridStart = startHour - START_HOUR;
     if (gridStart < 0) gridStart += 24;
 
+    // Varighed i antal timer (kolonner)
     let duration = endHour - startHour;
     if (duration <= 0) duration += 24;
 
     return {
-      gridColumn: `${gridStart + 1} / span ${duration}`, // Fjernet +1 i span for præcis grid-match
+      // Vi starter ved gridStart + 1 (da grid er 1-indekseret)
+      // og spænder over det antal timer, vagten varer.
+      gridColumn: `${gridStart + 1} / span ${duration}`,
     };
   };
 
@@ -41,7 +45,6 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => 
   return (
     <div className="day-calendar-container">
       <div className="day-calendar">
-        {/* HEADER AREA */}
         <div className="timeline-header">
           <div className="sidebar-header-spacer" />
           {hours.map((hour) => (
@@ -51,7 +54,6 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => 
           ))}
         </div>
 
-        {/* BODY AREA */}
         <div className="calendar-body">
           {roleOrder.map((role) => {
             const employeesForRole = (employeesByRole[role] || []).sort((a, b) =>
@@ -68,10 +70,18 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => 
                 </div>
 
                 {employeesForRole.map((employee) => {
-                  const roleClass = `role-${employee.role.toLowerCase().replace(/\s+/g, '-')}`;
                   const shift = shifts.find(
                     (s) => s.employeeId === employee.id && s.date === dateKey
                   );
+
+                  const categoryName = shift?.category || 'andet';
+                  const safeCategoryName = categoryName.toLowerCase()
+                    .replace(/\s+/g, '-') // "Hal Mand" -> "hal-mand"
+                    .replace(/ø/g, 'o')   // "Rengøring" -> "rengoring" (bemærk: kun ét 'o')
+                    .replace(/æ/g, 'ae')
+                    .replace(/å/g, 'aa');
+
+                  const categoryClass = `role-${safeCategoryName}`;
                   const shiftStyle = shift ? getShiftStyles(shift.startHour, shift.endHour) : null;
 
                   return (
@@ -83,9 +93,9 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => 
                       <div className="timeline-row-item">
                         {shift && (
                           <div
-                            className={`shift-line ${roleClass}`}
+                            className={`shift-line ${categoryClass}`}
                             style={shiftStyle}
-                            onClick={() => setSelectedShift(shift)} // SÆT VALGT VAGT VED KLIK
+                            onClick={() => setSelectedShift(shift)}
                           >
                             {employee.name}
                           </div>
@@ -100,18 +110,11 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => 
         </div>
       </div>
 
-      {/* --- VIS REDIGERINGS-ELEMENT HVIS EN VAGT ER VALGT --- */}
-      {/* --- MODAL POP-UP --- */}
       {selectedShift && (
-        <div className="modal-backdrop" onClick={() => setSelectedShift(null)}>
-          {/* stopPropagation forhindrer at vinduet lukker, når man klikker indeni selve formularen */}
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close-button" onClick={() => setSelectedShift(null)}>
-              &times;
-            </button>
-            <EditShift shift={selectedShift} />
-          </div>
-        </div>
+        <EditShift 
+          shift={selectedShift} 
+          onClose={() => setSelectedShift(null)} 
+        />
       )}
     </div>
   );

@@ -1,0 +1,13 @@
+.welcome-page-layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.welcome-main-content {
+  flex-grow: 1;
+}
+
+.welcome-sidebar {
+  flex-shrink: 0;
+}

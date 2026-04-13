@@ -1,202 +1,124 @@
 /* Create New Shift Component Styles */
-
 .create-shift-btn {
   background: var(--primary-color);
   color: var(--white);
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem; /* Mindre padding */
   border-radius: var(--border-radius);
-  font-size: var(--font-size-base);
+  font-size: 0.85rem; /* Mindre fontstørrelse */
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: var(--transition-base);
-  box-shadow: var(--box-shadow);
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+  box-shadow: none; /* Fjern skygge for et fladere, minimalistisk look */
 }
 
 .create-shift-btn:hover {
   background: #0056b3;
-  transform: translateY(-1px);
-  box-shadow: var(--box-shadow-sm);
+  transform: translateY(0); /* Fjern løft-effekt for at holde den rolig */
+  opacity: 0.9;
 }
-
-.create-shift-btn:active {
-  transform: translateY(0);
-}
-
-/* Modal Overlay */
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
   padding: var(--spacer);
+  backdrop-filter: blur(2px);
 }
 
-/* Modal Content */
 .modal-content {
   background: var(--white);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--box-shadow-lg);
-  max-width: 500px;
+  max-width: 450px;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow-y: visible; /* Vigtigt for at dropdown kan ses */
 }
 
-/* Modal Header */
 .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: var(--border-width) solid var(--gray-300);
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: var(--border-width) solid var(--gray-200);
 }
 
-.modal-header h2 {
-  margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--gray-900);
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: var(--font-size-lg);
-  color: var(--gray-600);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: var(--border-radius);
-  transition: var(--transition-base);
-}
-
-.close-btn:hover {
-  background: var(--gray-100);
-  color: var(--gray-800);
-}
-
-/* Form Styles */
-.shift-form {
-  padding: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-row {
-  display: flex;
-  gap: var(--spacer);
-}
-
-.form-row .form-group {
-  flex: 1;
-}
+.shift-form { padding: 1.5rem; }
+.form-group { margin-bottom: 1.25rem; position: relative; }
+.form-row { display: flex; gap: 1rem; }
+.form-row .form-group { flex: 1; }
 
 .form-group label {
-  display: block;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.5rem;
-  font-size: var(--font-size-sm);
+  display: block; font-weight: 600; color: var(--gray-700);
+  margin-bottom: 0.4rem; font-size: 0.85rem;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: var(--border-width) solid var(--gray-400);
+.form-group input, .form-group select {
+  width: 100%; padding: 0.65rem 0.75rem;
+  border: var(--border-width) solid var(--gray-300);
   border-radius: var(--border-radius);
-  font-size: var(--font-size-base);
-  transition: var(--transition-base);
+  transition: all 0.2s;
   box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+.form-group input:focus, .form-group select:focus {
+  outline: none; border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
+/* SEARCHABLE SELECT STYLES */
+.searchable-select-container { position: relative; }
+
+.search-input-box { position: relative; display: flex; align-items: center; cursor: pointer; }
+
+.search-input-box input { padding-left: 35px !important; padding-right: 35px !important; }
+
+.search-icon { position: absolute; left: 12px; color: var(--gray-400); pointer-events: none; }
+
+.chevron-icon {
+  position: absolute; right: 12px; color: var(--gray-400);
+  transition: transform 0.2s; pointer-events: none;
 }
+.chevron-icon.open { transform: rotate(180deg); }
+
+.custom-dropdown-list {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: white; border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  margin-top: 4px; max-height: 180px;
+  overflow-y: auto; z-index: 100;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  padding: 8px 12px; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.dropdown-item:hover { background-color: var(--gray-100); }
+.dropdown-item.empty { color: var(--gray-500); border-bottom: 1px solid var(--gray-100); }
+
+.emp-name { font-size: 0.9rem; font-weight: 500; }
+.emp-role { font-size: 0.7rem; color: var(--gray-500); background: var(--gray-100); padding: 2px 6px; border-radius: 4px; }
 
 /* Form Actions */
 .form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: var(--border-width) solid var(--gray-300);
+  display: flex; justify-content: flex-end; gap: 0.75rem;
+  margin-top: 1.5rem; padding-top: 1.25rem;
+  border-top: var(--border-width) solid var(--gray-200);
 }
 
-.cancel-btn,
-.submit-btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--border-radius);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-base);
-  border: none;
+.cancel-btn, .submit-btn {
+  padding: 0.65rem 1.25rem; border-radius: var(--border-radius);
+  font-size: 0.95rem; font-weight: 600; cursor: pointer; border: none;
 }
+.cancel-btn { background: var(--gray-100); color: var(--gray-700); }
+.submit-btn { background: var(--primary-color); color: var(--white); }
 
-.cancel-btn {
-  background: var(--gray-100);
-  color: var(--gray-800);
-}
-
-.cancel-btn:hover {
-  background: var(--gray-200);
-}
-
-.submit-btn {
-  background: var(--primary-color);
-  color: var(--white);
-}
-
-.submit-btn:hover {
-  background: #0056b3;
-}
-
-.cancel-btn:active,
-.submit-btn:active {
-  transform: scale(0.98);
-}
-
-/* Responsive Design */
-@media (max-width: 640px) {
-  .modal-content {
-    margin: 1rem;
-    max-height: calc(100vh - 2rem);
-  }
-
-  .form-row {
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .cancel-btn,
-  .submit-btn {
-    width: 100%;
-  }
+@media (max-width: 480px) {
+  .form-row { flex-direction: column; }
+  .form-actions { flex-direction: column-reverse; }
 }

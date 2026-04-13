@@ -29,7 +29,7 @@ const generateShifts = () => {
     for (let i = 0; i < dailyStaffCount; i++) {
       const emp = shuffledEmployees[i];
       
-      // Lav lidt variation i tidspunkterne
+      // Variation i tidspunkterne
       const startHour = Math.random() > 0.5 ? 8 : 14; 
       const duration = 8;
 
@@ -39,7 +39,11 @@ const generateShifts = () => {
         date: dateString,
         startHour: startHour,
         endHour: startHour + duration,
-        type: 'Vagt' // Kan bruges til styling senere
+        // NYT: Her tilføjes kategorien. Som udgangspunkt medarbejderens rolle,
+        // men det kan nu overskrives i EditShift.
+        category: emp.role, 
+        startTime: `${startHour.toString().padStart(2, '0')}:00`,
+        endTime: `${(startHour + duration).toString().padStart(2, '0')}:00`
       });
     }
   }

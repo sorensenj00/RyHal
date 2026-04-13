@@ -3,11 +3,12 @@ import { format, addDays, subDays, addMonths, subMonths } from 'date-fns';
 import { da } from 'date-fns/locale';
 import BaseDayCalendar from '../../components/calendar/BaseDayCalendar';
 import BaseMonthCalendar from '../../components/calendar/BaseMonthCalendar';
+import CreateNewShift from '../../components/shift/CreateNewShift';
 import { employees, shifts } from '../../data/DummyData';
 import './WorkCalendar.css';
 
 const WorkCalendar = () => {
-  const [view, setView] = useState('month'); // 'month' or 'day'
+  const [view, setView] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const handleDateSelect = (date) => {
@@ -36,8 +37,6 @@ const WorkCalendar = () => {
   const formatDateLabel = () => {
     return format(selectedDate, 'EEEE d. MMMM yyyy', { locale: da });
   };
-
-  const calendarEmployees = employees;
 
   return (
     <div className="work-calendar">
@@ -68,11 +67,14 @@ const WorkCalendar = () => {
           />
           <button className="nav-btn" onClick={handleToday}>I dag</button>
         </div>
+        
         <div className="calendar-nav-center">
           <span>{formatDateLabel()}</span>
         </div>
+
         <div className='calendar-nav-right'>
-            {/* Her kan du tilføje ekstra knapper eller information senere */}
+            {/* Knappen placeres her og får den valgte dato med */}
+            <CreateNewShift initialDate={selectedDate} />
         </div>
       </div>
 
@@ -87,12 +89,11 @@ const WorkCalendar = () => {
         ) : (
           <BaseDayCalendar 
             date={selectedDate} 
-            employees={calendarEmployees} 
+            employees={employees} 
             shifts={shifts} 
           />
         )}
       </div>
-
     </div>
   );
 };

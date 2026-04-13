@@ -65,6 +65,15 @@
   --nav-logo-bg: #3280fa;
   --nav-text: #f3f3f3;
   --nav-hover: #ffffff;
+
+  /* Role & ShiftCategory Colors (UML Synced) */
+  --color-hal-mand: #B8BB0B;
+  --color-hal-dreng: #D4D700;
+  --color-cafemedarbejder: #22C55E;
+  --color-administration: #F59E0B;
+  --color-rengoering: #7C3AED;
+  --color-opvasker: #06B6D4;
+  --color-andet: #94A3B8;
 }
 
 /* Base Styles */

@@ -3,7 +3,6 @@ import {
   format, startOfMonth, endOfMonth, startOfWeek, 
   endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday 
 } from 'date-fns';
-import { da } from 'date-fns/locale';
 import './BaseMonthCalendar.css';
 
 // Opdaterede farver der matcher din BaseDayCalendar.css
@@ -73,7 +72,7 @@ const BaseMonthCalendar = ({ currentDate, onDateSelect, shifts = [], employees =
                       className="stat-dot" 
                       style={{ backgroundColor: ROLE_COLORS[role] || ROLE_COLORS.default }}
                     ></span>
-                    <span className="stat-count">{count}</span>
+                    <span className="stat-count-month-calendar">{count}</span>
                   </div>
                 ))}
               </div>
