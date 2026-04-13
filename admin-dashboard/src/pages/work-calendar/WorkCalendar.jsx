@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { format, addDays, subDays, addMonths, subMonths } from 'date-fns';
 import { da } from 'date-fns/locale';
 import BaseDayCalendar from '../../components/calendar/BaseDayCalendar';
-import BaseWeekCalendar from '../../components/calendar/BaseMonthCalendar';
+import BaseMonthCalendar from '../../components/calendar/BaseMonthCalendar';
 import { employees, shifts } from '../../data/DummyData';
 import './WorkCalendar.css';
 
@@ -78,11 +78,21 @@ const WorkCalendar = () => {
 
       <div className="calendar-content">
         {view === 'month' ? (
-          <BaseWeekCalendar currentDate={selectedDate} onDateSelect={handleDateSelect} />
+          <BaseMonthCalendar 
+            currentDate={selectedDate} 
+            onDateSelect={handleDateSelect}
+            shifts={shifts}
+            employees={employees}
+          />
         ) : (
-          <BaseDayCalendar date={selectedDate} employees={calendarEmployees} shifts={shifts} />
+          <BaseDayCalendar 
+            date={selectedDate} 
+            employees={calendarEmployees} 
+            shifts={shifts} 
+          />
         )}
       </div>
+
     </div>
   );
 };

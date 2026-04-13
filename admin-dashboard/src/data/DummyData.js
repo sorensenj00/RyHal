@@ -1,75 +1,51 @@
 export const employees = [
-  {
-    id: 1,
-    name: 'John Doe',
-    email: 'john.doe@sportcenter.com',
-    phone: '+45 12 34 56 78',
-    role: 'Hal Mand',
-    status: 'Active',
-    image: null,
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    email: 'jane.smith@sportcenter.com',
-    phone: '+45 23 45 67 89',
-    role: 'Cafemedarbejder',
-    status: 'Active',
-    image: null,
-  },
-  {
-    id: 3,
-    name: 'Mike Johnson',
-    email: 'mike.johnson@sportcenter.com',
-    phone: '+45 34 56 78 90',
-    role: 'Administration',
-    status: 'Active',
-    image: null,
-  },
-  {
-    id: 4,
-    name: 'Sarah Wilson',
-    email: 'sarah.wilson@sportcenter.com',
-    phone: '+45 45 67 89 01',
-    role: 'Hal Mand',
-    status: 'Active',
-    image: null,
-  },
-  {
-    id: 5,
-    name: 'David Brown',
-    email: 'david.brown@sportcenter.com',
-    phone: '+45 56 78 90 12',
-    role: 'Rengøring',
-    status: 'Active',
-    image: null,
-  },
+  { id: 1, name: 'John Doe', role: 'Hal Mand', email: 'john@sport.dk', status: 'Active' },
+  { id: 2, name: 'Jane Smith', role: 'Cafemedarbejder', email: 'jane@sport.dk', status: 'Active' },
+  { id: 3, name: 'Mike Johnson', role: 'Administration', email: 'mike@sport.dk', status: 'Active' },
+  { id: 4, name: 'Sarah Wilson', role: 'Hal Mand', email: 'sarah@sport.dk', status: 'Active' },
+  { id: 5, name: 'David Brown', role: 'Rengøring', email: 'david@sport.dk', status: 'Active' },
+  { id: 6, name: 'Lene Jensen', role: 'Cafemedarbejder', email: 'lene@sport.dk', status: 'Active' },
+  { id: 7, name: 'Thomas Bang', role: 'Hal Mand', email: 'thomas@sport.dk', status: 'Active' },
+  { id: 8, name: 'Mette Frederiksen', role: 'Rengøring', email: 'mette@sport.dk', status: 'Active' },
+  { id: 9, name: 'Anders Hemmingsen', role: 'Administration', email: 'anders@sport.dk', status: 'Active' },
+  { id: 10, name: 'Sofie Nielsen', role: 'Cafemedarbejder', email: 'sofie@sport.dk', status: 'Active' },
+  { id: 11, name: 'Kasper Hjulmand', role: 'Hal Mand', email: 'kasper@sport.dk', status: 'Active' },
+  { id: 12, name: 'Louise Hansen', role: 'Rengøring', email: 'louise@sport.dk', status: 'Active' },
 ];
 
-export const shifts = [
-  { id: 1, employeeId: 1, date: '2026-04-08', startHour: 6, endHour: 14 },
-  { id: 2, employeeId: 1, date: '2026-04-09', startHour: 7, endHour: 15 },
-  { id: 3, employeeId: 1, date: '2026-04-10', startHour: 10, endHour: 18 },
-  { id: 4, employeeId: 2, date: '2026-04-08', startHour: 7, endHour: 15 },
-  { id: 5, employeeId: 2, date: '2026-04-09', startHour: 8, endHour: 16 },
-  { id: 6, employeeId: 2, date: '2026-04-10', startHour: 12, endHour: 20 },
-  { id: 7, employeeId: 3, date: '2026-04-08', startHour: 9, endHour: 17 },
-  { id: 8, employeeId: 3, date: '2026-04-09', startHour: 9, endHour: 17 },
-  { id: 9, employeeId: 3, date: '2026-04-10', startHour: 9, endHour: 17 },
-  { id: 10, employeeId: 4, date: '2026-04-08', startHour: 14, endHour: 22 },
-  { id: 11, employeeId: 4, date: '2026-04-09', startHour: 15, endHour: 22 },
-  { id: 12, employeeId: 4, date: '2026-04-10', startHour: 12, endHour: 20 },
-  { id: 13, employeeId: 5, date: '2026-04-08', startHour: 6, endHour: 12 },
-  { id: 14, employeeId: 5, date: '2026-04-09', startHour: 6, endHour: 12 },
-  { id: 15, employeeId: 5, date: '2026-04-10', startHour: 8, endHour: 14 },
-];
+// Helper funktion til at generere mange vagter hurtigt
+const generateShifts = () => {
+  const generatedShifts = [];
+  let idCounter = 1;
 
-export const dummyEmployee = {
-  id: '12345',
-  name: 'John Doe',
-  title: 'Job Title',
-  department: 'Department',
-  email: 'john.doe@example.com',
-  phone: '+1 (555) 123-4567',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
+  // Vi genererer vagter for hver dag i April 2026
+  for (let day = 1; day <= 30; day++) {
+    const dateString = `2026-04-${day.toString().padStart(2, '0')}`;
+    
+    // Hver dag har et tilfældigt antal medarbejdere på arbejde (mellem 4 og 8)
+    const dailyStaffCount = Math.floor(Math.random() * 5) + 4;
+    const shuffledEmployees = [...employees].sort(() => 0.5 - Math.random());
+    
+    for (let i = 0; i < dailyStaffCount; i++) {
+      const emp = shuffledEmployees[i];
+      
+      // Lav lidt variation i tidspunkterne
+      const startHour = Math.random() > 0.5 ? 8 : 14; 
+      const duration = 8;
+
+      generatedShifts.push({
+        id: idCounter++,
+        employeeId: emp.id,
+        date: dateString,
+        startHour: startHour,
+        endHour: startHour + duration,
+        type: 'Vagt' // Kan bruges til styling senere
+      });
+    }
+  }
+  return generatedShifts;
 };
+
+export const shifts = generateShifts();
+
+export const dummyEmployee = employees[0];
