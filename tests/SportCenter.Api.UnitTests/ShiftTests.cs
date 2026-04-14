@@ -2,6 +2,7 @@ using System;
 using Xunit;
 using FluentAssertions;
 using SportCenter.Api.Models;
+using SportCenter.Api.Services;
 
 namespace SportCenter.Api.UnitTests;
 
@@ -13,7 +14,7 @@ public class ShiftTests
         var start = DateTime.Today.AddHours(8);
         var end = DateTime.Today.AddHours(16);
 
-        var shift = new Shift(start, end, ShiftCategory.CLEANER, 1);
+        var shift = ShiftService.CreateShift(start, end, ShiftCategory.CLEANER, 1);
 
         shift.StartTime.Should().Be(start);
         shift.EndTime.Should().Be(end);
@@ -24,7 +25,7 @@ public class ShiftTests
     [Fact]
     public void Properties_AreMutable_AfterConstruction()
     {
-        var shift = new Shift(DateTime.Now, DateTime.Now.AddHours(8), ShiftCategory.OTHER);
+        var shift = ShiftService.CreateShift(DateTime.Now, DateTime.Now.AddHours(8), ShiftCategory.OTHER, 1);
 
         var newStart = DateTime.Today.AddHours(9);
         var newEnd = DateTime.Today.AddHours(17);

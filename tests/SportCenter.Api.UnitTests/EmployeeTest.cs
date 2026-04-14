@@ -59,8 +59,8 @@ public class EmployeeTests
 		employee.Qualifications.should().NotContain(qualification2);
 
 		//Forbindelse mellem employee og role
-		var role1 =EmployeeService.CreateRole("Manager", "Manages the sport center");
-		var role2 =EmployeeService.CreateRole("Cleaner", "Cleans the sport center");
+		var role1 = EmployeeService.CreateRole("Manager", "Manages the sport center");
+		var role2 = EmployeeService.CreateRole("Cleaner", "Cleans the sport center");
 		EmployeeService.AddRoleToEmployee(employee, role1);
 		EmployeeService.AddRolesToEmployee(employee, role2);
 
@@ -75,9 +75,9 @@ public class EmployeeTests
 		employee.Roles.Should().NotContain(role1);
 
 		//forbindelse mellem employee og shift
-		var shift1 = new Shift(DateTime.NowAddHours(8), DateTime.Now.AddHours(16), ShiftCategory.OTHER);
-		var shift2 = new Shift(DateTime.Now.AddHours(16), DateTime.Now.AddHours(24), ShiftCategory.ADMIN);
-		var shift3 = new Shift(DateTime.Now.AddHours(24), DateTime.Now.AddHours(32), ShiftCategory.CLEANER);
+		var shift1 = ShiftService.CreateShift(DateTime.NowAddHours(8), DateTime.Now.AddHours(16), ShiftCategory.OTHER);
+		var shift2 = ShiftService.CreateShift(DateTime.Now.AddHours(16), DateTime.Now.AddHours(24), ShiftCategory.ADMIN);
+		var shift3 = ShiftService.CreateShift(DateTime.Now.AddHours(24), DateTime.Now.AddHours(32), ShiftCategory.CLEANER);
 
 		EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift1.ShiftId)
 		EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift2.ShiftId)
