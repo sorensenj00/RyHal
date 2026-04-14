@@ -2,7 +2,7 @@ namespace SportCenter.Api.Models;
 
 public class Event
 {
-    public int Id { get; set; }
+    public int Id { get; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     
@@ -29,8 +29,9 @@ public class Event
     private Event() { }
 
     // Constructor til at oprette et nyt event i koden
-    public Event(string name, string? description, DateTime startTime, DateTime endTime, EventCategory category, int locationId, int? templateId, int? seriesId = null)
+    public Event(string name, string? description, DateTime startTime, DateTime endTime, EventCategory category, int locationId, int? templateId, int? seriesId = null, int id)
     {
+        Id = id;
         Name = name;
         Description = description;
         StartTime = startTime;

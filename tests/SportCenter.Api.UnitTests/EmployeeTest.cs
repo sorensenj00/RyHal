@@ -10,10 +10,11 @@ public class EmployeeTests
 	[Fact]
 	public void Constructor_SetsProperties()
 	{
-		var employee = EmployeeService.createEmployee("John", "Doe");
+		var employee = EmployeeService.createEmployee("John", "Doe", 1);
 
 		employee.FirstName.Should().Be("John");
 		employee.LastName.Should().Be("Doe");
+		employee.EmployeeId.Should().Be(1);
 
 		var qualification EmployeeService.CreateQualification("Cleaning", "Qualified to clean the sport center");
 		qualification.Name.Should().Be("Cleaning");
@@ -28,7 +29,7 @@ public class EmployeeTests
 	[Fact]
 	public void properties_AreMutable_AfterConstruction()
 	{
-		var employee = EmployeeService.createEmployee("John", "Doe");
+		var employee = EmployeeService.createEmployee("John", "Doe", 1);
 
 		employee.FirstName = "Jane";
 		employee.LastName = "Smith";
@@ -41,28 +42,37 @@ public class EmployeeTests
 		employee.Email.Should().Be("janeSmith@mail.com");
 
 		//forbindelse mellem employee og qualification
-		var qualification = EmployeeService.CreateQualification("Cleaning", "Qualified to clean the sport center");
-		EmployeeService.AddQualificationToEmployee(employee, qualification);
+		var qualification1 = EmployeeService.CreateQualification("Cleaning", "Qualified to clean the sport center");
+		var qualification2 = EmployeeService.CreateQualification("Management", "Qualified to manage the sport center");
+		EmployeeService.AddQualificationToEmployee(employee, qualification1);
+		EmployeeService.AddQualificationToEmployee(employee, qualification2);
 
 		employee.Qualifications.Should().haveCount(1);
-		employee.Qualifications.should().Contain(qualification);
+		employee.Qualifications.should().Contain(qualification1);
+		employee.Qualifications.should().contain(qualification2);
 
-		EmployeeService.RemoveQualificationFromEmployee(employee, qualification);
+		EmployeeService.RemoveQualificationFromEmployee(employee, qualification1);
+		EmployeeService.RemoveQualification(qualification2);
 
 		employee.Qualifications.Should().haveCount(0);
 		employee.Qualifications.should().NotContain(qualification);
+		employee.Qualifications.should().NotContain(qualification2);
 
 		//Forbindelse mellem employee og role
-		var role =EmployeeService.CreateRole("Manager", "Manages the sport center");
-		EmployeeService.AddRoleToEmployee(employee, role);
+		var role1 =EmployeeService.CreateRole("Manager", "Manages the sport center");
+		var role2 =EmployeeService.CreateRole("Cleaner", "Cleans the sport center");
+		EmployeeService.AddRoleToEmployee(employee, role1);
+		EmployeeService.AddRolesToEmployee(employee, role2);
 
-		employee.Roles.Should().haveCount(1);
-		employee.Roles.Should().Contain(role);
+		employee.Roles.Should().haveCount(2);
+		employee.Roles.Should().Contain(role1);
+		employee.Roles.Should().Contain(role2);
 
-		EmployeeService.RemoveRoleFromEmployee(employee, role);
+		EmployeeService.RemoveRoleFromEmployee(employee, role1);
+		EmployeeService.RemoveRole(role2);
 		
 		employee.Roles.Should().haveCount(0);
-		employee.Roles.Should().NotContain(role);
+		employee.Roles.Should().NotContain(role1);
 
 		//forbindelse mellem employee og shift
 		var shift1 = new Shift(DateTime.NowAddHours(8), DateTime.Now.AddHours(16), ShiftCategory.OTHER);
@@ -77,7 +87,6 @@ public class EmployeeTests
 		employee.Shifts.should().Contain(shift1);
 		employee.Shifts.should().Contain(shift2);
 		employee.Shifts.should().Contain(shift3);
-
 
 		EmployeeService.removeShiftFromEmployee(employee.EmployeeId, shift2.ShiftId)
 		employee.Shifts.Should().haveCount(2);

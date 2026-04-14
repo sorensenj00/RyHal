@@ -13,14 +13,12 @@ public class ShiftTests
         var start = DateTime.Today.AddHours(8);
         var end = DateTime.Today.AddHours(16);
 
-        var shift = new Shift(start, end, ShiftCategory.CLEANER);
+        var shift = new Shift(start, end, ShiftCategory.CLEANER, 1);
 
         shift.StartTime.Should().Be(start);
         shift.EndTime.Should().Be(end);
         shift.Category.Should().Be(ShiftCategory.CLEANER);
-
-        // ShiftId should be assigned by the constructor (non-negative)
-        shift.ShiftId.Should().BeGreaterThanOrEqualTo(0);
+        shift.ShiftId.Should().Be(1);
     }
 
     [Fact]

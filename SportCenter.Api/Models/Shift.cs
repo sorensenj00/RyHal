@@ -1,17 +1,15 @@
 namespace SportCenter.Api.Models;
 public class Shift
 {
-    public Shift(DateTime startTime, DateTime endTime, ShiftCategory category)
+    public Shift(DateTime startTime, DateTime endTime, ShiftCategory category, int id)
     {
-        ShiftId = _id++;
+        ShiftId = id;
         StartTime = startTime;
         EndTime = endTime;
         Category = category;
     }
 
-	private static int _id = 0;
-
-	public int ShiftId { get; set; }
+	public int ShiftId { get; }
 
     public DateTime StartTime { get; set; }
 
