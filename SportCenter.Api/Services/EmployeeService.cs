@@ -24,8 +24,11 @@ namespace SportCenter.Api.Services
         {
             //TODO
             //NEEDS DATABASE
-
-            return null;
+            foreach (var shift in employee.Shifts)
+            {
+                ShiftService.SetEmployee(shift.ShiftId, -1); //Fjerner employee reference fra alle shifts
+			}
+			return null;
         }
 
         public bool IsOver18(Employee employee)
@@ -132,10 +135,10 @@ namespace SportCenter.Api.Services
             {
 			    employee.Shifts.Add(shift);
 
-			    //tilføjer hos modparten
-			    if (shift.Employee != employee)
+				//tilføjer hos modparten hvis nødvendigt
+				if (shift.Employee != employee)
 			    {
-                    //TODO lave dette kald til shiftservices: setEmployee(shiftId, employeeId);
+                    ShiftService.SetEmployee(shift.ShiftId, employeeId);
 			    }
 				//TODO opdater employee i database
 			}
@@ -156,8 +159,8 @@ namespace SportCenter.Api.Services
                 //Fjerner hos modparten
                 if (shift.Employee == employee)
                 {
-                    //TODO lave dette kald til shiftservice: SetEmployee(shiftId, null);
-                }
+                    ShiftService.SetEmployee(shiftId, -1); //-1 indikerer at shift ikke længere har en employee
+				}
 
 				//TODO opdater employee i database
 			}
