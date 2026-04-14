@@ -13,11 +13,11 @@ namespace SportCenter.Api.Services
         /// <returns>
         /// Created Employee object
         /// </returns>
-        public Employee CreateEmployee(string firstname, string lastName)
+        public Employee CreateEmployee(string firstname, string lastName, int id)
         {
             //TODO: ADD DATABASE INTEGRATION
 
-            return new Employee(firstname, lastName);
+            return new Employee(firstname, lastName, id);
         }
 
         public Employee RemoveEmployee(Employee employee)
@@ -26,6 +26,18 @@ namespace SportCenter.Api.Services
             //NEEDS DATABASE
 
             return null;
+        }
+
+        public bool isOver18(Employee employee)
+        {
+            if (employee.birthday == null)
+            {
+                throw new ArgumentNullException("Employee birthday is not set");
+            }    
+            else 
+            {
+                return employee.birthday.Value.AddYears(18) <= DateOnly.FromDateTime(DateTime.Now);
+			}
         }
 
         /// <summary>

@@ -8,9 +8,103 @@ namespace SportCenter.Api.UnitTests;
 public class EmployeeTests
 {
 	[Fact]
+	public void Constructor_SetsProperties()
+	{
+		var employee = EmployeeService.createEmployee("John", "Doe", 1);
+
+		employee.FirstName.Should().Be("John");
+		employee.LastName.Should().Be("Doe");
+		employee.EmployeeId.Should().Be(1);
+
+		var qualification EmployeeService.CreateQualification("Cleaning", "Qualified to clean the sport center");
+		qualification.Name.Should().Be("Cleaning");
+		qualification.Description.Should().Be("Qualified to clean the sport center");
+
+		var role = EmployeeService.CreateRole("Manager", "Manages the sport center");
+		role.Name.Should().Be("Manager");
+		role.Description.Should().Be("Manages the sport center");
+
+	}
+
+	[Fact]
 	public void properties_AreMutable_AfterConstruction()
 	{
-		var employee = new Employee("John", "Doe");
-		//TODO: når vi har implementeret EmployeeService, skal vi teste at vi kan tilføje og fjerne roller og kvalifikationer til en employee, samt at vi kan tilføje og fjerne shifts til en employee
+		var employee = EmployeeService.createEmployee("John", "Doe", 1);
+
+		employee.FirstName = "Jane";
+		employee.LastName = "Smith";
+		employee.Phone ="123"
+		employee.Email = "janeSmith@mail.com";
+
+		employee.FirstName.Should().Be("Jane");
+		employee.LastName.Should().Be("Smith");
+		employee.Phone.Should().Be("123");
+		employee.Email.Should().Be("janeSmith@mail.com");
+
+		//forbindelse mellem employee og qualification
+		var qualification1 = EmployeeService.CreateQualification("Cleaning", "Qualified to clean the sport center");
+		var qualification2 = EmployeeService.CreateQualification("Management", "Qualified to manage the sport center");
+		EmployeeService.AddQualificationToEmployee(employee, qualification1);
+		EmployeeService.AddQualificationToEmployee(employee, qualification2);
+
+		employee.Qualifications.Should().haveCount(1);
+		employee.Qualifications.should().Contain(qualification1);
+		employee.Qualifications.should().contain(qualification2);
+
+		EmployeeService.RemoveQualificationFromEmployee(employee, qualification1);
+		EmployeeService.RemoveQualification(qualification2);
+
+		employee.Qualifications.Should().haveCount(0);
+		employee.Qualifications.should().NotContain(qualification);
+		employee.Qualifications.should().NotContain(qualification2);
+
+		//Forbindelse mellem employee og role
+		var role1 =EmployeeService.CreateRole("Manager", "Manages the sport center");
+		var role2 =EmployeeService.CreateRole("Cleaner", "Cleans the sport center");
+		EmployeeService.AddRoleToEmployee(employee, role1);
+		EmployeeService.AddRolesToEmployee(employee, role2);
+
+		employee.Roles.Should().haveCount(2);
+		employee.Roles.Should().Contain(role1);
+		employee.Roles.Should().Contain(role2);
+
+		EmployeeService.RemoveRoleFromEmployee(employee, role1);
+		EmployeeService.RemoveRole(role2);
+		
+		employee.Roles.Should().haveCount(0);
+		employee.Roles.Should().NotContain(role1);
+
+		//forbindelse mellem employee og shift
+		var shift1 = new Shift(DateTime.NowAddHours(8), DateTime.Now.AddHours(16), ShiftCategory.OTHER);
+		var shift2 = new Shift(DateTime.Now.AddHours(16), DateTime.Now.AddHours(24), ShiftCategory.ADMIN);
+		var shift3 = new Shift(DateTime.Now.AddHours(24), DateTime.Now.AddHours(32), ShiftCategory.CLEANER);
+
+		EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift1.ShiftId)
+		EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift2.ShiftId)
+		EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift3.ShiftId)
+
+		employee.Shifts.Should().haveCount(3);
+		employee.Shifts.should().Contain(shift1);
+		employee.Shifts.should().Contain(shift2);
+		employee.Shifts.should().Contain(shift3);
+
+		EmployeeService.removeShiftFromEmployee(employee.EmployeeId, shift2.ShiftId)
+		employee.Shifts.Should().haveCount(2);
+		employee.Shifts.should().Contain(shift1);
+		employee.Shifts.should().NotContain(shift2);
+		employee.Shifts.should().Contain(shift3);
+
+		List<Shift> futureShifts = ShiftEmployeeService.getFutureShiftsForEmployee(employee.EmployeeId);
+		futureShifts.Should().HaveCount(2);
+		futureShifts.ShouldContain(shift1);
+		futureShifts.ShouldContain(shift3);
+
+		double totalHours = EmployeeService.getTotalHoursForMonth(employee.EmployeeId, DateTime.Now.Month, DateTime.Now.Year);
+		totalHours.Should().Be(16);
+
+		EmployeeService.removeEmployee(employee.EmployeeId);
+		shift1.Employee.Should().BeNull();
+		shift2.Employee.Should().BeNull();
+		shift3.Employee.Should().BeNull();
 	}
 }

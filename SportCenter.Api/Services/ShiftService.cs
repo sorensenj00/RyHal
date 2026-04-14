@@ -5,6 +5,17 @@ namespace SportCenter.Api.Services;
 
 public class ShiftService
 {
+	public Shift CreateShift(DateTime startTime, DateTime endTime, ShiftCategory shiftCategory int id)
+	{
+		//TODO: ADD DATABASE INTEGRATION
+		return new Shift(startTime, endTime, shiftCategory, id);
+	}
+
+	public Shift RemoveShift(Shift shift)
+	{
+		//TODO: ADD DATABASE INTEGRATION
+		return shift;
+	}
 
 	public void setEmployee(int shiftId, int employeeId)
 	{
