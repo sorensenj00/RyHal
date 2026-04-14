@@ -9,6 +9,7 @@ import CreateActivity from './components/activities/CreateActivity';
 import WorkCalendar from "./pages/work-calendar/WorkCalendar";
 import CreateNewEmployee from "./pages/create-new-employee/CreateNewEmployee";
 import Welcome from "./pages/home/Welcome";
+import ShowEmployee from "./pages/show-employee/ShowEmployee";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/create-activity" element={<CreateActivity />} />
             <Route path="/work-calendar" element={<WorkCalendar />} />
             <Route path="/create-employee" element={<CreateNewEmployee />} />
+            <Route path="/show-employee" element={<ShowEmployee />} />
             {/* ... Alle andre routes */}
           </Routes>
         </main>
