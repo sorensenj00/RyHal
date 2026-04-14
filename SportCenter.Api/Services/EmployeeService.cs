@@ -28,7 +28,7 @@ namespace SportCenter.Api.Services
             return null;
         }
 
-        public bool isOver18(Employee employee)
+        public bool IsOver18(Employee employee)
         {
             if (employee.birthday == null)
             {

@@ -37,6 +37,22 @@ public class ShiftTests
         shift.StartTime.Should().Be(newStart);
         shift.EndTime.Should().Be(newEnd);
         shift.Category.Should().Be(ShiftCategory.ADMIN);
-		//TODO: når vi har implementeret shiftservice, skal der testes at dennes metoder korrekt opdaterer shift-objekter
+        //TODO: når vi har implementeret shiftservice, skal der testes at dennes metoder korrekt opdaterer shift-objekter
+
+        //test af forbindelse med employee
+        var employee1 = EmployeeService.CreateEmployee("John", "Doe", 1);
+        var employee2 = EmployeeService.CreateEmployee("Jane", "Smith", 2);
+
+		ShiftService.setEmployee(1,1);
+        shift.Employee.Should().Be(employee1);
+
+        ShiftService.setEmployee(1,2);
+        shift.Employee.Should().Be(employee2);
+
+        employee1.Shifts.Should().NotContain(shift);
+        employee2.Shifts.Should().Contain(shift);
+
+        ShiftService.RemoveShift(shift);
+        employee2.Shifts.Should().NotContain(shift);
 	}
 }
