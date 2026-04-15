@@ -11,10 +11,16 @@ public class ShiftService
 		return new Shift(startTime, endTime, shiftCategory, id);
 	}
 
-	public Shift RemoveShift(Shift shift)
+	public Shift RemoveShift(int shiftID)
 	{
-		//TODO: ADD DATABASE INTEGRATION
-		shift.Employee.Shifts.Remove(shift); //Fjerner shift fra employee's liste
+		Shift shift = null; //TODO: ADD DATABASE INTEGRATION
+        if (shift == null)
+        {
+            throw new ArgumentNullException("Shift not found");
+        }
+
+        shift.Employee.Shifts.Remove(shift); //Fjerner shift fra employee's liste
+		
 		return shift;
 	}
 
