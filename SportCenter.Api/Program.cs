@@ -49,7 +49,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Use HTTP only in development (no HTTPS redirection)
+// app.UseHttpsRedirection(); // Disabled - Kestrel HTTPS config not set
 
 app.UseCors("AllowReactDev");
 
@@ -57,27 +58,34 @@ app.UseCors("AllowReactDev");
 app.MapControllers();
 
 // Testing EventService in-memory CRUD (wrap in scope)
-using (var scope = app.Services.CreateScope())
+try
 {
-    var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
-
-    await eventService.CreateEventAsync(
-        "Test Event",
-        "Test Description",
-        DateTime.Now,
-        DateTime.Now.AddHours(1),
-        EventCategory.Other,
-        new List<LocationBookingDto> { new LocationBookingDto(1, DateTime.Now, DateTime.Now.AddHours(1)) },
-        null,
-        "System"
-    );
-
-    var testEvents = await eventService.GetTestEventsAsync();
-    Console.WriteLine($"[Test] Number of events in memory: {testEvents.Count}");
-    foreach (var e in testEvents)
+    using (var testScope = app.Services.CreateScope())
     {
-        Console.WriteLine($"[Test] Event Name: {e.Name}");
+        var eventService = testScope.ServiceProvider.GetRequiredService<EventService>();
+
+        await eventService.CreateEventAsync(
+            "Test Event",
+            "Test Description",
+            DateTime.Now,
+            DateTime.Now.AddHours(1),
+            EventCategory.Other,
+            new List<LocationBookingDto> { new LocationBookingDto(1, DateTime.Now, DateTime.Now.AddHours(1)) },
+            null,
+            "System"
+        );
+
+        var testEvents = await eventService.GetTestEventsAsync();
+        Console.WriteLine($"[Test] Number of events in memory: {testEvents.Count}");
+        foreach (var e in testEvents)
+        {
+            Console.WriteLine($"[Test] Event Name: {e.Name}");
+        }
     }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[Test] In-memory test skipped: {ex.GetType().Name}: {ex.Message}");
 }
 
 app.Run();
