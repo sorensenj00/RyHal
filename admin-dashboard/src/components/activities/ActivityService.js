@@ -113,7 +113,7 @@ export const addActivity = async (activity) => {
                     !activity.locations.some(loc => loc.locationId);
   const isDraft = activity.isDraft || autoDraft;
 
-  // Build payload for backend
+  // Build payload for backend — only include datetime strings when both date and time parts exist
   const startDateTime = activity.startDate && activity.startTime ? `${activity.startDate}T${activity.startTime}` : null;
   const endDateTime = activity.startDate && activity.endTime ? `${activity.startDate}T${activity.endTime}` : null;
 
@@ -130,7 +130,7 @@ export const addActivity = async (activity) => {
     Description: activity.description,
     StartTime: startDateTime,
     EndTime: endDateTime,
-    Category: 'Other',
+    Category: 3, // Other = 3
     Locations: locationsPayload,
     TemplateId: null,
     CreatedBy: 'System',
@@ -140,76 +140,42 @@ export const addActivity = async (activity) => {
     IsDraft: isDraft
   };
 
-  try {
-    const res = await fetchAPI('/events', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    const created = await res.json();
+  const res = await fetchAPI('/events', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+  const created = await res.json();
 
-    // Convert back to frontend format
-    return {
-      id: created.id,
-      title: created.name,
-      description: created.description,
-      startDate: created.startTime?.split('T')[0] || '',
-      startTime: created.startTime?.split('T')[1]?.substring(0,5) || '',
-      endTime: created.endTime?.split('T')[1]?.substring(0,5) || '',
-      isRecurring: !!created.seriesId,
-      recurrenceFrequency: created.recurrenceFrequency,
-      recurrenceEndDate: created.recurrenceEndDate,
-      occurrences: created.locations?.map(loc => ({
-        date: created.startTime?.split('T')[0] || '',
-        startTime: loc.startTime?.split('T')[1]?.substring(0,5) || '',
-        endTime: loc.endTime?.split('T')[1]?.substring(0,5) || ''
-      })) || [],
-      isDraft: created.isDraft
-    };
-  } catch (err) {
-    console.warn('API call failed, using fallback storage:', err.message);
-    // Fallback: generate in-memory event
-    let occurrences = [];
-    if (activity.isRecurring && activity.recurrenceEndDate) {
-      let currentDate = new Date(activity.startDate || new Date());
-      const endDate = new Date(activity.recurrenceEndDate);
-      while (currentDate <= endDate) {
-        occurrences.push({
-          date: currentDate.toISOString().split('T')[0],
-          startTime: activity.startTime || '',
-          endTime: activity.endTime || ''
-        });
-        if (activity.recurrenceFrequency === 'Daily') {
-          currentDate.setDate(currentDate.getDate() + 1);
-        } else if (activity.recurrenceFrequency === 'Weekly') {
-          currentDate.setDate(currentDate.getDate() + 7);
-        } else if (activity.recurrenceFrequency === 'Monthly') {
-          currentDate.setMonth(currentDate.getMonth() + 1);
-        } else {
-          break;
-        }
-      }
-    }
-    const newActivity = {
-      ...activity,
-      isDraft,
-      id: activities.length > 0 ? Math.max(...activities.map(a => a.id)) + 1 : 1,
-      occurrences
-    };
-    activities.push(newActivity);
-    return newActivity;
-  }
+  // Convert back to frontend format
+  return {
+    id: created.id,
+    title: created.name,
+    description: created.description,
+    startDate: created.startTime?.split('T')[0] || '',
+    startTime: created.startTime?.split('T')[1]?.substring(0,5) || '',
+    endTime: created.endTime?.split('T')[1]?.substring(0,5) || '',
+    isRecurring: !!created.seriesId,
+    recurrenceFrequency: created.recurrenceFrequency,
+    recurrenceEndDate: created.recurrenceEndDate,
+    occurrences: created.locations?.map(loc => ({
+      date: created.startTime?.split('T')[0] || '',
+      startTime: loc.startTime?.split('T')[1]?.substring(0,5) || '',
+      endTime: loc.endTime?.split('T')[1]?.substring(0,5) || ''
+    })) || [],
+    isDraft: created.isDraft
+  };
 };
 
 export const updateActivity = async (updated) => {
   try {
     // Build payload for publish endpoint
-    const startDateTime = `${updated.startDate}T${updated.startTime}`;
-    const endDateTime = `${updated.startDate}T${updated.endTime}`;
+    const startDateTime = updated.startDate && updated.startTime ? `${updated.startDate}T${updated.startTime}` : null;
+    const endDateTime = updated.startDate && updated.endTime ? `${updated.startDate}T${updated.endTime}` : null;
 
     const locationsPayload = (updated.occurrences || []).map(occ => ({
-      LocationId: 1, // Default; could be passed in occ.locationId
-      StartTime: `${updated.startDate}T${occ.startTime}`,
-      EndTime: `${updated.startDate}T${occ.endTime}`
+      LocationId: occ.locationId || 1,
+      StartTime: updated.startDate && occ.startTime ? `${updated.startDate}T${occ.startTime}` : null,
+      EndTime: updated.startDate && occ.endTime ? `${updated.startDate}T${occ.endTime}` : null
     }));
 
     const payload = {
@@ -217,7 +183,7 @@ export const updateActivity = async (updated) => {
       Description: updated.description,
       StartTime: startDateTime,
       EndTime: endDateTime,
-      Category: 'Other',
+      Category: 3,
       Locations: locationsPayload,
       TemplateId: null,
       CreatedBy: 'System',

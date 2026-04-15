@@ -57,8 +57,8 @@ public class EventService
             var newEvent = new Event(
                 dto.Name,
                 dto.Description,
-                dto.StartTime,
-                dto.EndTime,
+                ToUtc(dto.StartTime),
+                ToUtc(dto.EndTime),
                 dto.Category,
                 dto.TemplateId,
                 null,
@@ -73,8 +73,8 @@ public class EventService
                 newEvent.EventLocations.Add(new EventLocation
                 {
                     LocationId = loc.LocationId,
-                    StartTime = loc.StartTime,
-                    EndTime = loc.EndTime
+                    StartTime = ToUtc(loc.StartTime),
+                    EndTime = ToUtc(loc.EndTime)
                 });
             }
 
@@ -132,8 +132,8 @@ public class EventService
                 var eventInstance = new Event(
                     dto.Name,
                     dto.Description,
-                    dto.IsDraft ? null : date,
-                    dto.IsDraft ? null : date.Add(duration),
+                    dto.IsDraft ? null : ToUtc(date),
+                    dto.IsDraft ? null : ToUtc(date.Add(duration)),
                     dto.Category,
                     dto.TemplateId,
                     series.Id,
@@ -159,8 +159,8 @@ public class EventService
                     else
                     {
                         var occDate = date.Date;
-                        var locStart = occDate + (loc.StartTime?.TimeOfDay ?? TimeSpan.Zero);
-                        var locEnd = occDate + (loc.EndTime?.TimeOfDay ?? TimeSpan.Zero);
+                        var locStart = ToUtc(occDate + (loc.StartTime?.TimeOfDay ?? TimeSpan.Zero));
+                        var locEnd = ToUtc(occDate + (loc.EndTime?.TimeOfDay ?? TimeSpan.Zero));
 
                         eventInstance.EventLocations.Add(new EventLocation
                         {
@@ -218,6 +218,21 @@ public class EventService
         );
     }
 
+    // Convert DateTime? to UTC for PostgreSQL compatibility
+    private static DateTime? ToUtc(DateTime? dt)
+    {
+        if (!dt.HasValue) return null;
+        var value = dt.Value;
+        // Convert based on current Kind, then mark as UTC
+        return value.Kind == DateTimeKind.Utc ? value : value.ToUniversalTime();
+    }
+
+    private static DateTime ToUtc(DateTime dt)
+    {
+        // Convert based on current Kind, then mark as UTC
+        return dt.Kind == DateTimeKind.Utc ? dt : dt.ToUniversalTime();
+    }
+
     public async Task<List<EventResponseDto>> GetAllAsync()
     {
         var events = await _context.Events
@@ -258,8 +273,8 @@ public class EventService
             throw new ArgumentException("Mindst én lokation med tid er påkrævet for at publicer en kladde.");
 
         // Update event properties
-        existingEvent.StartTime = updateDto.StartTime;
-        existingEvent.EndTime = updateDto.EndTime;
+        existingEvent.StartTime = ToUtc(updateDto.StartTime);
+        existingEvent.EndTime = ToUtc(updateDto.EndTime);
         existingEvent.IsDraft = false;
 
         // Clear existing locations and add updated ones
@@ -271,8 +286,8 @@ public class EventService
             existingEvent.EventLocations.Add(new EventLocation
             {
                 LocationId = loc.LocationId,
-                StartTime = loc.StartTime,
-                EndTime = loc.EndTime
+                StartTime = ToUtc(loc.StartTime),
+                EndTime = ToUtc(loc.EndTime)
             });
         }
 
@@ -422,8 +437,8 @@ public class EventService
                     else
                     {
                         var occDate = date.Date;
-                        var locStart = occDate + (loc.StartTime?.TimeOfDay ?? TimeSpan.Zero);
-                        var locEnd = occDate + (loc.EndTime?.TimeOfDay ?? TimeSpan.Zero);
+                        var locStart = ToUtc(occDate + (loc.StartTime?.TimeOfDay ?? TimeSpan.Zero));
+                        var locEnd = ToUtc(occDate + (loc.EndTime?.TimeOfDay ?? TimeSpan.Zero));
 
                         eventInstance.EventLocations.Add(new EventLocation
                         {
