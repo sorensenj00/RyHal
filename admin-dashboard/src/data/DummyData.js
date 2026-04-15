@@ -159,6 +159,42 @@ export const employees = [
   },
 ];
 
+export const locations = [
+  { id: 1, name: 'Hal A' },
+  { id: 2, name: 'Hal B' },
+  { id: 3, name: 'Hal C' },
+  { id: 4, name: 'Hal D1' },
+  { id: 5, name: 'Hal D2' },
+  { id: 6, name: 'Hal E' },
+  { id: 7, name: 'Mødelokale 1' },
+  { id: 8, name: 'Mødelokale 2' },
+];
+
+export const eventLocations = [
+  { id: 1, eventId: 101, locationId: 1, name: 'Håndbold Træning', category: 'SPORT', startTime: '2026-04-15T08:00:00', endTime: '2026-04-15T10:30:00' },
+  { id: 2, eventId: 102, locationId: 3, name: 'Personalemøde', category: 'MEETING', startTime: '2026-04-15T11:00:00', endTime: '2026-04-15T13:00:00' },
+
+  { id: 3, eventId: 103, locationId: 2, name: 'Badminton Træning', category: 'SPORT', startTime: '2026-04-15T09:00:00', endTime: '2026-04-15T11:00:00' },
+  { id: 4, eventId: 104, locationId: 4, name: 'Yoga Hold', category: 'SPORT', startTime: '2026-04-15T10:00:00', endTime: '2026-04-15T11:30:00' },
+  { id: 5, eventId: 105, locationId: 5, name: 'Fitness Workshop', category: 'SPORT', startTime: '2026-04-15T12:00:00', endTime: '2026-04-15T14:00:00' },
+  { id: 6, eventId: 106, locationId: 6, name: 'Basketkamp', category: 'SPORT', startTime: '2026-04-15T14:00:00', endTime: '2026-04-15T16:00:00' },
+
+  { id: 7, eventId: 107, locationId: 7, name: 'Bestyrelsesmøde', category: 'MEETING', startTime: '2026-04-15T09:30:00', endTime: '2026-04-15T11:30:00' },
+  { id: 8, eventId: 108, locationId: 8, name: 'Projektmøde', category: 'MEETING', startTime: '2026-04-15T13:30:00', endTime: '2026-04-15T15:00:00' },
+  { id: 9, eventId: 109, locationId: 7, name: 'Kundemøde', category: 'MEETING', startTime: '2026-04-15T15:00:00', endTime: '2026-04-15T16:00:00' },
+
+  { id: 10, eventId: 110, locationId: 1, name: 'Volleyball Kamp', category: 'SPORT', startTime: '2026-04-15T16:30:00', endTime: '2026-04-15T18:30:00' },
+  { id: 11, eventId: 111, locationId: 2, name: 'Fodbold Indendørs', category: 'SPORT', startTime: '2026-04-15T18:00:00', endTime: '2026-04-15T20:00:00' },
+  { id: 12, eventId: 112, locationId: 3, name: 'Skole Idræt', category: 'SPORT', startTime: '2026-04-15T08:30:00', endTime: '2026-04-15T10:00:00' },
+
+  { id: 13, eventId: 113, locationId: 4, name: 'Pilates', category: 'SPORT', startTime: '2026-04-15T17:00:00', endTime: '2026-04-15T18:00:00' },
+  { id: 14, eventId: 114, locationId: 5, name: 'Crossfit Hold', category: 'SPORT', startTime: '2026-04-15T18:30:00', endTime: '2026-04-15T19:30:00' },
+
+  { id: 15, eventId: 115, locationId: 8, name: 'HR Workshop', category: 'MEETING', startTime: '2026-04-15T10:00:00', endTime: '2026-04-15T12:00:00' },
+  { id: 16, eventId: 116, locationId: 6, name: 'Håndbold Kamp', category: 'SPORT', startTime: '2026-04-15T19:00:00', endTime: '2026-04-15T21:00:00' },
+];
+
+
 // Helper funktion til at generere mange vagter hurtigt
 const generateShifts = () => {
   const generatedShifts = [];

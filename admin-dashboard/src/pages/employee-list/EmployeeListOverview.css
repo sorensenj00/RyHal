@@ -24,6 +24,7 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--spacer);
   margin-bottom: var(--spacer-lg);
+  align-items: stretch; /* Tvinger alle børn til at have samme højde i en række */
 }
 
 .stat-card {
@@ -37,9 +38,18 @@
   transition: var(--transition-base);
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--box-shadow-lg);
+.role-graph-container {
+  min-height: 200px; /* Minimumshøjde så den ikke bliver for klemt */
+  justify-content: space-between;
+}
+
+.stats-grid > div, 
+.stat-card, 
+.role-graph-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .stat-card-primary {

@@ -43,7 +43,8 @@ export const ActivePagesForNavBar  = [
     children: [
       { to: "/activities/recurring", label: "Oversigt: Faste aktiviteter" },
       { to: "/activities/single", label: "Oversigt: Selvst. aktiviteter" },
-      { to: "/create-activity", label: "Opret aktivitet" }
+      { to: "/create-activity", label: "Opret aktivitet" },
+      { to: "/event-overview", label: "Event Oversigt" }
     ],
   },
 ];

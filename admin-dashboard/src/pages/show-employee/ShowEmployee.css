@@ -4,7 +4,8 @@
   max-width: 1600px; /* Øget for at give plads til 3 kolonner */
   margin: 0 auto;
   background-color: #f8fafc;
-  min-height: 100vh;
+  height: 100%;
+  
 }
 
 .page-header {

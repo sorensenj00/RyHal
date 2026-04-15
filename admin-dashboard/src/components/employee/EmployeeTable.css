@@ -1,59 +1,92 @@
-.employee-table-container {
-  width: 100%;
+.employee-table-card {
+  background: var(--white, #fff);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--gray-100, #f1f5f9);
+  overflow: hidden;
 }
 
-.table-wrapper {
+.table-header-info {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.table-header-info h3 { margin: 0; font-size: 1.1rem; color: #1e293b; }
+
+/* SCROLL LOGIK */
+.table-scroll-container {
+  max-height: 500px; /* Her styrer du højden på tabellen */
+  overflow-y: auto;
   overflow-x: auto;
 }
 
 .employee-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-sm);
-}
-
-.employee-table th,
-.employee-table td {
-  padding: 0.75rem;
   text-align: left;
-  border-bottom: var(--border-width) solid var(--gray-200);
 }
 
-.employee-table th {
-  background-color: var(--gray-100);
-  font-weight: var(--font-weight-bold);
-  color: var(--gray-900);
+/* Sticky Header */
+.employee-table thead th {
   position: sticky;
   top: 0;
+  background: #f8fafc;
+  padding: 1rem 1.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
   z-index: 10;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.employee-table tbody tr:hover {
-  background-color: var(--gray-50);
+.employee-table tbody td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
 }
 
-.employee-table tbody tr:last-child td {
-  border-bottom: none;
-}
+/* Bruger Information Cell */
+.user-cell { display: flex; align-items: center; gap: 12px; }
+.user-info { display: flex; flex-direction: column; }
+.user-name { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
+.user-id { font-size: 0.7rem; color: #94a3b8; }
 
-.employee-table td:last-child {
+/* Kontakt Cell */
+.contact-cell { display: flex; flex-direction: column; }
+.user-email { font-size: 0.85rem; color: #475569; }
+.user-phone { font-size: 0.75rem; color: #94a3b8; }
+
+/* Role Badges - Grundlæggende styling */
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 
-.employee-table td:last-child .btn {
-  margin-right: 0.25rem;
+/* Handlinger */
+.action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+.text-right { text-align: right; }
+
+.btn-action {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  background: white;
+  transition: all 0.2s;
 }
+
+.btn-action.edit:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.btn-action.delete:hover { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
 
 .employee-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--gray-200);
-  transition: var(--transition-base);
-}
-
-.employee-avatar:hover {
-  border-color: var(--primary-color);
-  transform: scale(1.1);
+  width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { employees } from '../../data/DummyData';
 import EmployeeSearchBar from '../../components/search/EmployeeSearchBar';
 import QualificationBox from '../../components/employee/qualifications/QualificationBox';
@@ -7,7 +8,30 @@ import defaultAvatar from '../../Assets/images/default-avatar.png';
 import './ShowEmployee.css';
 
 const ShowEmployee = () => {
-  const [selectedEmployee, setSelectedEmployee] = useState(employees[0]);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
+  useEffect(() => {
+    let foundEmployee;
+
+    if (id) {
+      // 1. Find medarbejder ud fra ID i URL
+      foundEmployee = employees.find(emp => emp.id === parseInt(id));
+    }
+
+    // 2. Hvis intet ID (eller forkert ID), vælg en tilfældig
+    if (!foundEmployee && employees.length > 0) {
+      const randomIndex = Math.floor(Math.random() * employees.length);
+      foundEmployee = employees[randomIndex];
+      // Vi navigerer til det korrekte ID for at holde URL synkroniseret
+      navigate(`/employee/${foundEmployee.id}`, { replace: true });
+    }
+
+    if (foundEmployee) {
+      setSelectedEmployee(foundEmployee);
+    }
+  }, [id, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -15,7 +39,7 @@ const ShowEmployee = () => {
   };
 
   const handleEmployeeChange = (emp) => {
-    if (emp) setSelectedEmployee(emp);
+    if (emp) navigate(`/employee/${emp.id}`);
   };
 
   if (!selectedEmployee) return null;
@@ -33,8 +57,7 @@ const ShowEmployee = () => {
       </header>
 
       <div className="employee-profile-container">
-        
-        {/* VENSTRE KOLONNE: Sidebar (Profil & Kontakt) */}
+        {/* SIDEBAR */}
         <aside className="profile-sidebar">
           <div className="profile-card">
             <img src={selectedEmployee.image || defaultAvatar} alt="Profil" className="profile-picture" />
@@ -46,11 +69,24 @@ const ShowEmployee = () => {
             <h3>Kontaktinformation</h3>
             <div className="info-item">
               <label>Email</label>
-              <input type="email" name="email" className="edit-input" value={selectedEmployee.email} onChange={handleInputChange} />
+              <input 
+                type="email" 
+                name="email" 
+                className="edit-input" 
+                value={selectedEmployee.email} 
+                onChange={handleInputChange} 
+              />
             </div>
             <div className="info-item">
               <label>Telefon</label>
-              <input type="text" name="phone" className="edit-input" value={selectedEmployee.phone || ''} onChange={handleInputChange} placeholder="Indtast telefon..." />
+              <input 
+                type="text" 
+                name="phone" 
+                className="edit-input" 
+                value={selectedEmployee.phone || ''} 
+                onChange={handleInputChange} 
+                placeholder="Indtast telefon..." 
+              />
             </div>
             <div className="info-item">
               <label>Status</label>
@@ -64,7 +100,7 @@ const ShowEmployee = () => {
           </div>
         </aside>
 
-        {/* MIDTER KOLONNE: Main (Kompetencer) */}
+        {/* MIDTER KOLONNE: Kompetencer */}
         <main className="profile-main">
           <div className="details-section qualifications-main">
             <h3>Kompetencer & Certifikater</h3>
@@ -72,13 +108,12 @@ const ShowEmployee = () => {
           </div>
         </main>
 
-        {/* HØJRE KOLONNE: Vagtoversigt (Selvstændigt element) */}
+        {/* HØJRE KOLONNE: Vagter */}
         <aside className="profile-shifts-aside">
           <div className="details-section">
             <EmployeeShiftList employeeId={selectedEmployee.id} />
           </div>
         </aside>
-
       </div>
     </div>
   );

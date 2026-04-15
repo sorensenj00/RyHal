@@ -1,0 +1,161 @@
+.heatmap-container, 
+.heatmap-container * {
+  box-sizing: border-box;
+}
+
+.heatmap-outer-wrapper {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.heatmap-scroll-container {
+  flex: 1;
+  overflow: auto; /* Aktiverer både horisontal og vertikal scroll */
+  background: white;
+  position: relative;
+}
+
+.heatmap-grid-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER STYLING */
+.heatmap-timeline {
+  display: flex;
+  background: #f1f5f9;
+  border-bottom: 2px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+.location-corner {
+  width: 200px;
+  min-width: 200px;
+  padding: 12px 15px;
+  font-weight: bold;
+  border-right: 2px solid #e2e8f0;
+  background: #f1f5f9;
+  position: sticky;
+  left: 0;
+  z-index: 110;
+}
+
+/* SYNKRONISERET GRID (Header og Rækker) */
+.time-labels-wrapper, 
+.row-content-area {
+  display: flex;
+  flex: 1;
+  position: relative;
+  /* Tegner de lodrette streger præcis for hver 120px */
+  background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px);
+  background-size: 120px 100%;
+}
+
+.time-label {
+  width: 120px;
+  min-width: 120px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748b;
+  padding: 12px 0;
+}
+
+/* RÆKKE STYLING */
+.location-row {
+  display: flex;
+  border-bottom: 1px solid #f1f5f9;
+  height: 85px;
+  width: 100%;
+}
+
+.location-name-cell {
+  width: 200px;
+  min-width: 200px;
+  padding: 0 15px;
+  background: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-right: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  left: 0;
+  z-index: 90;
+}
+
+/* EVENT ELEMENTER */
+.event-item {
+  position: absolute;
+  top: 10px;
+  height: 65px;
+  border-radius: 8px;
+  color: white;
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 0 5px;
+}
+
+.event-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+  pointer-events: none;
+}
+
+.event-main-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.event-name {
+  font-weight: 700;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-time {
+  font-size: 0.65rem;
+  opacity: 0.9;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 1px 4px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+/* RESIZE HANDLES */
+.resize-handle {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+}
+.resize-handle.left { left: 0; }
+.resize-handle.right { right: 0; }
+.event-item:hover .resize-handle { background: rgba(255, 255, 255, 0.2); }
+
+/* KATEGORI FARVER */
+.cat-sport { background-color: var(--color-hal-mand, #B8BB0B); }
+.cat-meeting { background-color: var(--color-administration, #F59E0B); }
+.cat-maintenance { background-color: var(--color-rengoering, #7C3AED); }
+.cat-other { background-color: var(--color-andet, #94A3B8); }
+
+.resizing { opacity: 0.8; z-index: 1000; cursor: col-resize; }
