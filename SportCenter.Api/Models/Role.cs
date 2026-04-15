@@ -4,7 +4,7 @@ public class Role
 {
 	public string Name { get; set; }
 
-	public Role(string name, string description)
+	public Role(string name)
 	{
 		Name = name;
 	}
