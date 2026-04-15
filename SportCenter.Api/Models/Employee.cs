@@ -13,9 +13,11 @@ public class Employee {
 
     public int EmployeeId { get; }
 
-    public List<Role>? Roles { get; set; }
+    public string? ProfileImageURL { get; set; }
 
-    public List<Qualification>? Qualifications { get; set; }
+    public List<Role> Roles { get; set; } = new List<Role>();
+
+    public List<Qualification> Qualifications { get; set; } = new List<Qualification>();
 
     public List<Shift> Shifts { get; set; } = new List<Shift>();
 
