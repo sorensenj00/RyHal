@@ -32,9 +32,36 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        // Attempt migrations; if tables already exist, this may throw — that's okay
         db.Database.Migrate();
     }
     Console.WriteLine("[DB] Migrations applied successfully.");
+}
+catch (Exception ex) when (ex.Message.Contains("already exists") || ex.Message.Contains("42P07"))
+{
+    Console.WriteLine("[DB] Tables already exist — marking migrations as applied.");
+    // Try to insert migration record manually so EF knows it's applied
+    try
+    {
+        using (var scope2 = app.Services.CreateScope())
+        {
+            var db2 = scope2.ServiceProvider.GetRequiredService<AppDbContext>();
+            var conn = db2.Database.GetDbConnection();
+            await conn.OpenAsync();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"") 
+                VALUES ('20260415084145_InitialCreate', '8.0.10')
+                ON CONFLICT (""MigrationId"") DO NOTHING;";
+            await cmd.ExecuteNonQueryAsync();
+            await conn.CloseAsync();
+        }
+        Console.WriteLine("[DB] Migration history recorded.");
+    }
+    catch (Exception ex2)
+    {
+        Console.WriteLine($"[DB] Could not record migration history: {ex2.Message}");
+    }
 }
 catch (Exception ex)
 {
@@ -53,6 +80,22 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection(); // Disabled - Kestrel HTTPS config not set
 
 app.UseCors("AllowReactDev");
+
+// Global error handler for API
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var error = new { message = ex.Message };
+        await context.Response.WriteAsJsonAsync(error);
+    }
+});
 
 // Map controllers
 app.MapControllers();

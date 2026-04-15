@@ -1,4 +1,4 @@
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5172/api';
 
 // Generic fetch wrapper with error handling
 async function fetchAPI(endpoint, options = {}) {
@@ -114,15 +114,15 @@ export const addActivity = async (activity) => {
   const isDraft = activity.isDraft || autoDraft;
 
   // Build payload for backend
-  const startDateTime = activity.startDate ? `${activity.startDate}T${activity.startTime}` : null;
-  const endDateTime = activity.startDate ? `${activity.startDate}T${activity.endTime}` : null;
+  const startDateTime = activity.startDate && activity.startTime ? `${activity.startDate}T${activity.startTime}` : null;
+  const endDateTime = activity.startDate && activity.endTime ? `${activity.startDate}T${activity.endTime}` : null;
 
   const locationsPayload = (activity.locations || [])
     .filter(loc => loc.locationId)
     .map(loc => ({
       LocationId: Number(loc.locationId),
-      StartTime: activity.startDate ? `${activity.startDate}T${loc.startTime}` : null,
-      EndTime: activity.startDate ? `${activity.startDate}T${loc.endTime}` : null
+      StartTime: activity.startDate && loc.startTime ? `${activity.startDate}T${loc.startTime}` : null,
+      EndTime: activity.startDate && loc.endTime ? `${activity.startDate}T${loc.endTime}` : null
     }));
 
   const payload = {
