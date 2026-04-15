@@ -68,3 +68,24 @@
   background-color: #1a73e8 !important;
   color: #fff !important;
 }
+
+/* Markering af selve intervallet imellem start og slut */
+.simple-day.in-range {
+  background-color: rgba(0, 123, 255, 0.1); /* Svag blå baggrund */
+  border-radius: 0; /* Gør det til et sammenhængende bånd */
+}
+
+/* Markering af start- og slutdato */
+.simple-day.range-start, 
+.simple-day.range-end {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  border-radius: 50% !important; /* Cirkel på endepunkterne */
+  position: relative;
+  z-index: 2;
+}
+
+/* Fix til båndet så det ser pænt ud ved cirklerne */
+.simple-day.range-start { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+.simple-day.range-end { border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; }
+  
