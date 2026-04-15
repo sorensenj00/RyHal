@@ -29,7 +29,7 @@ public class Event
     private Event() { }
 
     // Constructor til at oprette et nyt event i koden
-    public Event(string name, string? description, DateTime startTime, DateTime endTime, EventCategory category, int locationId, int? templateId, int? seriesId = null, int id)
+    public Event(string name, int id, string? description, DateTime startTime, DateTime endTime, EventCategory category, int locationId, int? templateId, int? seriesId = null)
     {
         Id = id;
         Name = name;

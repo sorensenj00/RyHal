@@ -26,7 +26,7 @@ namespace SportCenter.Api.Services
             //NEEDS DATABASE
             foreach (var shift in employee.Shifts)
             {
-                ShiftService.SetEmployee(shift.ShiftId, -1); //Fjerner employee reference fra alle shifts
+                ShiftService.setEmployee(shift.ShiftId, -1); //Fjerner employee reference fra alle shifts
 			}
 			return null;
         }
@@ -138,7 +138,7 @@ namespace SportCenter.Api.Services
 				//tilføjer hos modparten hvis nødvendigt
 				if (shift.Employee != employee)
 			    {
-                    ShiftService.SetEmployee(shift.ShiftId, employeeId);
+                    ShiftService.setEmployee(shift.ShiftId, employeeId);
 			    }
 				//TODO opdater employee i database
 			}
@@ -159,7 +159,7 @@ namespace SportCenter.Api.Services
                 //Fjerner hos modparten
                 if (shift.Employee == employee)
                 {
-                    ShiftService.SetEmployee(shiftId, -1); //-1 indikerer at shift ikke længere har en employee
+                    ShiftService.setEmployee(shiftId, -1); //-1 indikerer at shift ikke længere har en employee
 				}
 
 				//TODO opdater employee i database
@@ -175,7 +175,7 @@ namespace SportCenter.Api.Services
             }
             else
             {
-                var futureShifts = employee.Shifts.Where(shift => shift.Date > DateOnly.FromDateTime(DateTime.Now)).ToList();
+                var futureShifts = employee.Shifts.Where(shift => shift.StartTime > DateTime.Now).ToList();
                 return futureShifts;
             }
 		}
@@ -189,7 +189,7 @@ namespace SportCenter.Api.Services
 			}
             else 
             {
-                var shiftsInMonth = employee.Shifts.Where(shift => shift.Date.Month == month && shift.Date.Year == year).ToList();
+                var shiftsInMonth = employee.Shifts.Where(shift => shift.StartTime.Month == month && shift.StartTime.Year == year).ToList();
 			    double totalHours = shiftsInMonth.Sum(shift => (shift.EndTime - shift.StartTime).TotalHours);
 			    return totalHours;
             }

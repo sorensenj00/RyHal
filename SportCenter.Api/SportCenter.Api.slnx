@@ -1,4 +1,6 @@
 <Solution>
-  <Project Path="../tests/SportCenter.Api.UnitTests/SportCenter.Api.UnitTests.csproj" />
+  <Project Path="../tests/SportCenter.Api.UnitTests/SportCenter.Api.UnitTests.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="SportCenter.Api.csproj" />
 </Solution>

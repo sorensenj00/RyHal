@@ -5,7 +5,7 @@ namespace SportCenter.Api.Services;
 
 public class ShiftService
 {
-	public Shift CreateShift(DateTime startTime, DateTime endTime, ShiftCategory shiftCategory int id)
+	public Shift CreateShift(DateTime startTime, DateTime endTime, ShiftCategory shiftCategory, int id)
 	{
 		//TODO: ADD DATABASE INTEGRATION
 		return new Shift(startTime, endTime, shiftCategory, id);
@@ -44,7 +44,7 @@ public class ShiftService
 		//tjekker at modpartens link også opdateres
 		if (employee != null && !employee.Shifts.Contains(shift))
 		{
-			EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift.ShiftId);
+			EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift);
 		}
 
 		//TODO: opdatere shift i database
