@@ -11,7 +11,7 @@ builder.Services.AddOpenApi();
 
 // Register DbContext and EventService for DI
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SupabaseConnection")));
 builder.Services.AddScoped<EventService>();
 
 var app = builder.Build();

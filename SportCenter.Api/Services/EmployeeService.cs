@@ -26,7 +26,7 @@ namespace SportCenter.Api.Services
             //NEEDS DATABASE
             foreach (var shift in employee.Shifts)
             {
-                ShiftService.setEmployee(shift.ShiftId, -1); //Fjerner employee reference fra alle shifts
+                ShiftService.SetEmployee(shift.ShiftId, -1); //Fjerner employee reference fra alle shifts
 			}
 			return null;
         }
@@ -138,7 +138,7 @@ namespace SportCenter.Api.Services
 				//tilføjer hos modparten hvis nødvendigt
 				if (shift.Employee != employee)
 			    {
-                    ShiftService.setEmployee(shift.ShiftId, employeeId);
+                    ShiftService.SetEmployee(shift.ShiftId, employeeId);
 			    }
 				//TODO opdater employee i database
 			}
@@ -159,7 +159,7 @@ namespace SportCenter.Api.Services
                 //Fjerner hos modparten
                 if (shift.Employee == employee)
                 {
-                    ShiftService.setEmployee(shiftId, -1); //-1 indikerer at shift ikke længere har en employee
+                    ShiftService.SetEmployee(shiftId, -1); //-1 indikerer at shift ikke længere har en employee
 				}
 
 				//TODO opdater employee i database
