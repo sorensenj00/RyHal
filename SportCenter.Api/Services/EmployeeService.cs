@@ -123,7 +123,7 @@ namespace SportCenter.Api.Services
         }
 
 
-		public void AddShiftToEmployee(int employeeId, Shift shiftId)
+		public static void AddShiftToEmployee(int employeeId, int shiftId)
 		{
             Employee employee = null; //TODO: koble til database for at finde employee baseret på id
 			Shift shift = null; //TODO: koble til database for at finde shift baseret på id
@@ -175,7 +175,7 @@ namespace SportCenter.Api.Services
             }
             else
             {
-                var futureShifts = employee.Shifts.Where(shift => shift.Date > DateOnly.FromDateTime(DateTime.Now)).ToList();
+                var futureShifts = employee.Shifts.Where(shift => shift.StartTime > DateTime.Now).ToList();
                 return futureShifts;
             }
 		}
@@ -189,7 +189,7 @@ namespace SportCenter.Api.Services
 			}
             else 
             {
-                var shiftsInMonth = employee.Shifts.Where(shift => shift.Date.Month == month && shift.Date.Year == year).ToList();
+                var shiftsInMonth = employee.Shifts.Where(shift => shift.StartTime.Month == month && shift.StartTime.Year == year).ToList();
 			    double totalHours = shiftsInMonth.Sum(shift => (shift.EndTime - shift.StartTime).TotalHours);
 			    return totalHours;
             }

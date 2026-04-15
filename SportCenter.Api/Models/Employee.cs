@@ -19,7 +19,7 @@ public class Employee {
 
     public List<Shift> Shifts { get; set; } = new List<Shift>();
 
-	public Employee(string firstName, string lastName int id)
+	public Employee(string firstName, string lastName, int id)
     {
         FirstName = firstName;
         LastName = lastName;

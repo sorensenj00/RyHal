@@ -6,6 +6,7 @@ import EmployeeListOverview from './pages/employee-list/Employee-list-overview';
 import CreateNewShift from './components/shift/CreateNewShift';
 import ActivitiesList from './components/activities/ActivitiesList';
 import CreateActivity from './components/activities/CreateActivity';
+import DraftActivitiesList from './components/activities/DraftActivitiesList';
 import WorkCalendar from "./pages/work-calendar/WorkCalendar";
 import CreateNewEmployee from "./pages/create-new-employee/CreateNewEmployee";
 import Welcome from "./pages/home/Welcome";
@@ -24,6 +25,7 @@ function App() {
             <Route path="/create-shift" element={<CreateNewShift />} />
             <Route path="/activities/recurring" element={<ActivitiesList type="recurring" />} />
             <Route path="/activities/single" element={<ActivitiesList type="single" />} />
+            <Route path="/activities/drafts" element={<DraftActivitiesList />} />
             <Route path="/create-activity" element={<CreateActivity />} />
             <Route path="/work-calendar" element={<WorkCalendar />} />
             <Route path="/create-employee" element={<CreateNewEmployee />} />
