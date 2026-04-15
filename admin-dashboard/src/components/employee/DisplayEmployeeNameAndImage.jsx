@@ -10,8 +10,8 @@ function DisplayEmployeeNameAndImage({employeeId}) {
 
     return (
         <div className="employee-info">
-            <img src={employee.image || defaultAvatar} alt={`${employee.name}'s profile`} className="employee-image" />
-            <span className="employee-name">{employee.name}</span>
+            <img src={employee.image || defaultAvatar} alt={`${employee.firstName}'s profile`} className="employee-image" />
+            <span className="employee-name">{employee.firstName}</span>
         </div>
     );
 }

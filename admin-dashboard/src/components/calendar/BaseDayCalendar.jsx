@@ -57,7 +57,7 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => 
         <div className="calendar-body">
           {roleOrder.map((role) => {
             const employeesForRole = (employeesByRole[role] || []).sort((a, b) =>
-              a.name.localeCompare(b.name)
+              a.firstName.localeCompare(b.firstName)
             );
 
             if (!employeesForRole.length) return null;
@@ -97,7 +97,7 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => 
                             style={shiftStyle}
                             onClick={() => setSelectedShift(shift)}
                           >
-                            {employee.name}
+                            {employee.firstName}
                           </div>
                         )}
                       </div>

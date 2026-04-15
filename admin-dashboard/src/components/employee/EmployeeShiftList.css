@@ -1,0 +1,153 @@
+/* --- INTEGRERET DATE-PICKER LOGIK --- */
+
+.integrated-date-picker {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1.5rem; /* Afstand til vagtlisten under den */
+}
+
+.picker-row {
+  display: flex;
+  padding: 10px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--gray-100);
+  gap: 8px;
+}
+
+.mini-picker {
+  flex: 1;
+  background: white;
+  border: 1px solid var(--gray-200);
+  padding: 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mini-picker span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.mini-picker.active {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+}
+
+.mini-picker.active span {
+  color: white;
+}
+
+/* Kalender integration */
+.integrated-date-picker .simple-calendar-card {
+  border: none;
+  box-shadow: none;
+  padding: 5px;
+  background: transparent;
+}
+
+.integrated-date-picker .simple-calendar-header {
+  padding: 5px 10px;
+  font-size: 0.85rem;
+}
+
+/* --- KOMPAKT VAGTLISTE STYLING (Højre kolonne) --- */
+
+.shifts-list-scrollable {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) transparent;
+}
+
+.shift-results-header h4 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.shift-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.shift-list-item.compact {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: transform 0.15s ease;
+}
+
+.shift-list-item.compact:hover {
+  transform: translateX(3px);
+  border-color: var(--primary-color);
+}
+
+/* Ultra kompakt dato-badge */
+.shift-date-badge.mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-color);
+  color: white;
+  min-width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.shift-date-badge.mini .day {
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.shift-date-badge.mini .month {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Vagt info tekster */
+.shift-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.shift-info strong {
+  font-size: 0.85rem;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shift-info span {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.no-shifts-message {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+}

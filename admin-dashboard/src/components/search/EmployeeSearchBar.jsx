@@ -1,88 +1,106 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { employees } from '../../data/DummyData';
-import defaultAvatar from '../../Assets/images/default-avatar.png';
-import './EmployeeSearchBar.css';
+import './EmployeeSearchBar.css'; // Husk at importere din CSS her!
 
-const EmployeeSearchBar = ({ onEmployeeSelect, placeholder = "Søg medarbejder..." }) => {
+const EmployeeSearchBar = ({ onSelect, initialEmployeeId }) => {
+  const [showDropdown, setShowDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showResults, setShowResults] = useState(false);
-  const searchRef = useRef(null);
+  const dropdownRef = useRef(null);
 
+  // Synkroniser inputfeltet hvis initialEmployeeId ændrer sig (f.eks. når man åbner EditShift)
+  useEffect(() => {
+    if (initialEmployeeId) {
+      const emp = employees.find(e => e.id === initialEmployeeId);
+      if (emp) {
+        setSearchTerm(`${emp.firstName} ${emp.lastName}`);
+      }
+    } else {
+      setSearchTerm('');
+    }
+  }, [initialEmployeeId]);
+
+  // Luk dropdown når man klikker udenfor komponenten
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowResults(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredEmployees = employees.filter(emp =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtreringslogik baseret på de nye attributter (firstName, lastName, role)
+  const filteredEmployees = employees.filter(emp => {
+    const search = searchTerm.toLowerCase();
+    const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+    const role = emp.role.toLowerCase();
+    return fullName.includes(search) || role.includes(search);
+  });
 
   const handleSelect = (emp) => {
-    setSearchTerm(''); 
-    setShowResults(false);
-    if (onEmployeeSelect) {
-      onEmployeeSelect(emp);
+    if (emp) {
+      setSearchTerm(`${emp.firstName} ${emp.lastName}`);
+      onSelect(emp); 
+    } else {
+      setSearchTerm('');
+      onSelect(null);
     }
+    setShowDropdown(false);
   };
 
   return (
-    <div className="employee-search-container" ref={searchRef}>
-      <div className="search-input-wrapper">
+    <div className="searchable-select-container" ref={dropdownRef}>
+      <div className="search-input-box">
         <FontAwesomeIcon icon={faSearch} className="search-icon" />
-        <input
-          type="text"
-          className="search-field"
-          placeholder={placeholder}
-          value={searchTerm}
+        <input 
+          type="text" 
+          placeholder="Søg efter medarbejder..." 
+          value={searchTerm} 
+          onFocus={() => setShowDropdown(true)}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setShowResults(true);
-          }}
-          onFocus={() => setShowResults(true)}
+            setShowDropdown(true);
+          }} 
         />
-        {searchTerm && (
-          <button className="clear-btn" onClick={() => setSearchTerm('')} type="button">
-            <FontAwesomeIcon icon={faTimes} />
-          </button>
-        )}
+        <FontAwesomeIcon 
+          icon={faChevronDown} 
+          className={`chevron-icon ${showDropdown ? 'open' : ''}`} 
+          onClick={() => setShowDropdown(!showDropdown)}
+        />
       </div>
 
-      {showResults && searchTerm.length > 0 && (
-        <div className="search-results-dropdown">
-          {filteredEmployees.length > 0 ? (
-            filteredEmployees.map(emp => (
-              <div 
-                key={emp.id} 
-                className="search-result-item" 
-                onClick={() => handleSelect(emp)}
-              >
-                <img 
-                  src={emp.image || defaultAvatar} 
-                  alt={emp.name} 
-                  className="result-avatar" 
-                />
-                <div className="result-info">
-                  <span className="result-name">{emp.name}</span>
-                  <span className="result-role">{emp.role}</span>
-                </div>
+      <AnimatePresence>
+        {showDropdown && (
+          <motion.div 
+            className="custom-dropdown-list"
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+          >
+            {/* Mulighed for at nulstille/vælge ledig vagt */}
+            <div className="dropdown-item empty" onClick={() => handleSelect(null)}>
+              <em>vælg ingen</em>
+            </div>
+
+            {filteredEmployees.map(emp => (
+              <div key={emp.id} className="dropdown-item" onClick={() => handleSelect(emp)}>
+                <span className="emp-name">{emp.firstName} {emp.lastName}</span>
+                <span className="emp-role">{emp.role}</span>
               </div>
-            ))
-          ) : (
-            <div className="no-results">Ingen medarbejdere fundet</div>
-          )}
-        </div>
-      )}
+            ))}
+
+            {filteredEmployees.length === 0 && searchTerm !== '' && (
+              <div className="dropdown-item empty">Ingen resultater fundet</div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
-
 
 export default EmployeeSearchBar;

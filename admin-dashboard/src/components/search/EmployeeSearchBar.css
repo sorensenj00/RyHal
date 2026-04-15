@@ -1,53 +1,56 @@
-.employee-search-container {
+/* Employee Search Bar Styles */
+.searchable-select-container {
   position: relative;
   width: 100%;
-  max-width: 400px; /* Kan justeres efter behov */
 }
 
-.search-input-wrapper {
+.search-input-box {
   position: relative;
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
-.search-field {
+/* Rettelse: Plads til ikonerne så de ikke overlapper teksten */
+.search-input-box input {
   width: 100%;
-  padding: 0.6rem 2.5rem 0.6rem 2.5rem;
+  padding: 0.65rem 35px 0.65rem 40px !important; /* 40px venstre giver plads til glas, 35px højre til chevron */
   border: 1px solid var(--gray-300);
   border-radius: var(--border-radius);
-  font-size: var(--font-size-sm);
-  transition: var(--transition-base);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
   outline: none;
+  box-sizing: border-box;
 }
 
-.search-field:focus {
+.search-input-box input:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .search-icon {
   position: absolute;
-  left: 1rem;
+  left: 14px; /* Placeret præcis i midten af det venstre padding */
   color: var(--gray-400);
   pointer-events: none;
+  z-index: 2;
 }
 
-.clear-btn {
+.chevron-icon {
   position: absolute;
-  right: 0.75rem;
-  background: none;
-  border: none;
+  right: 12px;
   color: var(--gray-400);
-  cursor: pointer;
-  padding: 5px;
+  transition: transform 0.2s;
+  pointer-events: none;
+  z-index: 2;
 }
 
-.clear-btn:hover {
-  color: var(--danger-color);
+.chevron-icon.open {
+  transform: rotate(180deg);
 }
 
 /* Dropdown resultater */
-.search-results-dropdown {
+.custom-dropdown-list {
   position: absolute;
   top: 110%;
   left: 0;
@@ -56,51 +59,51 @@
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow-lg);
   border: 1px solid var(--gray-200);
-  max-height: 300px;
+  max-height: 250px;
   overflow-y: auto;
   z-index: 1000;
 }
 
-.search-result-item {
+.dropdown-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   padding: 10px 15px;
   cursor: pointer;
   transition: background 0.2s;
 }
 
-.search-result-item:hover {
+.dropdown-item:hover {
   background-color: var(--gray-100);
 }
 
-.result-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--gray-200);
+.dropdown-item.empty {
+  color: var(--gray-500);
+  font-style: italic;
+  justify-content: center;
+  font-size: 0.85rem;
 }
 
-.result-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.result-name {
+.emp-name {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--gray-900);
 }
 
-.result-role {
+.emp-role {
   font-size: 0.75rem;
   color: var(--gray-500);
+  background: var(--gray-100);
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
-.no-results {
-  padding: 15px;
-  text-align: center;
-  color: var(--gray-500);
-  font-size: 0.85rem;
+/* Scrollbar styling for dropdown */
+.custom-dropdown-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-dropdown-list::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 10px;
 }

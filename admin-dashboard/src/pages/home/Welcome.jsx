@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { isToday, format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import EmployeesOnWorkTodayList from '../../components/employee/EmployeesOnWorkTodayList';
-import SimpleCalendarForHomePage from '../../components/calendar/SimpleCalendarForHomePage';
+import SimpleCalendarForHomePage from '../../components/calendar/SimpleCalendar';
 import './Welcome.css';
 
 const Welcome = () => {

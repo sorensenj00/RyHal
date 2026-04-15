@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faSearch, faChevronDown, faSave } from '@fortawesome/free-solid-svg-icons';
-import { employees } from '../../data/DummyData';
+import { faTimes, faSave } from '@fortawesome/free-solid-svg-icons';
+import EmployeeSearchBar from '../../components/search/EmployeeSearchBar';
 import './EditShift.css';
 
 // Kategorier baseret på din UML ENUM
@@ -17,73 +17,45 @@ const SHIFT_CATEGORIES = [
 ];
 
 const EditShift = ({ shift, onClose }) => {
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const dropdownRef = useRef(null);
-
   // Find den præcise kategori fra listen der matcher shift.category
-  // Vi laver et case-insensitive match for at være på den sikre side
   const initialCategory = SHIFT_CATEGORIES.find(
     cat => cat.toLowerCase() === shift.category?.toLowerCase()
   ) || 'Andet';
 
   const [formData, setFormData] = useState({
     id: shift.id,
-    category: initialCategory, // Her sætter vi den korrekte kategori
+    category: initialCategory,
     date: shift.date,
     startTime: shift.startTime || (shift.startHour ? `${shift.startHour.toString().padStart(2, '0')}:00` : '08:00'),
     endTime: shift.endTime || (shift.endHour ? `${shift.endHour.toString().padStart(2, '0')}:00` : '16:00'),
     employeeId: shift.employeeId
   });
 
-
-  // Håndter lukning ved klik udenfor dropdown og find oprindelig medarbejder
-  useEffect(() => {
-    const emp = employees.find(e => e.id === shift.employeeId);
-    if (emp) setSearchTerm(emp.name);
-    
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [shift.employeeId]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const selectEmployee = (emp) => {
-    if (emp) {
-      setFormData(prev => ({ ...prev, employeeId: emp.id }));
-      setSearchTerm(emp.name);
-    } else {
-      setFormData(prev => ({ ...prev, employeeId: '' }));
-      setSearchTerm('');
-    }
-    setShowDropdown(false);
+  // Denne funktion modtager den valgte medarbejder fra din EmployeeSearchBar
+  const handleEmployeeSelect = (emp) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      employeeId: emp ? emp.id : '' 
+    }));
   };
-
-  const filteredEmployees = employees.filter(emp =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSave = (e) => {
     e.preventDefault();
     console.log("Gemmer rettet vagt:", formData);
-    // Her ville dit API kald ligge
-    onClose(); // Luk modallen efter gem
+    // Her kaldes din backend/Supabase funktion senere
+    onClose();
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <motion.div 
         className="modal-content" 
-        onClick={(e) => e.stopPropagation()} // Forhindrer lukning når man klikker inde i boksen
+        onClick={(e) => e.stopPropagation()} 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -147,43 +119,13 @@ const EditShift = ({ shift, onClose }) => {
             </div>
           </div>
 
-          {/* Searchable Medarbejder Select */}
-          <div className="form-group searchable-select-container" ref={dropdownRef}>
+          {/* Medarbejder Søgning via din genanvendelige komponent */}
+          <div className="form-group">
             <label>Medarbejder:</label>
-            <div className="search-input-box" onClick={() => setShowDropdown(!showDropdown)}>
-              <FontAwesomeIcon icon={faSearch} className="search-icon" />
-              <input 
-                type="text" 
-                placeholder="Søg eller vælg..." 
-                value={searchTerm} 
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setShowDropdown(true);
-                }} 
-              />
-              <FontAwesomeIcon icon={faChevronDown} className={`chevron-icon ${showDropdown ? 'open' : ''}`} />
-            </div>
-
-            <AnimatePresence>
-              {showDropdown && (
-                <motion.div 
-                  className="custom-dropdown-list"
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                >
-                  <div className="dropdown-item empty" onClick={() => selectEmployee(null)}>
-                    <em>Ingen (Ledig vagt)</em>
-                  </div>
-                  {filteredEmployees.map(emp => (
-                    <div key={emp.id} className="dropdown-item" onClick={() => selectEmployee(emp)}>
-                      <span className="emp-name">{emp.name}</span>
-                      <span className="emp-role">{emp.role}</span>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <EmployeeSearchBar 
+              onSelect={handleEmployeeSelect} 
+              initialEmployeeId={formData.employeeId} 
+            />
           </div>
 
           <div className="form-actions">
