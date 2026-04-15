@@ -8,6 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactDev",
+        policy => policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+});
 
 // Register DbContext and EventService for DI
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -30,6 +37,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowReactDev");
 
 // Map controllers
 app.MapControllers();

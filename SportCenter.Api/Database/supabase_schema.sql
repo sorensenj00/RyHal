@@ -1,28 +1,26 @@
 -- ========================================
 -- SportCenter Supabase Database Schema
--- Created for LindholtDev branch
+-- Matches EF Core Npgsql default naming (PascalCase with quotes)
+-- Run this in Supabase SQL Editor before first deployment
 -- ========================================
-
--- Enable UUID extension if needed (optional)
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ========================================
 -- 1. LOCATIONS TABLE
 -- ========================================
-CREATE TABLE IF NOT EXISTS locations (
+CREATE TABLE IF NOT EXISTS "Locations" (
     "Id" SERIAL PRIMARY KEY,
     "Name" TEXT NOT NULL
 );
 
 -- ========================================
--- 2. EVENT SERIES TABLE
+-- 2. EVENT SERIES TABLE (with owned RecurrenceRule)
 -- ========================================
-CREATE TABLE IF NOT EXISTS event_series (
+CREATE TABLE IF NOT EXISTS "EventSeries" (
     "Id" SERIAL PRIMARY KEY,
     "Name" TEXT NOT NULL,
     "Description" TEXT,
-    "Category" INTEGER NOT NULL, -- Enum stored as integer
-    "Frequency" INTEGER NOT NULL, -- RecurrenceFrequency enum
+    "Category" INTEGER NOT NULL,
+    "Frequency" INTEGER NOT NULL,
     "EndDate" TIMESTAMP NOT NULL,
     "LocationId" INTEGER NOT NULL,
     "TemplateId" INTEGER,
@@ -33,7 +31,7 @@ CREATE TABLE IF NOT EXISTS event_series (
 -- ========================================
 -- 3. EVENTS TABLE
 -- ========================================
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE IF NOT EXISTS "Events" (
     "Id" SERIAL PRIMARY KEY,
     "Name" TEXT NOT NULL,
     "Description" TEXT,
@@ -50,7 +48,7 @@ CREATE TABLE IF NOT EXISTS events (
 -- ========================================
 -- 4. EVENT LOCATIONS JOIN TABLE
 -- ========================================
-CREATE TABLE IF NOT EXISTS event_locations (
+CREATE TABLE IF NOT EXISTS "EventLocations" (
     "Id" SERIAL PRIMARY KEY,
     "EventId" INTEGER NOT NULL,
     "LocationId" INTEGER,
@@ -63,46 +61,46 @@ CREATE TABLE IF NOT EXISTS event_locations (
 -- ========================================
 
 -- EventSeries -> Locations
-ALTER TABLE event_series
+ALTER TABLE "EventSeries"
 ADD CONSTRAINT "FK_EventSeries_Locations_LocationId"
-FOREIGN KEY ("LocationId") REFERENCES locations("Id")
+FOREIGN KEY ("LocationId") REFERENCES "Locations"("Id")
 ON DELETE CASCADE;
 
 -- Events -> EventSeries
-ALTER TABLE events
+ALTER TABLE "Events"
 ADD CONSTRAINT "FK_Events_EventSeries_SeriesId"
-FOREIGN KEY ("SeriesId") REFERENCES event_series("Id");
+FOREIGN KEY ("SeriesId") REFERENCES "EventSeries"("Id");
 
 -- EventLocations -> Events
-ALTER TABLE event_locations
+ALTER TABLE "EventLocations"
 ADD CONSTRAINT "FK_EventLocations_Events_EventId"
-FOREIGN KEY ("EventId") REFERENCES events("Id")
+FOREIGN KEY ("EventId") REFERENCES "Events"("Id")
 ON DELETE CASCADE;
 
 -- EventLocations -> Locations
-ALTER TABLE event_locations
+ALTER TABLE "EventLocations"
 ADD CONSTRAINT "FK_EventLocations_Locations_LocationId"
-FOREIGN KEY ("LocationId") REFERENCES locations("Id")
+FOREIGN KEY ("LocationId") REFERENCES "Locations"("Id")
 ON DELETE RESTRICT;
 
 -- ========================================
 -- INDEXES
 -- ========================================
-CREATE INDEX IF NOT EXISTS "IX_EventLocations_EventId" ON event_locations("EventId");
-CREATE INDEX IF NOT EXISTS "IX_EventLocations_LocationId" ON event_locations("LocationId");
-CREATE INDEX IF NOT EXISTS "IX_Events_SeriesId" ON events("SeriesId");
-CREATE INDEX IF NOT EXISTS "IX_EventSeries_LocationId" ON event_series("LocationId");
+CREATE INDEX IF NOT EXISTS "IX_EventLocations_EventId" ON "EventLocations"("EventId");
+CREATE INDEX IF NOT EXISTS "IX_EventLocations_LocationId" ON "EventLocations"("LocationId");
+CREATE INDEX IF NOT EXISTS "IX_Events_SeriesId" ON "Events"("SeriesId");
+CREATE INDEX IF NOT EXISTS "IX_EventSeries_LocationId" ON "EventSeries"("LocationId");
 
 -- ========================================
--- ROW LEVEL SECURITY (RLS) - Optional
--- Enable if using Supabase Auth
+-- OPTIONAL: Enable Row Level Security (RLS)
+-- Only enable if using Supabase Auth with policies
 -- ========================================
--- ALTER TABLE events ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE event_series ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE event_locations ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE locations ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE "Events" ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE "EventSeries" ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE "EventLocations" ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE "Locations" ENABLE ROW LEVEL SECURITY;
 
 -- ========================================
--- SAMPLE DATA (optional for testing)
+-- SAMPLE DATA (optional)
 -- ========================================
--- INSERT INTO locations ("Name") VALUES ('Hal A'), ('Hal B'), ('Fitness'), ('Sprog');
+-- INSERT INTO "Locations" ("Name") VALUES ('Hal A'), ('Hal B'), ('Fitness'), ('Sprog');
