@@ -72,7 +72,7 @@ public class EventService
             {
                 newEvent.EventLocations.Add(new EventLocation
                 {
-                    LocationId = loc.LocationId ?? 0,
+                    LocationId = loc.LocationId,
                     StartTime = loc.StartTime,
                     EndTime = loc.EndTime
                 });
@@ -151,7 +151,7 @@ public class EventService
                         // For kladder beholder vi de angivede tidspunkter (som kan være null)
                         eventInstance.EventLocations.Add(new EventLocation
                         {
-                            LocationId = loc.LocationId ?? 0,
+                            LocationId = loc.LocationId,
                             StartTime = loc.StartTime,
                             EndTime = loc.EndTime
                         });
@@ -164,7 +164,7 @@ public class EventService
 
                         eventInstance.EventLocations.Add(new EventLocation
                         {
-                            LocationId = loc.LocationId ?? 0,
+                            LocationId = loc.LocationId,
                             StartTime = locStart,
                             EndTime = locEnd
                         });
@@ -270,7 +270,7 @@ public class EventService
         {
             existingEvent.EventLocations.Add(new EventLocation
             {
-                LocationId = loc.LocationId ?? 0,
+                LocationId = loc.LocationId,
                 StartTime = loc.StartTime,
                 EndTime = loc.EndTime
             });
@@ -357,7 +357,7 @@ public class EventService
             {
                 newEvent.EventLocations.Add(new EventLocation
                 {
-                    LocationId = loc.LocationId ?? 0,
+                    LocationId = loc.LocationId,
                     StartTime = loc.StartTime,
                     EndTime = loc.EndTime
                 });
@@ -414,7 +414,7 @@ public class EventService
                     {
                         eventInstance.EventLocations.Add(new EventLocation
                         {
-                            LocationId = loc.LocationId ?? 0,
+                            LocationId = loc.LocationId,
                             StartTime = loc.StartTime,
                             EndTime = loc.EndTime
                         });
@@ -427,7 +427,7 @@ public class EventService
 
                         eventInstance.EventLocations.Add(new EventLocation
                         {
-                            LocationId = loc.LocationId ?? 0,
+                            LocationId = loc.LocationId,
                             StartTime = locStart,
                             EndTime = locEnd
                         });
