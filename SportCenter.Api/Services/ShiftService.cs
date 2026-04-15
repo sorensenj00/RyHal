@@ -5,26 +5,32 @@ namespace SportCenter.Api.Services;
 
 public class ShiftService
 {
-	public Shift CreateShift(DateTime startTime, DateTime endTime, ShiftCategory shiftCategory int id)
+	public Shift CreateShift(DateTime startTime, DateTime endTime, ShiftCategory shiftCategory, int id)
 	{
 		//TODO: ADD DATABASE INTEGRATION
 		return new Shift(startTime, endTime, shiftCategory, id);
 	}
 
-	public Shift RemoveShift(Shift shift)
+	public Shift RemoveShift(int shiftID)
 	{
-		//TODO: ADD DATABASE INTEGRATION
-		shift.Employee.Shifts.Remove(shift); //Fjerner shift fra employee's liste
+		Shift shift = null; //TODO: ADD DATABASE INTEGRATION
+        if (shift == null)
+        {
+            throw new ArgumentNullException("Shift not found");
+        }
+
+        shift.Employee.Shifts.Remove(shift); //Fjerner shift fra employee's liste
+		
 		return shift;
 	}
 
-	public void setEmployee(int shiftId, int employeeId)
+	public static void SetEmployee(int shiftId, int employeeId)
 	{
-		Shift shift = null; //TODO: koble til database for at finde shift baseret på id
+		Shift shift = null; //TODO: koble til database for at finde shift baseret pï¿½ id
 		Employee employee = null;
 		if (employeeId != -1)
 		{
-			employee = null; //TODO: koble til database for at finde employee baseret på id og opdatere employee variablen
+			employee = null; //TODO: koble til database for at finde employee baseret pï¿½ id og opdatere employee variablen
 		}
 		//Tjekker at shift findes
 		if (shift == null)
@@ -41,7 +47,7 @@ public class ShiftService
 		//opdaterer shiftens employee
 		shift.Employee = employee;
 
-		//tjekker at modpartens link også opdateres
+		//tjekker at modpartens link ogsï¿½ opdateres
 		if (employee != null && !employee.Shifts.Contains(shift))
 		{
 			EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift.ShiftId);

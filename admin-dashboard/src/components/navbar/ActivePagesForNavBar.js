@@ -45,6 +45,8 @@ export const ActivePagesForNavBar  = [
       { to: "/activities/single", label: "Oversigt: Selvst. aktiviteter" },
       { to: "/create-activity", label: "Opret aktivitet" },
       { to: "/event-overview", label: "Event Oversigt" }
+      { to: "/activities/drafts", label: "Oversigt: Kladdeaktiviter" },
+      { to: "/create-activity", label: "Opret aktivitet" }
     ],
   },
 ];

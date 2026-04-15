@@ -3,17 +3,18 @@
 public class Role
 {
 	public string Name { get; set; }
-	public string Description { get; set; }
 
-	public Role(string name, string description)
+	public int RoleID { get; set; }
+
+	public Role(string name, int id)
 	{
 		Name = name;
-		Description = description;
+		RoleID = id;
 	}
 
 	override
 	public string ToString()
 	{
-		return Name + "\n" + Description;
+		return Name;
 	}
 }
