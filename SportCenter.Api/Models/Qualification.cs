@@ -6,10 +6,13 @@ public class Qualification
 	public string Name { get; set; }
 	public string Description { get; set; }
 
-	public Qualification(string name, string description)
+    public int QualificationID { get; set; }
+
+	public Qualification(string name, string description, int id)
     {
         Name = name;
         Description = description;
+        QualificationID = id;
     }
 
     override

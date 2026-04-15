@@ -1,18 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+﻿using Azure.Identity;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using SportCenter.Api.Controllers;
 using SportCenter.Api.Models;
 namespace SportCenter.Api.Services
 {
     public class EmployeeService
     {
-        /// <summary>
-        /// Creates a new Employee object with a first and last name
-        /// </summary>
-        /// <param name="firstname"></param>
-        /// <param name="lastName"></param>
-        /// <returns>
-        /// Created Employee object
-        /// </returns>
         public Employee CreateEmployee(string firstname, string lastName, int id)
         {
             //TODO: ADD DATABASE INTEGRATION
@@ -20,19 +13,27 @@ namespace SportCenter.Api.Services
             return new Employee(firstname, lastName, id);
         }
 
-        public Employee RemoveEmployee(Employee employee)
+        public Employee RemoveEmployee(int employeeID)
         {
-            //TODO
-            //NEEDS DATABASE
+            Employee employee = null; //TODO: find employee in database based on ID
+
             foreach (var shift in employee.Shifts)
             {
-                ShiftService.setEmployee(shift.ShiftId, -1); //Fjerner employee reference fra alle shifts
-			}
+                ShiftService.SetEmployee(shift.ShiftId, -1); //Fjerner employee reference fra alle shifts
+            }
 			return null;
         }
 
-        public bool IsOver18(Employee employee)
+        /// <summary>
+        /// Checks if Employee birthday is exactly or over 18 years ago
+        /// </summary>
+        /// <param name="employeeID"></param>
+        /// <returns>Boolean</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public bool IsOver18(int employeeID)
         {
+            Employee employee = null; //TODO: find employee in database based on ID
+
             if (employee.birthday == null)
             {
                 throw new ArgumentNullException("Employee birthday is not set");
@@ -43,80 +44,93 @@ namespace SportCenter.Api.Services
 			}
         }
 
-        /// <summary>
-        /// Creates a new Qualification that can be added to any Employee
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="description"></param>
-        /// <returns>
-        /// Created Qualification object
-        /// </returns>
-        public Qualification CreateQualification(string name, string description)
+        public Qualification CreateQualification(string name, string description, int id)
         {
+            //TODO: Add qualification to database
 
-            return new Qualification(name, description);
+            return new Qualification(name, description, id);
         }
 
-        public Qualification RemoveQualification(Qualification Qualification)
+        public Qualification RemoveQualification(int QualificationID)
         {
-            //TODO
-            //NEEDS DATABASE
+
+            //TODO: find Role in qualification based on role ID
+            //TODO: remove qualification from database
+
             return null;
         }
 
-        /// <summary>
-        /// Creates a new Role object that can be added to any Employee
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="description"></param>
-        /// <returns>
-        /// Created Role object
-        /// </returns>
-        public Role CreateRole(string name, string description)
+        public Role CreateRole(string name, int id)
         {
+            //TODO: add Role to database
 
-            return new Role(name, description);
+            return new Role(name, id);
         }
 
-        public Role RemoveRole(Role role)
+        public Role RemoveRole(int roleID)
         {
-            //TODO
-            //NEEDS DATABASE
+            //TODO: find Role in database based on role ID
+            //TODO: remove role from database
+            //TODO: remove role from every employee that has it
+
             return null;
         }
 
-        /// <summary>
-        /// Adds existing Qualification to Employee
-        /// </summary>
-        /// <param name="employee"></param>
-        /// <param name="qualification"></param>
-        public void AddQualificationToEmployee(Employee employee, Qualification qualification)
+        public void AddQualificationToEmployee(int employeeID, int qualificationID)
         {
+            Employee employee = null; //TODO: koble til database for at finde employee baseret på id
+            Qualification qualification = null; //TODO: koble til database for at finde qualification baseret på id
+            if (employee == null || qualification == null)
+            {
+                throw new ArgumentNullException("Employee or Qualification not found");
+            }
             employee.Qualifications.Add(qualification);
         }
 
-        /// <summary>
-        /// Removes Qualification from Employee
-        /// </summary>
-        /// <param name="employee"></param>
-        /// <param name="qualification"></param>
-        /// <returns>
-        /// Removed Qualification
-        /// </returns>
-        public Qualification RemoveQualificationFromEmployee(Employee employee, Qualification qualification)
+        public Qualification RemoveQualificationFromEmployee(int employeeID, int qualificationID)
         {
+            Employee employee = null; //TODO: koble til database for at finde employee baseret på id
+            Qualification qualification = null; //TODO: koble til database for at finde qualification baseret på id
+            if (employee == null || qualification == null)
+            {
+                throw new ArgumentNullException("Employee or Qualification not found");
+            }
+            if (!employee.Qualifications.Contains(qualification))
+            {
+                throw new InvalidOperationException("Qualification not found on Employee");
+            }
+
             employee.Qualifications.Remove(qualification);
 
             return qualification;
         }
 
-        public void AddRoleToEmployee(Employee employee, Role role)
+        public void AddRoleToEmployee(int employeeID, int RoleID)
         {
+            Employee employee = null; //TODO: koble til database for at finde employee baseret på id
+            Role role = null; //TODO: koble til database for at finde role baseret på id
+            if (employee == null || role == null)
+            {
+                throw new ArgumentNullException("Employee or Role not found");
+            }
+
             employee.Roles.Add(role);
         }
 
-        public Role RemoveRoleFromEmployee(Employee employee, Role role)
+        public Role RemoveRoleFromEmployee(int employeeID, int RoleID)
         {
+            Employee employee = null; //TODO koble til database for at finde employee baseret på id
+            Role role = null; //TODO koble til database for at finde role baseret på id
+            if (employee == null || role == null)
+            {
+                throw new ArgumentNullException("Employee or Role not found");
+            }
+
+            if (!employee.Roles.Contains(role))
+            {
+                throw new InvalidOperationException("Role not found");
+            }
+
             employee.Roles.Remove(role);
 
             return role;
@@ -138,13 +152,13 @@ namespace SportCenter.Api.Services
 				//tilføjer hos modparten hvis nødvendigt
 				if (shift.Employee != employee)
 			    {
-                    ShiftService.setEmployee(shift.ShiftId, employeeId);
+                    ShiftService.SetEmployee(shift.ShiftId, employeeId);
 			    }
 				//TODO opdater employee i database
 			}
 		}
 
-		public void removeShiftFromEmployee(int employeeId, int shiftId)
+		public void RemoveShiftFromEmployee(int employeeId, int shiftId)
 		{
 			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
 			Shift shift = null; //TODO: koble til database for at finde shift baseret på id
@@ -154,19 +168,25 @@ namespace SportCenter.Api.Services
             }
             else
             {
+
+                if (!employee.Shifts.Contains(shift))
+                {
+                    throw new InvalidOperationException("Shift not found on Employee");
+                }
+
                 employee.Shifts.Remove(shift);
 
                 //Fjerner hos modparten
                 if (shift.Employee == employee)
                 {
-                    ShiftService.setEmployee(shiftId, -1); //-1 indikerer at shift ikke længere har en employee
+                    ShiftService.SetEmployee(shiftId, -1); //-1 indikerer at shift ikke længere har en employee
 				}
 
 				//TODO opdater employee i database
 			}
 		}
 
-		public List<Shift> getFutureShiftsForEmployee(int employeeId)
+		public List<Shift> GetFutureShiftsForEmployee(int employeeId)
 		{
 			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
             if (employee == null)
@@ -180,7 +200,7 @@ namespace SportCenter.Api.Services
             }
 		}
 
-		public double getTotalHoursForMonth(int employeeId, int month, int year)
+		public double GetTotalHoursForMonth(int employeeId, int month, int year)
 		{
 			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
 			if (employee == null)
