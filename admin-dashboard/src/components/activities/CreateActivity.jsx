@@ -36,7 +36,7 @@ const CreateActivity = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMsg('');
     setErrorMsg('');
@@ -59,8 +59,8 @@ const CreateActivity = () => {
           EndTime: startDate ? `${startDate}T${loc.endTime}` : null
         }));
 
-      // Call addActivity from ActivityService (in-memory)
-      const newActivity = addActivity({
+      // Call addActivity from ActivityService
+      const newActivity = await addActivity({
         title,
         description,
         startDate: startDate || null,

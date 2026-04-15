@@ -4,18 +4,18 @@ import { getActivities, deleteActivity } from './ActivityService';
 const ActivitiesList = ({ type }) => {
   const [activities, setActivities] = useState([]);
 
-  const loadActivities = () => {
-    setActivities(getActivities(type));
+  const loadActivities = async () => {
+    const data = await getActivities(type);
+    setActivities(Array.isArray(data) ? data : []);
   };
 
   useEffect(() => {
-    // Hent in-memory aktiviteter baseret på typen "recurring" eller "single"
     loadActivities();
   }, [type]);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
       if (window.confirm("Er du sikker på du vil slette denne aktivitet?")) {
-        deleteActivity(id);
+        await deleteActivity(id);
         loadActivities();
       }
   };

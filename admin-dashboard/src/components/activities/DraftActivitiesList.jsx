@@ -66,7 +66,7 @@ const DraftActivitiesList = () => {
     }
   };
 
-  const handlePublish = (e) => {
+  const handlePublish = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -100,12 +100,16 @@ const DraftActivitiesList = () => {
       }))
     };
 
-    updateActivity(newActivity);
-    setSuccess('Aktivitet publiceret!');
-    setEditingId(null);
-    loadDrafts();
+    try {
+      await updateActivity(newActivity);
+      setSuccess('Aktivitet publiceret!');
+      setEditingId(null);
+      await loadDrafts(); // refresh list after update
 
-    setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
