@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faPlus, faSearch, faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { employees } from '../../data/DummyData';
+import { faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
+import EmployeeSearchBar from '../../components/search/EmployeeSearchBar'; // Import af søgekomponent
 import './CreateNewShift.css';
 
 const SHIFT_CATEGORIES = [
@@ -15,11 +15,9 @@ const SHIFT_CATEGORIES = [
   'Opvasker',
   'Andet'
 ];  
+
 const CreateNewShift = ({ initialDate }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const dropdownRef = useRef(null);
 
   const [formData, setFormData] = useState({
     category: '',
@@ -29,51 +27,34 @@ const CreateNewShift = ({ initialDate }) => {
     employeeId: ''
   });
 
-  // Luk dropdown når man klikker udenfor
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   // Opdater dato når modallen åbnes
-    useEffect(() => {
-      if (initialDate && isOpen) {
-        // Brug format fra date-fns for at sikre, at den lokale dato bevares
-        const formattedDate = format(initialDate, 'yyyy-MM-dd');
-        setFormData(prev => ({ ...prev, date: formattedDate }));
-      }
-    }, [initialDate, isOpen]);
+  useEffect(() => {
+    if (initialDate && isOpen) {
+      const formattedDate = format(initialDate, 'yyyy-MM-dd');
+      setFormData(prev => ({ ...prev, date: formattedDate }));
+    }
+  }, [initialDate, isOpen]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const selectEmployee = (emp) => {
-    if (emp) {
-      setFormData(prev => ({ ...prev, employeeId: emp.id }));
-      setSearchTerm(emp.name);
-    } else {
-      setFormData(prev => ({ ...prev, employeeId: '' }));
-      setSearchTerm('');
-    }
-    setShowDropdown(false);
+  // Håndterer valg fra EmployeeSearchBar
+  const handleEmployeeSelect = (emp) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      employeeId: emp ? emp.id : '' 
+    }));
   };
-
-  const filteredEmployees = employees.filter(emp =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Shift gemt:', formData);
+    // Her kaldes din backend/Supabase funktion
     setIsOpen(false);
+    // Nulstil formen efter gem hvis nødvendigt
+    setFormData({ category: '', date: '', startTime: '', endTime: '', employeeId: '' });
   };
 
   return (
@@ -118,38 +99,13 @@ const CreateNewShift = ({ initialDate }) => {
                   </div>
                 </div>
 
-                {/* Dynamisk Searchable Select */}
-                <div className="form-group searchable-select-container" ref={dropdownRef}>
+                {/* Genanvendelig Søgekomponent */}
+                <div className="form-group">
                   <label>Medarbejder:</label>
-                  <div className="search-input-box" onClick={() => setShowDropdown(!showDropdown)}>
-                    <FontAwesomeIcon icon={faSearch} className="search-icon" />
-                    <input 
-                      type="text" 
-                      placeholder="Søg eller vælg..." 
-                      value={searchTerm} 
-                      onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        setShowDropdown(true);
-                      }} 
-                    />
-                    <FontAwesomeIcon icon={faChevronDown} className={`chevron-icon ${showDropdown ? 'open' : ''}`} />
-                  </div>
-
-                  <AnimatePresence>
-                    {showDropdown && (
-                      <motion.div className="custom-dropdown-list" initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
-                        <div className="dropdown-item empty" onClick={() => selectEmployee(null)}>
-                          <em>Ingen (Ledig vagt)</em>
-                        </div>
-                        {filteredEmployees.map(emp => (
-                          <div key={emp.id} className="dropdown-item" onClick={() => selectEmployee(emp)}>
-                            <span className="emp-name">{emp.name}</span>
-                            <span className="emp-role">{emp.role}</span>
-                          </div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <EmployeeSearchBar 
+                    onSelect={handleEmployeeSelect} 
+                    initialEmployeeId={formData.employeeId} 
+                  />
                 </div>
 
                 <div className="form-actions">

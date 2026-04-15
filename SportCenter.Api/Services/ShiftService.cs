@@ -44,7 +44,7 @@ public class ShiftService
 		//tjekker at modpartens link ogs� opdateres
 		if (employee != null && !employee.Shifts.Contains(shift))
 		{
-			EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift.ShiftId);
+			EmployeeService.AddShiftToEmployee(employee.EmployeeId, shift);
 		}
 
 		//TODO: opdatere shift i database

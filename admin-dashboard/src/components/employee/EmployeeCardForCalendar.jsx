@@ -2,7 +2,7 @@ import React from 'react';
 import './EmployeeCardForCalendar.css';
 
 const EmployeeCardForCalendar = ({ employee }) => {
-  const initials = employee.name
+  const initials = employee.firstName
     .split(' ')
     .map((part) => part[0])
     .join('')
@@ -15,7 +15,7 @@ const EmployeeCardForCalendar = ({ employee }) => {
     <div className={`employee-card-calendar ${roleClass}`}>
       <div className="employee-avatar">{initials}</div>
       <div className="employee-details">
-        <div className="employee-name">{employee.name}</div>
+        <div className="employee-name">{employee.firstName} {employee.lastName}</div>
         <div className="employee-role">{employee.role}</div>
       </div>
     </div>

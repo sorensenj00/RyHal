@@ -31,7 +31,7 @@ const EmployeeTable = ({ employees = defaultEmployees }) => {
                   />
                 </td>
                 <td>{employee.id}</td>
-                <td>{employee.name}</td>
+                <td>{employee.firstName} {employee.lastName}</td>
                 <td>{employee.email}</td>
                 <td>{employee.phone}</td>
                 <td>{employee.role}</td>

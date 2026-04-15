@@ -22,9 +22,9 @@ function EmployeeBriefItem({ employeeId }) {
   return (
     <div className="brief-employee-info">
       <div className="image-wrapper" style={{ borderColor: roleColor }}>
-        <img src={employee.image || defaultAvatar} alt={employee.name} className="brief-employee-image" />
+        <img src={employee.image || defaultAvatar} alt={employee.firstName} className="brief-employee-image" />
       </div>
-      <span className="brief-employee-name">{employee.name}</span>
+      <span className="brief-employee-name">{employee.firstName} {employee.lastName}</span>
     </div>
   );
 }
