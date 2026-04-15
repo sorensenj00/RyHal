@@ -1,21 +1,56 @@
 using SportCenter.Api.Data;
-
-namespace SportCenter.Api.Services;
 using SportCenter.Api.Models;
 using SportCenter.Api.DTOs;
 using Microsoft.EntityFrameworkCore;
 
+namespace SportCenter.Api.Services;
+
 public class EventService
 {
-    private readonly AppDbContext _context;
+    private readonly AppDbContext? _context;
     private static readonly List<Event> _testEvents = new();
-    
     private static readonly List<EventSeries> _testSeries = new();
 
-    public EventService(AppDbContext context) => _context = context;
-    
+    public EventService(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    // Validation helper for non-draft events
+    private static void ValidateNonDraftLocations(List<LocationBookingDto> locations, bool isDraft)
+    {
+        if (!isDraft)
+        {
+            if (locations == null || locations.Count == 0)
+                throw new ArgumentException("Der skal være mindst én lokation for ikke-kladde events.");
+
+            foreach (var loc in locations)
+            {
+                if (loc.LocationId == null)
+                    throw new ArgumentException("Lokation-ID er påkrævet for ikke-kladde events.");
+                if (loc.StartTime == null || loc.EndTime == null)
+                    throw new ArgumentException("Start- og sluttid er påkrævet for ikke-kladde events.");
+                if (loc.StartTime >= loc.EndTime)
+                    throw new ArgumentException($"Lokation {loc.LocationId} har ugyldige tidsintervaller (Start skal være før Slut).");
+            }
+        }
+        else
+        {
+            // For drafts, validate that if any time/location is provided, both must be present
+            foreach (var loc in locations)
+            {
+                if (loc.LocationId.HasValue != loc.StartTime.HasValue || loc.LocationId.HasValue != loc.EndTime.HasValue)
+                {
+                    throw new ArgumentException("Hvis en lokation angives, skal både LocationId, StartTime og EndTime være udfyldt.");
+                }
+            }
+        }
+    }
+
     public async Task<EventResponseDto> CreateAsync(CreateEventDto dto)
     {
+        ValidateNonDraftLocations(dto.Locations, dto.IsDraft);
+
         // Enkeltstående Event
         if (!dto.IsRecurring || dto.RecurrenceFrequency == null || dto.RecurrenceEndDate == null)
         {
@@ -25,76 +60,282 @@ public class EventService
                 dto.StartTime,
                 dto.EndTime,
                 dto.Category,
-                dto.LocationId,
                 dto.TemplateId,
-                null
-            );
-        
+                null,
+                0
+            )
+            {
+                IsDraft = dto.IsDraft
+            };
+
+            foreach (var loc in dto.Locations)
+            {
+                newEvent.EventLocations.Add(new EventLocation
+                {
+                    LocationId = loc.LocationId ?? 0,
+                    StartTime = loc.StartTime,
+                    EndTime = loc.EndTime
+                });
+            }
+
             _context.Events.Add(newEvent);
             await _context.SaveChangesAsync();
-        
+
+            var locationDtos = newEvent.EventLocations
+                .Select(el => new LocationBookingDto(el.LocationId, el.StartTime, el.EndTime))
+                .ToList();
+
             return new EventResponseDto(
-                newEvent.Id, newEvent.Name, newEvent.Description ?? "", newEvent.StartTime, newEvent.EndTime, 
-                newEvent.Category.ToString(), newEvent.SeriesId, newEvent.IsModifiedFromSeries, newEvent.IsCancelled, 
-                newEvent.LocationId, newEvent.TemplateId
+                newEvent.Id,
+                newEvent.Name,
+                newEvent.Description ?? "",
+                newEvent.StartTime,
+                newEvent.EndTime,
+                newEvent.Category.ToString(),
+                newEvent.SeriesId,
+                newEvent.IsModifiedFromSeries,
+                newEvent.IsCancelled,
+                newEvent.IsDraft,
+                locationDtos,
+                newEvent.TemplateId
             );
         }
-        else
+        else // Gentagende event (Event Series)
         {
-            // Gentagende event (Event Series)
             var frequency = Enum.Parse<RecurrenceFrequency>(dto.RecurrenceFrequency, true);
             var rule = new RecurrenceRule(frequency, dto.RecurrenceEndDate.Value);
-            
+
+            // Brug første lokation som standard lokation for serien (hvis nogen)
+            int seriesLocationId = dto.Locations.FirstOrDefault()?.LocationId ?? 0;
+
             var series = new EventSeries(
-                dto.Name, dto.Description, dto.Category, rule, dto.LocationId, dto.TemplateId, dto.CreatedBy
+                dto.Name,
+                dto.Description,
+                dto.Category,
+                rule,
+                seriesLocationId,
+                dto.TemplateId,
+                dto.CreatedBy
             );
-            _context.Set<EventSeries>().Add(series); // Husk at EventSeries DbSet skal eksistere, antager det for EF Core
-            
-            var occurrences = rule.GenerateOccurrences(dto.StartTime);
-            var duration = dto.EndTime - dto.StartTime;
+
+            _context.Set<EventSeries>().Add(series);
+            await _context.SaveChangesAsync(); // Generér series.Id
+
+            // For drafts, use dummy dates; otherwise use actual schedule
+            var baseStart = dto.StartTime ?? DateTime.Now;
+            var baseEnd = dto.EndTime ?? baseStart.AddHours(1);
+            var occurrences = rule.GenerateOccurrences(baseStart);
+            var duration = baseEnd - baseStart;
 
             foreach (var date in occurrences)
             {
                 var eventInstance = new Event(
-                    dto.Name, dto.Description, date, date.Add(duration), dto.Category, 
-                    dto.LocationId, dto.TemplateId, series.Id
-                );
-                series.Events.Add(eventInstance); // Knytter eventet til EF Core Collection
+                    dto.Name,
+                    dto.Description,
+                    dto.IsDraft ? null : date,
+                    dto.IsDraft ? null : date.Add(duration),
+                    dto.Category,
+                    dto.TemplateId,
+                    series.Id,
+                    0
+                )
+                {
+                    IsDraft = dto.IsDraft
+                };
+
+                // Tilføj lokationer for hver forekomst, juster datoer til forekomstdato
+                foreach (var loc in dto.Locations)
+                {
+                    if (dto.IsDraft)
+                    {
+                        // For kladder beholder vi de angivede tidspunkter (som kan være null)
+                        eventInstance.EventLocations.Add(new EventLocation
+                        {
+                            LocationId = loc.LocationId ?? 0,
+                            StartTime = loc.StartTime,
+                            EndTime = loc.EndTime
+                        });
+                    }
+                    else
+                    {
+                        var occDate = date.Date;
+                        var locStart = occDate + (loc.StartTime?.TimeOfDay ?? TimeSpan.Zero);
+                        var locEnd = occDate + (loc.EndTime?.TimeOfDay ?? TimeSpan.Zero);
+
+                        eventInstance.EventLocations.Add(new EventLocation
+                        {
+                            LocationId = loc.LocationId ?? 0,
+                            StartTime = locStart,
+                            EndTime = locEnd
+                        });
+                    }
+                }
+
+                series.Events.Add(eventInstance);
                 _context.Events.Add(eventInstance);
             }
 
             await _context.SaveChangesAsync();
 
-            var firstOcccurence = series.Events.First();
+            var firstOccurrence = series.Events.First();
+            var locationDtos = firstOccurrence.EventLocations
+                .Select(el => new LocationBookingDto(el.LocationId, el.StartTime, el.EndTime))
+                .ToList();
 
             return new EventResponseDto(
-                firstOcccurence.Id, firstOcccurence.Name, firstOcccurence.Description ?? "", firstOcccurence.StartTime, firstOcccurence.EndTime, 
-                firstOcccurence.Category.ToString(), firstOcccurence.SeriesId, firstOcccurence.IsModifiedFromSeries, firstOcccurence.IsCancelled, 
-                firstOcccurence.LocationId, firstOcccurence.TemplateId
+                firstOccurrence.Id,
+                firstOccurrence.Name,
+                firstOccurrence.Description ?? "",
+                firstOccurrence.StartTime,
+                firstOccurrence.EndTime,
+                firstOccurrence.Category.ToString(),
+                firstOccurrence.SeriesId,
+                firstOccurrence.IsModifiedFromSeries,
+                firstOccurrence.IsCancelled,
+                firstOccurrence.IsDraft,
+                locationDtos,
+                firstOccurrence.TemplateId
             );
         }
     }
 
-    public async Task<List<Event>> GetAllAsync() => await _context.Events.ToListAsync();
+    public async Task<List<Event>> GetAllAsync() => await _context.Events
+        .Include(e => e.EventLocations)
+        .ThenInclude(el => el.Location)
+        .ToListAsync();
+
+    // Get draft events
+    public async Task<List<Event>> GetDraftEventsAsync() => await _context.Events
+        .Include(e => e.EventLocations)
+        .ThenInclude(el => el.Location)
+        .Where(e => e.IsDraft)
+        .ToListAsync();
+
+    // Quick update draft: fill in missing data and mark as non-draft
+    public async Task<EventResponseDto> PublishDraftAsync(int eventId, CreateEventDto updateDto)
+    {
+        var existingEvent = await _context.Events
+            .Include(e => e.EventLocations)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+
+        if (existingEvent == null)
+            throw new KeyNotFoundException($"Event with ID {eventId} not found.");
+
+        if (!existingEvent.IsDraft)
+            throw new InvalidOperationException($"Event {eventId} is not a draft and cannot be published this way.");
+
+        // Validate that all required fields are now provided
+        if (updateDto.StartTime == null || updateDto.EndTime == null)
+            throw new ArgumentException("StartTime og EndTime er påkrævet for at Publicer en kladde.");
+        if (updateDto.Locations == null || updateDto.Locations.Count == 0 || !updateDto.Locations.Any(l => l.LocationId.HasValue))
+            throw new ArgumentException("Mindst én lokation med tid er påkrævet for at publicer en kladde.");
+
+        // Update event properties
+        existingEvent.StartTime = updateDto.StartTime;
+        existingEvent.EndTime = updateDto.EndTime;
+        existingEvent.IsDraft = false;
+
+        // Clear existing locations and add updated ones
+        _context.EventLocations.RemoveRange(existingEvent.EventLocations);
+        existingEvent.EventLocations.Clear();
+
+        foreach (var loc in updateDto.Locations)
+        {
+            existingEvent.EventLocations.Add(new EventLocation
+            {
+                LocationId = loc.LocationId ?? 0,
+                StartTime = loc.StartTime,
+                EndTime = loc.EndTime
+            });
+        }
+
+        await _context.SaveChangesAsync();
+
+        var locationDtos = existingEvent.EventLocations
+            .Select(el => new LocationBookingDto(el.LocationId, el.StartTime, el.EndTime))
+            .ToList();
+
+        return new EventResponseDto(
+            existingEvent.Id,
+            existingEvent.Name,
+            existingEvent.Description ?? "",
+            existingEvent.StartTime,
+            existingEvent.EndTime,
+            existingEvent.Category.ToString(),
+            existingEvent.SeriesId,
+            existingEvent.IsModifiedFromSeries,
+            existingEvent.IsCancelled,
+            existingEvent.IsDraft,
+            locationDtos,
+            existingEvent.TemplateId
+        );
+    }
 
     // In-memory CRUD for testing (no DTOs, no database)
     public async Task<Event> CreateEventAsync(
-        string name, 
-        string? description, 
-        DateTime startTime, 
-        DateTime endTime, 
-        EventCategory category, 
-        int locationId, 
+        string name,
+        string? description,
+        DateTime? startTime,
+        DateTime? endTime,
+        EventCategory category,
+        List<LocationBookingDto> locations,
         int? templateId,
         string createdBy,
         bool isRecurring = false,
         string? recurrenceFrequency = null,
-        DateTime? recurrenceEndDate = null) 
+        DateTime? recurrenceEndDate = null,
+        bool isDraft = false)
     {
+        // For non-draft, validate
+        if (!isDraft)
+        {
+            if (locations == null || locations.Count == 0)
+                throw new ArgumentException("Der skal være mindst én lokation.");
+            foreach (var loc in locations)
+            {
+                if (loc.LocationId == null) throw new ArgumentException("LocationId påkrævet.");
+                if (loc.StartTime == null || loc.EndTime == null) throw new ArgumentException("Start/End påkrævet.");
+                if (loc.StartTime >= loc.EndTime) throw new ArgumentException("StartTime skal være før EndTime.");
+            }
+        }
+        else
+        {
+            foreach (var loc in locations)
+            {
+                if (loc.LocationId.HasValue != loc.StartTime.HasValue || loc.LocationId.HasValue != loc.EndTime.HasValue)
+                {
+                    throw new ArgumentException("Hvis en lokation angives, skal både LocationId, StartTime og EndTime være udfyldt.");
+                }
+            }
+        }
+
         if (!isRecurring || recurrenceFrequency == null || recurrenceEndDate == null)
         {
-            var newEvent = new Event(name, description, startTime, endTime, category, locationId, templateId, null);
-            newEvent.Id = _testEvents.Count > 0 ? _testEvents.Max(e => e.Id) + 1 : 1;
+            var newId = _testEvents.Count > 0 ? _testEvents.Max(e => e.Id) + 1 : 1;
+            var newEvent = new Event(
+                name,
+                description,
+                startTime,
+                endTime,
+                category,
+                templateId,
+                null,
+                newId
+            )
+            {
+                IsDraft = isDraft
+            };
+
+            foreach (var loc in locations)
+            {
+                newEvent.EventLocations.Add(new EventLocation
+                {
+                    LocationId = loc.LocationId ?? 0,
+                    StartTime = loc.StartTime,
+                    EndTime = loc.EndTime
+                });
+            }
+
             _testEvents.Add(newEvent);
             return await Task.FromResult(newEvent);
         }
@@ -102,20 +343,70 @@ public class EventService
         {
             var frequency = Enum.Parse<RecurrenceFrequency>(recurrenceFrequency, true);
             var rule = new RecurrenceRule(frequency, recurrenceEndDate.Value);
-            
-            var series = new EventSeries(name, description, category, rule, locationId, templateId, createdBy);
-            series.Id = _testSeries.Count > 0 ? _testSeries.Max(s => s.Id) + 1 : 1;
+
+            int? seriesLocationId = locations.FirstOrDefault()?.LocationId;
+
+            var seriesId = _testSeries.Count > 0 ? _testSeries.Max(s => s.Id) + 1 : 1;
+            var series = new EventSeries(
+                name,
+                description,
+                category,
+                rule,
+                seriesLocationId ?? 0,
+                templateId,
+                createdBy
+            );
+            series.Id = seriesId;
             _testSeries.Add(series);
 
-            var occurrences = rule.GenerateOccurrences(startTime);
-            var duration = endTime - startTime;
+            var baseStart = startTime ?? DateTime.Now;
+            var occs = rule.GenerateOccurrences(baseStart);
+            var duration = (endTime ?? baseStart) - baseStart;
             Event? firstEvent = null;
 
-            foreach (var date in occurrences)
+            foreach (var date in occs)
             {
-                var eventInstance = new Event(name, description, date, date.Add(duration), category, locationId, templateId, series.Id);
-                eventInstance.Id = _testEvents.Count > 0 ? _testEvents.Max(e => e.Id) + 1 : 1;
-                
+                var eventId = _testEvents.Count > 0 ? _testEvents.Max(e => e.Id) + 1 : 1;
+                var eventInstance = new Event(
+                    name,
+                    description,
+                    isDraft ? null : date,
+                    isDraft ? null : date.Add(duration),
+                    category,
+                    templateId,
+                    seriesId,
+                    eventId
+                )
+                {
+                    IsDraft = isDraft
+                };
+
+                foreach (var loc in locations)
+                {
+                    if (isDraft)
+                    {
+                        eventInstance.EventLocations.Add(new EventLocation
+                        {
+                            LocationId = loc.LocationId ?? 0,
+                            StartTime = loc.StartTime,
+                            EndTime = loc.EndTime
+                        });
+                    }
+                    else
+                    {
+                        var occDate = date.Date;
+                        var locStart = occDate + (loc.StartTime?.TimeOfDay ?? TimeSpan.Zero);
+                        var locEnd = occDate + (loc.EndTime?.TimeOfDay ?? TimeSpan.Zero);
+
+                        eventInstance.EventLocations.Add(new EventLocation
+                        {
+                            LocationId = loc.LocationId ?? 0,
+                            StartTime = locStart,
+                            EndTime = locEnd
+                        });
+                    }
+                }
+
                 _testEvents.Add(eventInstance);
                 series.Events.Add(eventInstance);
 
@@ -126,20 +417,20 @@ public class EventService
         }
     }
 
-    public async Task<List<Event>> GetTestEventsAsync() 
+    public async Task<List<Event>> GetTestEventsAsync()
     {
         return await Task.FromResult(_testEvents);
     }
 
-    public async Task<Event?> GetEventByIdAsync(int id) 
+    public async Task<Event?> GetEventByIdAsync(int id)
     {
         return await Task.FromResult(_testEvents.FirstOrDefault(e => e.Id == id));
     }
 
-    public async Task UpdateEventAsync(Event updatedEvent) 
+    public async Task UpdateEventAsync(Event updatedEvent)
     {
         var existing = _testEvents.FirstOrDefault(e => e.Id == updatedEvent.Id);
-        if (existing != null) 
+        if (existing != null)
         {
             _testEvents.Remove(existing);
             _testEvents.Add(updatedEvent);
@@ -147,15 +438,13 @@ public class EventService
         await Task.CompletedTask;
     }
 
-    public async Task DeleteEventAsync(int id) 
+    public async Task DeleteEventAsync(int id)
     {
         var existing = _testEvents.FirstOrDefault(e => e.Id == id);
-        if (existing != null) 
+        if (existing != null)
         {
             _testEvents.Remove(existing);
         }
         await Task.CompletedTask;
     }
-    
-    
 }

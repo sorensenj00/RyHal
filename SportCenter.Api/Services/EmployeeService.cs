@@ -123,7 +123,7 @@ namespace SportCenter.Api.Services
         }
 
 
-		public void AddShiftToEmployee(int employeeId, Shift shiftId)
+		public static void AddShiftToEmployee(int employeeId, int shiftId)
 		{
             Employee employee = null; //TODO: koble til database for at finde employee baseret på id
 			Shift shift = null; //TODO: koble til database for at finde shift baseret på id
