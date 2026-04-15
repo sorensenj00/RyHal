@@ -4,9 +4,12 @@ public class Role
 {
 	public string Name { get; set; }
 
-	public Role(string name, string description)
+	public int RoleID { get; set; }
+
+	public Role(string name, int id)
 	{
 		Name = name;
+		RoleID = id;
 	}
 
 	override
