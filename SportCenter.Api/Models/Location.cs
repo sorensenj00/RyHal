@@ -1,21 +1,14 @@
 namespace SportCenter.Api.Models;
-public class Location {
-    private string name; 
-    private int id; 
-    
+public class Location { 
+    public string Name { get; set; }
+
+    public int Id { get; set; }
+
     public Location(string name, int id) {
-        this.name = name;
-        this.id = id;
+        Name = name;
+        Id = id;
     }
 
-    public string Name {
-        get { return name; }
-        set { name = value; }
-    }
-
-    public int Id {
-        get { return id; }
-        set { id = value; }
-    }
+   
 
 }
