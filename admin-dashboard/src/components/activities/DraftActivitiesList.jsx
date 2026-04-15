@@ -13,9 +13,9 @@ const DraftActivitiesList = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const loadDrafts = () => {
-    const draftList = getDraftActivities();
-    setDrafts(draftList);
+  const loadDrafts = async () => {
+    const draftList = await getDraftActivities();
+    setDrafts(Array.isArray(draftList) ? draftList : []);
   };
 
   useEffect(() => {
