@@ -199,17 +199,44 @@ public class EventService
         }
     }
 
-    public async Task<List<Event>> GetAllAsync() => await _context.Events
-        .Include(e => e.EventLocations)
-        .ThenInclude(el => el.Location)
-        .ToListAsync();
+    // Map Event entity to EventResponseDto
+    private static EventResponseDto ToEventResponseDto(Event e)
+    {
+        return new EventResponseDto(
+            e.Id,
+            e.Name,
+            e.Description ?? "",
+            e.StartTime,
+            e.EndTime,
+            e.Category.ToString(),
+            e.SeriesId,
+            e.IsModifiedFromSeries,
+            e.IsCancelled,
+            e.IsDraft,
+            e.EventLocations.Select(el => new LocationBookingDto(el.LocationId, el.StartTime, el.EndTime)).ToList(),
+            e.TemplateId
+        );
+    }
+
+    public async Task<List<EventResponseDto>> GetAllAsync()
+    {
+        var events = await _context.Events
+            .Include(e => e.EventLocations)
+            .ThenInclude(el => el.Location)
+            .ToListAsync();
+        return events.Select(ToEventResponseDto).ToList();
+    }
 
     // Get draft events
-    public async Task<List<Event>> GetDraftEventsAsync() => await _context.Events
-        .Include(e => e.EventLocations)
-        .ThenInclude(el => el.Location)
-        .Where(e => e.IsDraft)
-        .ToListAsync();
+    public async Task<List<EventResponseDto>> GetDraftEventsAsync()
+    {
+        var drafts = await _context.Events
+            .Include(e => e.EventLocations)
+            .ThenInclude(el => el.Location)
+            .Where(e => e.IsDraft)
+            .ToListAsync();
+        return drafts.Select(ToEventResponseDto).ToList();
+    }
 
     // Quick update draft: fill in missing data and mark as non-draft
     public async Task<EventResponseDto> PublishDraftAsync(int eventId, CreateEventDto updateDto)
