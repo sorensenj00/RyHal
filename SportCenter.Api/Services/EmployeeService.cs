@@ -6,14 +6,14 @@ namespace SportCenter.Api.Services
 {
     public class EmployeeService
     {
-        public Employee CreateEmployee(string firstname, string lastName, int id)
+        public static Employee CreateEmployee(string firstname, string lastName, int id)
         {
             //TODO: ADD DATABASE INTEGRATION
 
             return new Employee(firstname, lastName, id);
         }
 
-        public Employee RemoveEmployee(int employeeID)
+        public static Employee RemoveEmployee(int employeeID)
         {
             Employee employee = null; //TODO: find employee in database based on ID
 
@@ -30,7 +30,7 @@ namespace SportCenter.Api.Services
         /// <param name="employeeID"></param>
         /// <returns>Boolean</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public bool IsOver18(int employeeID)
+        public static bool IsOver18(int employeeID)
         {
             Employee employee = null; //TODO: find employee in database based on ID
 
@@ -44,14 +44,14 @@ namespace SportCenter.Api.Services
 			}
         }
 
-        public Qualification CreateQualification(string name, string description, int id)
+        public static Qualification CreateQualification(string name, string description, int id)
         {
             //TODO: Add qualification to database
 
             return new Qualification(name, description, id);
         }
 
-        public Qualification RemoveQualification(int QualificationID)
+        public static Qualification RemoveQualification(int QualificationID)
         {
 
             //TODO: find Role in qualification based on role ID
@@ -60,14 +60,14 @@ namespace SportCenter.Api.Services
             return null;
         }
 
-        public Role CreateRole(string name, int id)
+        public static Role CreateRole(string name, int id)
         {
             //TODO: add Role to database
 
             return new Role(name, id);
         }
 
-        public Role RemoveRole(int roleID)
+        public static Role RemoveRole(int roleID)
         {
             //TODO: find Role in database based on role ID
             //TODO: remove role from database
@@ -76,7 +76,7 @@ namespace SportCenter.Api.Services
             return null;
         }
 
-        public void AddQualificationToEmployee(int employeeID, int qualificationID)
+        public static void AddQualificationToEmployee(int employeeID, int qualificationID)
         {
             Employee employee = null; //TODO: koble til database for at finde employee baseret på id
             Qualification qualification = null; //TODO: koble til database for at finde qualification baseret på id
@@ -87,7 +87,7 @@ namespace SportCenter.Api.Services
             employee.Qualifications.Add(qualification);
         }
 
-        public Qualification RemoveQualificationFromEmployee(int employeeID, int qualificationID)
+        public static Qualification RemoveQualificationFromEmployee(int employeeID, int qualificationID)
         {
             Employee employee = null; //TODO: koble til database for at finde employee baseret på id
             Qualification qualification = null; //TODO: koble til database for at finde qualification baseret på id
@@ -105,7 +105,7 @@ namespace SportCenter.Api.Services
             return qualification;
         }
 
-        public void AddRoleToEmployee(int employeeID, int RoleID)
+        public static void AddRoleToEmployee(int employeeID, int RoleID)
         {
             Employee employee = null; //TODO: koble til database for at finde employee baseret på id
             Role role = null; //TODO: koble til database for at finde role baseret på id
@@ -117,7 +117,7 @@ namespace SportCenter.Api.Services
             employee.Roles.Add(role);
         }
 
-        public Role RemoveRoleFromEmployee(int employeeID, int RoleID)
+        public static Role RemoveRoleFromEmployee(int employeeID, int RoleID)
         {
             Employee employee = null; //TODO koble til database for at finde employee baseret på id
             Role role = null; //TODO koble til database for at finde role baseret på id
@@ -158,7 +158,7 @@ namespace SportCenter.Api.Services
 			}
 		}
 
-		public void RemoveShiftFromEmployee(int employeeId, int shiftId)
+        public static void RemoveShiftFromEmployee(int employeeId, int shiftId)
 		{
 			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
 			Shift shift = null; //TODO: koble til database for at finde shift baseret på id
@@ -186,7 +186,7 @@ namespace SportCenter.Api.Services
 			}
 		}
 
-		public List<Shift> GetFutureShiftsForEmployee(int employeeId)
+        public static List<Shift> GetFutureShiftsForEmployee(int employeeId)
 		{
 			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
             if (employee == null)
@@ -200,7 +200,7 @@ namespace SportCenter.Api.Services
             }
 		}
 
-		public double GetTotalHoursForMonth(int employeeId, int month, int year)
+		public static double GetTotalHoursForMonth(int employeeId, int month, int year)
 		{
 			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
 			if (employee == null)
