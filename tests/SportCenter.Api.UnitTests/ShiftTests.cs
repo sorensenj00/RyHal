@@ -43,16 +43,16 @@ public class ShiftTests
         var employee1 = EmployeeService.CreateEmployee("John", "Doe", 1);
         var employee2 = EmployeeService.CreateEmployee("Jane", "Smith", 2);
 
-		ShiftService.setEmployee(1,1);
+		ShiftService.SetEmployee(1,1);
         shift.Employee.Should().Be(employee1);
 
-        ShiftService.setEmployee(1,2);
+        ShiftService.SetEmployee(1,2);
         shift.Employee.Should().Be(employee2);
 
         employee1.Shifts.Should().NotContain(shift);
         employee2.Shifts.Should().Contain(shift);
 
-        ShiftService.RemoveShift(shift);
+        ShiftService.RemoveShift(shift.ShiftId);
         employee2.Shifts.Should().NotContain(shift);
 	}
 }
