@@ -1,29 +1,31 @@
 .role-graph-container {
   background: white;
-  padding: 1rem; /* Mindre padding giver mere plads til selve grafen */
+  padding: 1.25rem;
   border-radius: 16px;
   border: 1px solid #f1f5f9;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 200px;
-  max-height: 240px; /* Hold den kompakt til dit no-scroll layout */
+  /* Fjern max-height her, så stats-grid i EmployeeOverview kan styre højden */
+  height: 100%; 
+  min-height: 250px; 
   box-sizing: border-box;
+  box-shadow: var(--box-shadow); /* Tilføj din globale skygge */
 }
 
 .graph-wrapper {
+  position: relative; /* Gør det muligt at placere label absolut */
   flex: 1;
   width: 100%;
-  min-height: 0; /* Vigtigt for Recharts i en flex-container */
-  position: relative;
 }
 
+/* Gør titlen lidt mere lækker */
 .graph-title {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
+  color: var(--gray-600);
+  margin-bottom: 1rem;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Gør legenden meget kompakt */

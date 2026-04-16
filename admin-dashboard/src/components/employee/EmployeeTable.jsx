@@ -21,11 +21,6 @@ const EmployeeTable = ({ employees = defaultEmployees }) => {
 
   return (
     <div className="employee-table-card">
-      <div className="table-header-info">
-        <h3>Alle Medarbejdere</h3>
-        <span className="count-badge">{employees.length} i alt</span>
-      </div>
-      
       <div className="table-scroll-container">
         <table className="employee-table">
           <thead>
@@ -47,7 +42,6 @@ const EmployeeTable = ({ employees = defaultEmployees }) => {
                     <img src={employee.image || defaultAvatar} alt="avatar" className="employee-avatar" />
                     <div className="user-info">
                       <span className="user-name">{employee.firstName} {employee.lastName}</span>
-                      <span className="user-id">ID: #{employee.id}</span>
                     </div>
                   </td>
 

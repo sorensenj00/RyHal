@@ -1,0 +1,81 @@
+.login-page {
+  display: flex;
+  justify-content: center; /* Centrerer horisontalt */
+  align-items: center;     /* Centrerer vertikalt */
+  width: 100vw;            /* Fuld bredde af skærmen */
+  height: 100vh;           /* Fuld højde af skærmen */
+  background-color: var(--gray-100);
+  margin: 0;               /* Fjerner default margin fra body */
+  position: fixed;         /* Sikrer at den bliver i midten uanset andet indhold */
+  top: 0;
+  left: 0;
+}
+
+.login-card {
+  background: var(--white);
+  padding: var(--spacer-lg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-lg);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: var(--spacer-lg);
+}
+
+.login-header h2 {
+  color: var(--dark-color);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacer-sm);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-sm);
+}
+
+.input-group input {
+  padding: 0.75rem;
+  border: var(--border-width) solid var(--gray-300);
+  border-radius: var(--border-radius);
+  font-family: var(--font-family-base);
+  transition: var(--transition-base);
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.error-alert {
+  background-color: #fff5f5;
+  color: var(--danger-color);
+  padding: var(--spacer-sm);
+  border: 1px solid var(--danger-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+}
+
+.forgot-link {
+  text-align: right;
+  font-size: var(--font-size-sm);
+}
+
+.forgot-link a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.forgot-link a:hover {
+  text-decoration: underline;
+}

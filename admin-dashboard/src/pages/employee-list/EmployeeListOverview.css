@@ -1,13 +1,11 @@
+/* Container & Header */
 .employee-list-overview {
   padding: var(--spacer);
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
 .overview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: var(--spacer-lg);
   padding-bottom: var(--spacer);
   border-bottom: var(--border-width) solid var(--gray-200);
@@ -19,54 +17,62 @@
   font-size: var(--font-size-xl);
 }
 
-.stats-grid {
+/* Det specifikke 5x5 Grid-system */
+.stats-parent-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacer);
+  grid-template-columns: repeat(5, 1fr); 
+  grid-template-rows: repeat(2, 180px); 
+  grid-column-gap: 20px;
+  grid-row-gap: 20px;
   margin-bottom: var(--spacer-lg);
-  align-items: stretch; /* Tvinger alle børn til at have samme højde i en række */
+  width: 100%;
 }
 
+/* Grid områder */
+.div1 { grid-area: 1 / 1 / 2 / 2; }
+.div2 { grid-area: 2 / 1 / 3 / 2; }
+.div3 { grid-area: 1 / 2 / 3 / 3; }
+.div4 { grid-area: 1 / 3 / 3 / 6; } /* Fylder kolonne 3, 4 og 5 */
+
+/* Tvinger ALLE børn i grid-områderne til at have præcis samme højde/bredde og fjerner indbyggede marginer */
+.stats-parent-grid > div > * {
+  height: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* Specifik styling for små stat-cards (div1 og div2) */
 .stat-card {
   background: var(--white);
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius-lg);
   padding: var(--spacer);
   box-shadow: var(--box-shadow);
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important; /* Ikon ved siden af tekst */
   align-items: center;
+  justify-content: center;
   gap: var(--spacer);
   transition: var(--transition-base);
-}
-
-.role-graph-container {
-  min-height: 200px; /* Minimumshøjde så den ikke bliver for klemt */
-  justify-content: space-between;
-}
-
-.stats-grid > div, 
-.stat-card, 
-.role-graph-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-.stat-card-primary {
   border-left: 4px solid var(--primary-color);
+  overflow: hidden; /* Sikrer at intet stikker ud */
 }
 
-.stat-card-success {
-  border-left: 4px solid var(--success-color);
-}
+.stat-card-success { border-left-color: var(--success-color); }
+.stat-card-warning { border-left-color: var(--warning-color); }
 
-.stat-card-warning {
-  border-left: 4px solid var(--warning-color);
+/* Sørg for at grafer også fylder hele deres container korrekt */
+.role-graph-container {
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .stat-icon {
   font-size: 2rem;
   opacity: 0.8;
+  color: var(--gray-400);
 }
 
 .stat-content h3 {
@@ -74,6 +80,7 @@
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--gray-900);
+  line-height: 1;
 }
 
 .stat-content p {
@@ -84,36 +91,39 @@
   letter-spacing: 0.5px;
 }
 
+/* Placeholder */
+.placeholder-card {
+  background: var(--white);
+  border: 2px dashed var(--gray-300);
+  border-radius: var(--border-radius-lg);
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-400);
+  height: 100%;
+}
+
+/* Tabel Sektion */
 .table-section {
   margin-top: var(--spacer-lg);
 }
 
 .table-wrapper {
   background: var(--white);
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius-lg);
   padding: var(--spacer);
   box-shadow: var(--box-shadow);
 }
 
-/* Responsive design */
-@media (max-width: 1024px) {
-  .content-grid {
-    grid-template-columns: 1fr;
+/* Responsiv håndtering */
+@media (max-width: 1200px) {
+  .stats-parent-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
   }
-}
-
-@media (max-width: 768px) {
-  .overview-header {
-    flex-direction: column;
-    gap: var(--spacer);
-    align-items: stretch;
-  }
-
-  .overview-header h1 {
-    text-align: center;
-  }
-
-  .stats-grid {
-    justify-content: center;
+  .div1, .div2, .div3, .div4 {
+    grid-area: auto;
+    height: 160px;
   }
 }

@@ -6,16 +6,6 @@
   overflow: hidden;
 }
 
-.table-header-info {
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--gray-100);
-}
-
-.table-header-info h3 { margin: 0; font-size: 1.1rem; color: #1e293b; }
-
 /* SCROLL LOGIK */
 .table-scroll-container {
   max-height: 500px; /* Her styrer du højden på tabellen */
@@ -53,7 +43,6 @@
 .user-cell { display: flex; align-items: center; gap: 12px; }
 .user-info { display: flex; flex-direction: column; }
 .user-name { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
-.user-id { font-size: 0.7rem; color: #94a3b8; }
 
 /* Kontakt Cell */
 .contact-cell { display: flex; flex-direction: column; }

@@ -148,6 +148,30 @@
   cursor: col-resize;
   z-index: 20;
 }
+
+/* KOMMENTAR */
+.event-comment-preview {
+  font-size: 0.75rem;          /* Lille, men læselig tekst */
+  font-style: italic;
+  color: var(--gray-600);      /* Bruger din globale grå farve */
+  margin-top: 2px;
+  margin-bottom: 4px;
+  
+  /* De næste 3 linjer laver den magiske afkortning med "..." */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  max-width: 100%;             /* Holder den inden for event-kortet */
+  display: block;
+}
+
+/* Gør navnet federe for at skabe hierarki nu hvor der er mere tekst */
+.event-name {
+  font-weight: 600;
+}
+
+
 .resize-handle.left { left: 0; }
 .resize-handle.right { right: 0; }
 .event-item:hover .resize-handle { background: rgba(255, 255, 255, 0.2); }

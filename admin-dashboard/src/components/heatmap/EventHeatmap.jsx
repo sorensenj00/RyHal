@@ -3,15 +3,17 @@ import { format, parseISO, differenceInMinutes, startOfDay, addMinutes, isSameDa
 import { locations, eventLocations as initialEvents } from '../../data/DummyData';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFutbol, faUsers, faTools, faEllipsisH } from '@fortawesome/free-solid-svg-icons';
+import EventModal from './EventModal'; // Importér den nye modal
 import './EventHeatmap.css';
 
 const START_HOUR = 0;
 const END_HOUR = 23;
-const HOUR_WIDTH = 120; // Præcis pixelbredde pr. time
+const HOUR_WIDTH = 120;
 
 const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [] }) => {
   const [allEvents, setAllEvents] = useState(initialEvents);
   const [resizingEvent, setResizingEvent] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null); // Til Modal CRUD
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
@@ -20,7 +22,20 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
     }
   }, []);
 
-  const dailyEvents = allEvents.filter(event => 
+  // CRUD Funktioner
+  const handleUpdateEvent = (updatedEvent) => {
+    setAllEvents(prev => prev.map(evt => evt.id === updatedEvent.id ? updatedEvent : evt));
+    setSelectedEvent(null);
+  };
+
+  const handleDeleteEvent = (id) => {
+    if (window.confirm("Er du sikker på, at du vil slette dette event?")) {
+      setAllEvents(prev => prev.filter(evt => evt.id !== id));
+      setSelectedEvent(null);
+    }
+  };
+
+  const dailyEvents = allEvents.filter(event =>
     isSameDay(parseISO(event.startTime), selectedDate) &&
     activeCategories.includes(event.category) &&
     activeLocations.includes(event.locationId)
@@ -79,7 +94,7 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
     const dayBegin = startOfDay(start);
     const minutesFromStart = differenceInMinutes(start, dayBegin);
     const durationMinutes = differenceInMinutes(parseISO(endTime), start);
-    
+
     return {
       left: `${(minutesFromStart / 60) * HOUR_WIDTH}px`,
       width: `${(durationMinutes / 60) * HOUR_WIDTH}px`
@@ -115,10 +130,8 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
   return (
     <div className="heatmap-outer-wrapper">
       <div className="heatmap-scroll-container" ref={scrollContainerRef}>
-        {/* Samlet bredde: 200px (navne) + 24 timer * 120px */}
         <div className="heatmap-grid-inner" style={{ width: (hours.length * HOUR_WIDTH) + 200 }}>
-          
-          {/* HEADER (Sticky) */}
+
           <div className="heatmap-timeline">
             <div className="location-corner">Lokationer</div>
             <div className="time-labels-wrapper">
@@ -130,17 +143,17 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
             </div>
           </div>
 
-          {/* ROWS */}
           <div className="heatmap-rows-container">
             {visibleLocations.map(loc => (
               <div key={loc.id} className="location-row" onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, loc.id)}>
                 <div className="location-name-cell">{loc.name}</div>
                 <div className="row-content-area">
                   {dailyEvents.filter(e => e.locationId === loc.id).map(evt => (
-                    <div 
+                    <div
                       key={evt.id}
                       draggable={!resizingEvent}
                       onDragStart={(e) => onDragStart(e, evt.id)}
+                      onClick={() => setSelectedEvent(evt)} // Åben modal ved klik
                       className={`event-item cat-${evt.category.toLowerCase()} ${resizingEvent?.id === evt.id ? 'resizing' : ''}`}
                       style={getEventStyle(evt.startTime, evt.endTime)}
                     >
@@ -150,10 +163,19 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
                           <FontAwesomeIcon icon={evt.category === 'SPORT' ? faFutbol : faUsers} className="event-icon" />
                           <span className="event-name">{evt.name}</span>
                         </div>
+
+                        {/* VIS PREVIEW AF KOMMENTAR */}
+                        {evt.comment && (
+                          <div className="event-comment-preview">
+                            {evt.comment}
+                          </div>
+                        )}
+
                         <span className="event-time">
                           {format(parseISO(evt.startTime), 'HH:mm')} - {format(parseISO(evt.endTime), 'HH:mm')}
                         </span>
                       </div>
+
                       <div className="resize-handle right" onMouseDown={(e) => handleResizeStart(e, evt, 'right')}></div>
                     </div>
                   ))}
@@ -163,6 +185,16 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
           </div>
         </div>
       </div>
+
+      {/* Modal Render */}
+      {selectedEvent && (
+        <EventModal
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onSave={handleUpdateEvent}
+          onDelete={handleDeleteEvent}
+        />
+      )}
     </div>
   );
 };
