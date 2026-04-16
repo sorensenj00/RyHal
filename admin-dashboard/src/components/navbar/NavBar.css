@@ -229,11 +229,12 @@
 }
 
 
-/* ---------- Logout Button ---------- */
+/* ---------- Logout Section ---------- */
 .logout-container {
+  margin-top: auto; /* Dette sikrer, at den altid ligger i bunden */
+  padding: 0.938rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1); /* Diskret adskillelse */
   flex-shrink: 0;
-  padding: 1rem;
-  background-color: #144ba1;
 }
 
 .logout-btn {
@@ -244,23 +245,49 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #f3f3f3;
-  padding: 0.75rem;
+  color: var(--nav-text); /* Bruger dine eksisterende variabler */
+  height: 3rem;
+  padding: 0 0.75rem;
   border-radius: 0.625rem;
-  transition: all 0.3s ease;
+  transition: var(--transition-base);
 }
 
 .logout-btn:hover {
-  background-color: #ffffff;
-  color: #000
+  background-color: var(--nav-hover);
+  color: var(--black);
+}
+
+.logout-btn .sidenav-link-icon {
+  font-size: 22px;
+  width: 2rem;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.logout-btn .sidenav-link-text {
+  margin-left: 1.5rem;
+  white-space: nowrap;
+}
+
+/* ---------- Collapsed Logout Behavior ---------- */
+.sidenav-collapsed .logout-container {
+  padding: 0.938rem 0; /* Centrerer knappen i collapsed mode */
+  display: flex;
+  justify-content: center;
 }
 
 .sidenav-collapsed .logout-btn {
   justify-content: center;
+  padding: 0;
+  width: 3rem; /* Passer med logoets bredde */
 }
 
 .sidenav-collapsed .logout-btn .sidenav-link-text {
   display: none;
+}
+
+.sidenav-collapsed .logout-btn .sidenav-link-icon {
+  margin: 0 auto;
 }
 
 /* ---------- Page Layout ---------- */
@@ -279,3 +306,4 @@
   transition: margin 0.3s ease;
  
 }
+

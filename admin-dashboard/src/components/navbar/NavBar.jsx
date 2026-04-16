@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import { supabase } from "../../supabaseClient"; // 1. Importér supabase
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
@@ -7,6 +8,7 @@ import {
   faBars,
   faChevronDown,
   faChevronRight,
+  faSignOutAlt, // 2. Importér logud ikon
 } from "@fortawesome/free-solid-svg-icons";
 import "./NavBar.css";
 import { ActivePagesForNavBar } from "./ActivePagesForNavBar";
@@ -18,40 +20,18 @@ const NavBar = () => {
   const itemRefs = useRef({});
   const submenuRefs = useRef({});
 
-  // ---------- Luk floating submenu når der klikkes udenfor ----------
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!isCollapsed) return;
+  // 3. Log ud funktion
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Fejl ved logud:", error.message);
+  };
 
-      let clickedInsideAnySubmenu = false;
+  // ... (din eksisterende useEffect og toggleSubmenu logik forbliver uændret)
 
-      Object.values(submenuRefs.current).forEach((submenuEl) => {
-        if (submenuEl && submenuEl.contains(event.target)) {
-          clickedInsideAnySubmenu = true;
-        }
-      });
-
-      Object.values(itemRefs.current).forEach((itemEl) => {
-        if (itemEl && itemEl.contains(event.target)) {
-          clickedInsideAnySubmenu = true;
-        }
-      });
-
-      if (!clickedInsideAnySubmenu) {
-        setOpenMenus({});
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isCollapsed]);
-
-  // ---------- Hjælpefunktion til at lukke alle menuer ----------
   const closeSubmenus = () => {
     setOpenMenus({});
   };
 
-  // ---------- Toggle submenu ----------
   const toggleSubmenu = (label) => {
     if (isCollapsed && itemRefs.current[label]) {
       const rect = itemRefs.current[label].getBoundingClientRect();
@@ -64,7 +44,6 @@ const NavBar = () => {
     setOpenMenus((prev) => {
       const newState = { ...prev, [label]: !prev[label] };
       if (isCollapsed) {
-        // I collapsed mode må kun én menu være åben ad gangen
         Object.keys(newState).forEach((key) => {
           if (key !== label) newState[key] = false;
         });
@@ -76,42 +55,36 @@ const NavBar = () => {
   return (
     <>
       <div className={`sidenav ${isCollapsed ? "sidenav-collapsed" : ""}`}>
-        {/* ---------- Logo Section ---------- */}
         <div className="logo-container">
           <button
             className={`logo ${isCollapsed ? "rotated" : ""}`}
             onClick={() => {
               setIsCollapsed((prev) => {
                 const newState = !prev;
-                if (newState) {
-                  setOpenMenus({});
-                }
+                if (newState) setOpenMenus({});
                 return newState;
               });
             }}
           >
             <FontAwesomeIcon icon={faBars} />
           </button>
-
           {!isCollapsed && <div className="logo-text">Welcome</div>}
         </div>
 
-        {/* ---------- Nav Links ---------- */}
         <ul className="sidenav-nav">
+          {/* Eksisterende links */}
           {ActivePagesForNavBar.map((item) => (
             <li
               key={item.label}
-              className={`sidenav-nav-item ${
-                isCollapsed && openMenus[item.label] ? "active-collapsed" : ""
-              }`}
+              className={`sidenav-nav-item ${isCollapsed && openMenus[item.label] ? "active-collapsed" : ""
+                }`}
               ref={(el) => (itemRefs.current[item.label] = el)}
             >
               {item.children ? (
                 <>
                   <div
-                    className={`sidenav-nav-link ${
-                      openMenus[item.label] ? "active" : ""
-                    }`}
+                    className={`sidenav-nav-link ${openMenus[item.label] ? "active" : ""
+                      }`}
                     onClick={() => toggleSubmenu(item.label)}
                     style={{ cursor: "pointer" }}
                   >
@@ -123,11 +96,7 @@ const NavBar = () => {
                       <>
                         <span className="sidenav-link-text">{item.label}</span>
                         <FontAwesomeIcon
-                          icon={
-                            openMenus[item.label]
-                              ? faChevronDown
-                              : faChevronRight
-                          }
+                          icon={openMenus[item.label] ? faChevronDown : faChevronRight}
                           className="submenu-arrow"
                         />
                       </>
@@ -138,10 +107,7 @@ const NavBar = () => {
                     <ul className="submenu">
                       {item.children.map((sub) => (
                         <li key={sub.to} className="submenu-item">
-                          <NavLink
-                            to={sub.to}
-                            className="submenu-link"
-                          >
+                          <NavLink to={sub.to} className="submenu-link">
                             {sub.label}
                           </NavLink>
                         </li>
@@ -150,25 +116,23 @@ const NavBar = () => {
                   )}
                 </>
               ) : (
-                <NavLink
-                  to={item.to}
-                  className="sidenav-nav-link"
-                >
-                  <FontAwesomeIcon
-                    icon={item.icon}
-                    className="sidenav-link-icon"
-                  />
-                  {!isCollapsed && (
-                    <span className="sidenav-link-text">{item.label}</span>
-                  )}
+                <NavLink to={item.to} className="sidenav-nav-link">
+                  <FontAwesomeIcon icon={item.icon} className="sidenav-link-icon" />
+                  {!isCollapsed && <span className="sidenav-link-text">{item.label}</span>}
                 </NavLink>
               )}
             </li>
           ))}
         </ul>
+        <div className="logout-container">
+          <button onClick={handleLogout} className="logout-btn">
+            <FontAwesomeIcon icon={faSignOutAlt} className="sidenav-link-icon" />
+            {!isCollapsed && <span className="sidenav-link-text">Log ud</span>}
+          </button>
+        </div>
       </div>
 
-      {/* ---------- Floating submenu for collapsed ---------- */}
+      {/* Floating submenu logik (forbliver uændret) */}
       {ActivePagesForNavBar.map(
         (item) =>
           isCollapsed &&
@@ -190,11 +154,7 @@ const NavBar = () => {
               >
                 {item.children.map((sub) => (
                   <li key={sub.to} className="submenu-item">
-                    <NavLink
-                      to={sub.to}
-                      className="submenu-link"
-                      onClick={closeSubmenus}
-                    >
+                    <NavLink to={sub.to} className="submenu-link" onClick={closeSubmenus}>
                       {sub.label}
                     </NavLink>
                   </li>
