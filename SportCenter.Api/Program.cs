@@ -42,7 +42,7 @@ await eventService.CreateEventAsync(
     "Test Description",
     DateTime.Now,
     DateTime.Now.AddHours(1),
-    EventCategory.Other,
+    EventCategory.OTHER,
     new List<LocationBookingDto> { new LocationBookingDto(1, DateTime.Now, DateTime.Now.AddHours(1)) },
     null,
     "System"

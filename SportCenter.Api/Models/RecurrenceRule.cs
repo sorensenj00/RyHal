@@ -32,9 +32,9 @@ public class RecurrenceRule
             
             current = Frequency switch
             {
-                RecurrenceFrequency.Daily => current.AddDays(1),
-                RecurrenceFrequency.Weekly => current.AddDays(7),
-                RecurrenceFrequency.Monthly => current.AddMonths(1),
+                RecurrenceFrequency.DAILY => current.AddDays(1),
+                RecurrenceFrequency.WEEKLY => current.AddDays(7),
+                RecurrenceFrequency.MONTHLY => current.AddMonths(1),
                 _ => current.AddDays(1)
             };
         }
