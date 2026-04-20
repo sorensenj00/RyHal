@@ -45,7 +45,6 @@ const EditShift = ({ shift, onClose, onRefresh }) => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Er du sikker på, at du vil slette denne vagt?")) return;
     try {
       await api.delete(`/shifts/${shift.shiftId}`);
       if (onRefresh) onRefresh();

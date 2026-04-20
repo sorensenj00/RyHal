@@ -79,3 +79,44 @@
 .employee-avatar {
   width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
 }
+
+.delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+  padding: 1rem;
+}
+
+.delete-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.24);
+  padding: 1.1rem 1.1rem 1rem;
+}
+
+.delete-modal h3 {
+  margin: 0 0 0.55rem;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.delete-modal p {
+  margin: 0;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.delete-modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}

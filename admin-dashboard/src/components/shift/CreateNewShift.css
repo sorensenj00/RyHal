@@ -1,24 +1,37 @@
 /* Create New Shift Component Styles */
 .create-shift-btn {
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
-  padding: 0.5rem 1rem; /* Mindre padding */
-  border-radius: var(--border-radius);
-  font-size: 0.85rem; /* Mindre fontstørrelse */
+  appearance: none;
+  border: 1px solid #1d4ed8;
+  background: linear-gradient(180deg, #0f3a68 0%, #1d4ed8 100%);
+  color: #ffffff;
+  padding: 0.62rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s ease;
-  box-shadow: none; /* Fjern skygge for et fladere, minimalistisk look */
+  gap: 0.45rem;
+  line-height: 1;
+  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25);
 }
 
 .create-shift-btn:hover {
-  background: #0056b3;
-  transform: translateY(0); /* Fjern løft-effekt for at holde den rolig */
-  opacity: 0.9;
+  border-color: #1e40af;
+  background: linear-gradient(180deg, #0f3460 0%, #1e40af 100%);
+  box-shadow: 0 14px 22px rgba(29, 78, 216, 0.3);
+  transform: translateY(-1px);
+}
+
+.create-shift-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.1);
+}
+
+.create-shift-btn:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
 }
 /* Modal Styles */
 .modal-overlay {
@@ -45,6 +58,32 @@
   display: flex; justify-content: space-between; align-items: center;
   padding: 1.25rem 1.5rem;
   border-bottom: var(--border-width) solid var(--gray-200);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-base);
+}
+
+.close-btn:hover {
+  background: var(--gray-100);
+  color: var(--gray-800);
 }
 
 .shift-form { padding: 1.5rem; }
@@ -76,14 +115,74 @@
   border-top: var(--border-width) solid var(--gray-200);
 }
 
-.cancel-btn, .submit-btn {
-  padding: 0.65rem 1.25rem; border-radius: var(--border-radius);
-  font-size: 0.95rem; font-weight: 600; cursor: pointer; border: none;
+.cancel-btn,
+.submit-btn {
+  appearance: none;
+  border: 1px solid #d0d8e5;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+  color: #1f2937;
+  padding: 0.62rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
-.cancel-btn { background: var(--gray-100); color: var(--gray-700); }
-.submit-btn { background: var(--primary-color); color: var(--white); }
+
+.cancel-btn:hover,
+.submit-btn:hover {
+  border-color: #aeb9cc;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.cancel-btn:active,
+.submit-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.1);
+}
+
+.cancel-btn:focus-visible,
+.submit-btn:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.cancel-btn {
+  color: #334155;
+}
+
+.submit-btn {
+  border-color: #1d4ed8;
+  background: linear-gradient(180deg, #0f3a68 0%, #1d4ed8 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25);
+}
+
+.submit-btn:hover {
+  border-color: #1e40af;
+  background: linear-gradient(180deg, #0f3460 0%, #1e40af 100%);
+}
+
+.submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
 
 @media (max-width: 480px) {
   .form-row { flex-direction: column; }
   .form-actions { flex-direction: column-reverse; }
+
+  .cancel-btn,
+  .submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

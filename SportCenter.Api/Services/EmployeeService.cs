@@ -14,18 +14,18 @@ namespace SportCenter.Api.Services
         }
 
         public async Task<List<Employee>> GetAllEmployeesAsync(string? accessToken = null)
-{
+        {
             if (!string.IsNullOrEmpty(accessToken))
             {
                 await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
             }
 
-            // Vi bruger .Select() til at tvinge en join på tværs af dine mellemtabeller
-            // Dette virker selvom [Reference] er fjernet fra modellen
+            // Midlertidigt hentes kun medarbejderfelter for at undgaa SQL-fejl i nested join.
             var result = await _supabase
                 .From<Employee>()
-                .Select("*") 
+                .Select("*")
                 .Get();
+
 
             return result.Models;
         }
@@ -50,8 +50,117 @@ namespace SportCenter.Api.Services
 
             // Gemmer i Supabase
             var result = await _supabase.From<Employee>().Insert(newEmployee);
-            
+
             return result.Models.First();
+        }
+
+        public async Task<bool> UpdateEmployeeContactAsync(int employeeId, UpdateEmployeeContactDto dto, string? accessToken = null)
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var existingEmployeeResponse = await _supabase.From<Employee>()
+                .Where(x => x.EmployeeId == employeeId)
+                .Get();
+
+            var existingEmployee = existingEmployeeResponse.Models.FirstOrDefault();
+            if (existingEmployee == null)
+            {
+                return false;
+            }
+
+            await _supabase.From<Employee>()
+                .Where(x => x.EmployeeId == employeeId)
+                .Set(x => x.Email, dto.Email)
+                .Set(x => x.Phone, dto.Phone)
+                .Update();
+
+            return true;
+        }
+
+        public async Task<bool> RemoveEmployeeAsync(int employeeId, string? accessToken = null)
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var existingEmployeeResponse = await _supabase.From<Employee>()
+                .Where(x => x.EmployeeId == employeeId)
+                .Get();
+
+            var existingEmployee = existingEmployeeResponse.Models.FirstOrDefault();
+
+            if (existingEmployee == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                long? employeeIdForShift = employeeId;
+
+                // Bevar eksisterende data: afkobl vagter fra medarbejderen i stedet for at slette vagter.
+                try
+                {
+                    await _supabase.From<Shift>()
+                        .Where(x => x.EmployeeId == employeeIdForShift)
+                        .Set(x => x.EmployeeId, (long?)null)
+                        .Update();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Could not unlink shifts for employee {employeeId}: {ex.Message}", ex);
+                }
+
+                // Fjern kun koblinger mellem medarbejder og roller.
+                try
+                {
+                    await _supabase.From<EmployeeRole>()
+                        .Where(x => x.EmployeeId == employeeId)
+                        .Delete();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Could not unlink employee_roles for employee {employeeId}: {ex.Message}", ex);
+                }
+
+                // Fjern kun koblinger mellem medarbejder og kvalifikationer.
+                try
+                {
+                    await _supabase.From<EmployeeQualification>()
+                        .Where(x => x.EmployeeId == employeeId)
+                        .Delete();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Could not unlink employee_qualifications for employee {employeeId}: {ex.Message}", ex);
+                }
+
+                try
+                {
+                    await _supabase.From<Employee>()
+                        .Where(x => x.EmployeeId == employeeId)
+                        .Delete();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Could not delete employee {employeeId}: {ex.Message}", ex);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (ex is InvalidOperationException)
+                {
+                    throw;
+                }
+
+                throw new InvalidOperationException("Employee could not be deleted due to related data or permission rules.", ex);
+            }
         }
 
 
@@ -62,7 +171,7 @@ namespace SportCenter.Api.Services
             var response = await _supabase.From<Employee>().Where(x => x.EmployeeId == employeeId).Get();
             var employee = response.Models.FirstOrDefault();
 
-            if (employee?.Birthday == null) 
+            if (employee?.Birthday == null)
             {
                 throw new ArgumentNullException("Employee birthday is not set");
             }

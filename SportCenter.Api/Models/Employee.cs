@@ -3,25 +3,25 @@ using Postgrest.Models;
 
 namespace SportCenter.Api.Models;
 
-[Table("Employees")]
+[Postgrest.Attributes.Table("employees")]
 public class Employee : BaseModel
 {
     [PrimaryKey("employee_id", false)]
     public int EmployeeId { get; set; }
 
-    [Column("first_name")]
+    [Postgrest.Attributes.Column("first_name")]
     public string FirstName { get; set; } = string.Empty;
 
-    [Column("last_name")]
+    [Postgrest.Attributes.Column("last_name")]
     public string LastName { get; set; } = string.Empty;
 
-    [Column("email")]
+    [Postgrest.Attributes.Column("email")]
     public string? Email { get; set; }
 
-    [Column("phone")]
+    [Postgrest.Attributes.Column("phone")]
     public string? Phone { get; set; }
 
-    [Column("birthday")]
+    [Postgrest.Attributes.Column("birthday")]
     public DateOnly? Birthday { get; set; }
 
     [Reference(typeof(EmployeeRole), ReferenceAttribute.JoinType.Left, true, "employee_id")]
