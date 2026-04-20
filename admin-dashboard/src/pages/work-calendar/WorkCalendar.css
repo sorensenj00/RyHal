@@ -13,25 +13,57 @@
   border-bottom: var(--border-width) solid var(--border-color);
 }
 
-.toggle-btn {
-  padding: 0.625rem 1.25rem;
-  margin: 0 0.625rem;
-  border: var(--border-width) solid var(--border-color);
-  background-color: var(--white);
-  border-radius: var(--border-radius);
+.toggle-btn,
+.nav-btn {
+  appearance: none;
+  padding: 0.58rem 1rem;
+  border: 1px solid #d0d8e5;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+  border-radius: 10px;
+  color: #1f2937;
   cursor: pointer;
-  font-size: var(--font-size-base);
-  transition: var(--transition-base);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
-.toggle-btn:hover {
-  background-color: var(--gray-200);
+.toggle-btn {
+  min-width: 130px;
+  margin: 0 0.35rem;
+}
+
+.toggle-btn:hover,
+.nav-btn:hover {
+  border-color: #aeb9cc;
+  background: #f4f8ff;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.toggle-btn:active,
+.nav-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.1);
+}
+
+.toggle-btn:focus-visible,
+.nav-btn:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
 }
 
 .toggle-btn.active {
-  background-color: var(--primary-color);
-  color: var(--white);
-  border-color: var(--primary-color);
+  background: linear-gradient(180deg, #0f3a68 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25);
+}
+
+.toggle-btn.active:hover {
+  background: linear-gradient(180deg, #0f3460 0%, #1e40af 100%);
+  border-color: #1e40af;
 }
 
 .calendar-nav-bar {
@@ -65,6 +97,11 @@
 
 .calendar-nav-right {
   justify-content: flex-end;
+}
+
+.calendar-nav-left .nav-btn,
+.calendar-nav-right .nav-btn {
+  min-height: 38px;
 }
 
 .date-picker {

@@ -17,6 +17,107 @@
   font-size: var(--font-size-xl);
 }
 
+.employee-toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1200;
+  min-width: 320px;
+  max-width: 420px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  border-left-width: 5px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+  background: #ffffff;
+  color: #111827;
+  animation: toastIn 180ms ease-out;
+  overflow: hidden;
+}
+
+.employee-toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.employee-toast-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.employee-toast-message {
+  font-size: 0.84rem;
+  color: #4b5563;
+  line-height: 1.35;
+}
+
+.employee-toast-success {
+  border-left-color: #0f766e;
+}
+
+.employee-toast-error {
+  border-left-color: #b91c1c;
+}
+
+.employee-toast-close {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  margin-top: -0.1rem;
+  padding: 0;
+}
+
+.employee-toast-close:hover {
+  color: #111827;
+}
+
+.employee-toast-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  transform-origin: left;
+  animation: toastProgress 3.5s linear forwards;
+}
+
+.employee-toast-success .employee-toast-progress {
+  background: #0f766e;
+}
+
+.employee-toast-error .employee-toast-progress {
+  background: #b91c1c;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toastProgress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 /* Det specifikke 5x5 Grid-system */
 .stats-parent-grid {
   display: grid;
@@ -125,5 +226,14 @@
   .div1, .div2, .div3, .div4 {
     grid-area: auto;
     height: 160px;
+  }
+}
+
+@media (max-width: 600px) {
+  .employee-toast {
+    left: 1rem;
+    right: 1rem;
+    min-width: 0;
+    max-width: none;
   }
 }

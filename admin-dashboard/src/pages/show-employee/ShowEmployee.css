@@ -64,6 +64,25 @@
   color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
 }
 
+.save-profile-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.save-status {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.save-status.success {
+  color: #166534;
+}
+
+.save-status.error {
+  color: #b42318;
+}
+
 /* Main (Midten) */
 .qualifications-main h3 {
   font-size: 1.1rem; border-bottom: 1px solid var(--gray-100);
