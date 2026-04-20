@@ -1,218 +1,96 @@
-﻿using Azure.Identity;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using SportCenter.Api.Controllers;
+﻿using Supabase;
 using SportCenter.Api.Models;
+using SportCenter.Api.DTOs;
+
 namespace SportCenter.Api.Services
 {
     public class EmployeeService
     {
-        public static Employee CreateEmployee(string firstname, string lastName, int id)
-        {
-            //TODO: ADD DATABASE INTEGRATION
+        private readonly Supabase.Client _supabase;
 
-            return new Employee(firstname, lastName, id);
+        public EmployeeService(Supabase.Client supabase)
+        {
+            _supabase = supabase;
         }
 
-        public static Employee RemoveEmployee(int employeeID)
-        {
-            Employee employee = null; //TODO: find employee in database based on ID
-
-            foreach (var shift in employee.Shifts)
+        public async Task<List<Employee>> GetAllEmployeesAsync(string? accessToken = null)
+{
+            if (!string.IsNullOrEmpty(accessToken))
             {
-                ShiftService.SetEmployee(shift.ShiftId, -1); //Fjerner employee reference fra alle shifts
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
             }
-			return null;
+
+            // Vi bruger .Select() til at tvinge en join på tværs af dine mellemtabeller
+            // Dette virker selvom [Reference] er fjernet fra modellen
+            var result = await _supabase
+                .From<Employee>()
+                .Select("*") 
+                .Get();
+
+            return result.Models;
         }
 
-        /// <summary>
-        /// Checks if Employee birthday is exactly or over 18 years ago
-        /// </summary>
-        /// <param name="employeeID"></param>
-        /// <returns>Boolean</returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        public static bool IsOver18(int employeeID)
-        {
-            Employee employee = null; //TODO: find employee in database based on ID
 
-            if (employee.birthday == null)
+        public async Task<Employee> CreateEmployeeAsync(CreateEmployeeDto dto, string? accessToken = null)
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var newEmployee = new Employee
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                // Konverterer DateTime fra React til DateOnly som din model kræver
+                Birthday = DateOnly.FromDateTime(dto.Birthday)
+            };
+
+            // Gemmer i Supabase
+            var result = await _supabase.From<Employee>().Insert(newEmployee);
+            
+            return result.Models.First();
+        }
+
+
+
+
+        public async Task<bool> IsOver18Async(int employeeId)
+        {
+            var response = await _supabase.From<Employee>().Where(x => x.EmployeeId == employeeId).Get();
+            var employee = response.Models.FirstOrDefault();
+
+            if (employee?.Birthday == null) 
             {
                 throw new ArgumentNullException("Employee birthday is not set");
-            }    
-            else 
-            {
-                return employee.birthday.Value.AddYears(18) <= DateOnly.FromDateTime(DateTime.Now);
-			}
+            }
+
+            return employee.Birthday.Value.AddYears(18) <= DateOnly.FromDateTime(DateTime.Now);
         }
 
-        public static Qualification CreateQualification(string name, string description, int id)
+        public async Task<List<Shift>> GetFutureShiftsForEmployeeAsync(int employeeId)
         {
-            //TODO: Add qualification to database
+            var result = await _supabase.From<Shift>()
+                .Where(x => x.EmployeeId == employeeId)
+                .Where(x => x.StartTime > DateTime.Now)
+                .Get();
 
-            return new Qualification(name, description, id);
+            return result.Models;
         }
 
-        public static Qualification RemoveQualification(int QualificationID)
+        public async Task<double> GetTotalHoursForMonthAsync(int employeeId, int month, int year)
         {
+            var result = await _supabase.From<Shift>()
+                .Where(x => x.EmployeeId == employeeId)
+                .Get();
 
-            //TODO: find Role in qualification based on role ID
-            //TODO: remove qualification from database
+            var shiftsInMonth = result.Models
+                .Where(s => s.StartTime.Month == month && s.StartTime.Year == year)
+                .ToList();
 
-            return null;
+            return shiftsInMonth.Sum(s => (s.EndTime - s.StartTime).TotalHours);
         }
-
-        public static Role CreateRole(string name, int id)
-        {
-            //TODO: add Role to database
-
-            return new Role(name, id);
-        }
-
-        public static Role RemoveRole(int roleID)
-        {
-            //TODO: find Role in database based on role ID
-            //TODO: remove role from database
-            //TODO: remove role from every employee that has it
-
-            return null;
-        }
-
-        public static void AddQualificationToEmployee(int employeeID, int qualificationID)
-        {
-            Employee employee = null; //TODO: koble til database for at finde employee baseret på id
-            Qualification qualification = null; //TODO: koble til database for at finde qualification baseret på id
-            if (employee == null || qualification == null)
-            {
-                throw new ArgumentNullException("Employee or Qualification not found");
-            }
-            employee.Qualifications.Add(qualification);
-        }
-
-        public static Qualification RemoveQualificationFromEmployee(int employeeID, int qualificationID)
-        {
-            Employee employee = null; //TODO: koble til database for at finde employee baseret på id
-            Qualification qualification = null; //TODO: koble til database for at finde qualification baseret på id
-            if (employee == null || qualification == null)
-            {
-                throw new ArgumentNullException("Employee or Qualification not found");
-            }
-            if (!employee.Qualifications.Contains(qualification))
-            {
-                throw new InvalidOperationException("Qualification not found on Employee");
-            }
-
-            employee.Qualifications.Remove(qualification);
-
-            return qualification;
-        }
-
-        public static void AddRoleToEmployee(int employeeID, int RoleID)
-        {
-            Employee employee = null; //TODO: koble til database for at finde employee baseret på id
-            Role role = null; //TODO: koble til database for at finde role baseret på id
-            if (employee == null || role == null)
-            {
-                throw new ArgumentNullException("Employee or Role not found");
-            }
-
-            employee.Roles.Add(role);
-        }
-
-        public static Role RemoveRoleFromEmployee(int employeeID, int RoleID)
-        {
-            Employee employee = null; //TODO koble til database for at finde employee baseret på id
-            Role role = null; //TODO koble til database for at finde role baseret på id
-            if (employee == null || role == null)
-            {
-                throw new ArgumentNullException("Employee or Role not found");
-            }
-
-            if (!employee.Roles.Contains(role))
-            {
-                throw new InvalidOperationException("Role not found");
-            }
-
-            employee.Roles.Remove(role);
-
-            return role;
-        }
-
-
-		public static void AddShiftToEmployee(int employeeId, int shiftId)
-		{
-            Employee employee = null; //TODO: koble til database for at finde employee baseret på id
-			Shift shift = null; //TODO: koble til database for at finde shift baseret på id
-			if (employee == null || shift == null)
-			{
-				throw new ArgumentNullException("Employee or Shift not found");
-			}
-            else 
-            {
-			    employee.Shifts.Add(shift);
-
-				//tilføjer hos modparten hvis nødvendigt
-				if (shift.Employee != employee)
-			    {
-                    ShiftService.SetEmployee(shift.ShiftId, employeeId);
-			    }
-				//TODO opdater employee i database
-			}
-		}
-
-        public static void RemoveShiftFromEmployee(int employeeId, int shiftId)
-		{
-			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
-			Shift shift = null; //TODO: koble til database for at finde shift baseret på id
-            if (employee == null || shift == null)
-            {
-                throw new ArgumentNullException("Employee or Shift not found");
-            }
-            else
-            {
-
-                if (!employee.Shifts.Contains(shift))
-                {
-                    throw new InvalidOperationException("Shift not found on Employee");
-                }
-
-                employee.Shifts.Remove(shift);
-
-                //Fjerner hos modparten
-                if (shift.Employee == employee)
-                {
-                    ShiftService.SetEmployee(shiftId, -1); //-1 indikerer at shift ikke længere har en employee
-				}
-
-				//TODO opdater employee i database
-			}
-		}
-
-        public static List<Shift> GetFutureShiftsForEmployee(int employeeId)
-		{
-			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
-            if (employee == null)
-            {
-                throw new ArgumentNullException("Employee not found");
-            }
-            else
-            {
-                var futureShifts = employee.Shifts.Where(shift => shift.StartTime > DateTime.Now).ToList();
-                return futureShifts;
-            }
-		}
-
-		public static double GetTotalHoursForMonth(int employeeId, int month, int year)
-		{
-			Employee employee = null; //TODO: koble til database for at finde employee baseret på id
-			if (employee == null)
-			{
-				throw new ArgumentNullException("Employee not found");
-			}
-            else 
-            {
-                var shiftsInMonth = employee.Shifts.Where(shift => shift.StartTime.Month == month && shift.StartTime.Year == year).ToList();
-			    double totalHours = shiftsInMonth.Sum(shift => (shift.EndTime - shift.StartTime).TotalHours);
-			    return totalHours;
-            }
-		}
-	}
+    }
 }

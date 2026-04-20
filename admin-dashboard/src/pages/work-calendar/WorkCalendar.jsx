@@ -1,18 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { format, addDays, subDays, addMonths, subMonths } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { da } from 'date-fns/locale'; // Korrekt import af dansk sprog
+import api from '../../api/axiosConfig';
 import BaseDayCalendar from '../../components/calendar/BaseDayCalendar';
 import BaseMonthCalendar from '../../components/calendar/BaseMonthCalendar';
 import CreateNewShift from '../../components/shift/CreateNewShift';
-import { employees, shifts } from '../../data/DummyData';
 import './WorkCalendar.css';
 
 const WorkCalendar = () => {
   const [view, setView] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  const [employees, setEmployees] = useState([]);
+  const [shifts, setShifts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Vi pakker fetchData ind i useCallback, så den kan sendes som prop uden at trigge unødige re-renders
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [empRes, shiftRes] = await Promise.all([
+        api.get('/employees'),
+        api.get('/shifts')
+      ]);
+      setEmployees(empRes.data);
+      setShifts(shiftRes.data);
+      setError(null);
+    } catch (err) {
+      console.error("Fejl ved hentning af kalenderdata:", err);
+      setError("Kunne ikke hente data fra databasen.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
+    setView('day'); // Valgfrit: hop til dagvisning når man klikker på en dato i måneden
   };
 
   const handlePrevious = () => {
@@ -37,6 +66,9 @@ const WorkCalendar = () => {
   const formatDateLabel = () => {
     return format(selectedDate, 'EEEE d. MMMM yyyy', { locale: da });
   };
+
+  if (loading && !shifts.length) return <div className="loader">Henter vagtplan...</div>;
+  if (error) return <div className="error-message">{error}</div>;
 
   return (
     <div className="work-calendar">
@@ -73,8 +105,8 @@ const WorkCalendar = () => {
         </div>
 
         <div className='calendar-nav-right'>
-            {/* Knappen placeres her og får den valgte dato med */}
-            <CreateNewShift initialDate={selectedDate} />
+            {/* CreateNewShift får nu også onRefresh så den kan opdatere listen ved ny vagt */}
+            <CreateNewShift initialDate={selectedDate} onRefresh={fetchData} />
         </div>
       </div>
 
@@ -91,6 +123,7 @@ const WorkCalendar = () => {
             date={selectedDate} 
             employees={employees} 
             shifts={shifts} 
+            onRefresh={fetchData}
           />
         )}
       </div>

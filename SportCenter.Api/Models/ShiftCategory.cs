@@ -1,11 +1,17 @@
-﻿using System;
+﻿using Postgrest.Attributes;
+using Postgrest.Models;
 
-public enum ShiftCategory
+namespace SportCenter.Api.Models;
+
+[Table("shift_categories")] // Matcher dit nye RENAME
+public class ShiftCategory : BaseModel
 {
-    HALL_BOY,
-    CLEANER,
-    ADMIN,
-    CAFE_WORKER,
-    DISHWASHER,
-    OTHER
+    [PrimaryKey("shiftcategory_id", false)]
+    public long ShiftCategoryId { get; set; }
+
+    [Column("name")]
+    public string Name { get; set; }
+
+    [Column("color")]
+    public string Color { get; set; }
 }

@@ -1,20 +1,14 @@
-﻿using System;
+﻿using Postgrest.Attributes;
+using Postgrest.Models;
 
-public class Role
+namespace SportCenter.Api.Models;
+
+[Table("Roles")]
+public class Role : BaseModel
 {
-	public string Name { get; set; }
+    [PrimaryKey("role_id", false)] 
+    public int RoleId { get; set; }
 
-	public int RoleID { get; set; }
-
-	public Role(string name, int id)
-	{
-		Name = name;
-		RoleID = id;
-	}
-
-	override
-	public string ToString()
-	{
-		return Name;
-	}
+    [Column("name")]
+    public string Name { get; set; } = string.Empty;
 }

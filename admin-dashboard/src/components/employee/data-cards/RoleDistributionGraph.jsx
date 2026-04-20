@@ -1,11 +1,11 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { shifts, employees as allEmployees } from '../../../data/DummyData';
 import { isSameDay, parseISO, format } from 'date-fns';
-import { da } from 'date-fns/locale'; // Husk dansk sprog til datoer
+import { da } from 'date-fns/locale';
 import './RoleDistributionGraph.css';
 
-const RoleDistributionGraph = ({ targetDate, employees }) => {
+const RoleDistributionGraph = ({ targetDate, employees = [], shifts = [] }) => {
+  // Funktion til at hente CSS-variabler (farver) fra dit stylesheet
   const getVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
   const roleColorMap = {
@@ -20,25 +20,34 @@ const RoleDistributionGraph = ({ targetDate, employees }) => {
 
   let roleCounts = {};
 
-  if (targetDate) {
+  if (targetDate && shifts.length > 0) {
     // LOGIK TIL VELKOMST-SIDE (Vagter på en bestemt dag)
     const shiftsToday = shifts.filter(shift => isSameDay(parseISO(shift.date), targetDate));
     roleCounts = shiftsToday.reduce((acc, shift) => {
-      const emp = allEmployees.find(e => e.id === shift.employeeId);
-      const role = emp ? emp.role : shift.category;
-      acc[role] = (acc[role] || 0) + 1;
+      // Find medarbejderen via employeeId
+      const emp = employees.find(e => e.employeeId === shift.employeeId);
+      
+      // Hent rolle-navnet fra databasens array-struktur: roles[0].name
+      const roleName = emp && emp.roles && emp.roles.length > 0 
+        ? emp.roles[0].name 
+        : (shift.category || 'Andet');
+
+      acc[roleName] = (acc[roleName] || 0) + 1;
       return acc;
     }, {});
   } else {
-    // LOGIK TIL OVERBLIKS-SIDE (Alle medarbejdere)
-    const sourceData = employees || allEmployees;
-    roleCounts = sourceData.reduce((acc, emp) => {
-      acc[emp.role] = (acc[emp.role] || 0) + 1;
+    // LOGIK TIL OVERBLIKS-SIDE (Alle medarbejdere fra API)
+    roleCounts = employees.reduce((acc, emp) => {
+      // Vi tager den første rolle fra listen "roles: [{name: '...'}]"
+      const roleName = emp.roles && emp.roles.length > 0 
+        ? emp.roles[0].name 
+        : 'Andet';
+
+      acc[roleName] = (acc[roleName] || 0) + 1;
       return acc;
     }, {});
   }
 
-  // Dynamisk titel baseret på dato eller total
   const getDynamicTitle = () => {
     if (targetDate) {
       return `Fordeling d. ${format(targetDate, 'd. MMMM', { locale: da })}`;
@@ -46,29 +55,25 @@ const RoleDistributionGraph = ({ targetDate, employees }) => {
     return "Medarbejderfordeling (Total)";
   };
 
+  // Formater data til Recharts format
   const data = Object.keys(roleCounts).map(role => ({
     name: role,
     value: roleCounts[role],
     fill: roleColorMap[role] || getVar('--color-andet')
   }));
 
-  // Beregn total til center-label
-  const totalCount = Object.values(roleCounts).reduce((sum, val) => sum + val, 0);
-
   if (data.length === 0) {
     return (
       <div className="role-graph-container">
         <h3 className="graph-title">{getDynamicTitle()}</h3>
-        <p className="text-muted text-center p-3">Ingen data fundet for denne dag.</p>
+        <p className="text-muted text-center p-3">Ingen data fundet.</p>
       </div>
     );
   }
 
   return (
     <div className="role-graph-container">
-      <h3 className="graph-title">
-       {getDynamicTitle()}
-      </h3>
+      <h3 className="graph-title">{getDynamicTitle()}</h3>
       <div className="graph-wrapper">
         <ResponsiveContainer width="100%" height={250}>
           <PieChart>
@@ -87,7 +92,12 @@ const RoleDistributionGraph = ({ targetDate, employees }) => {
               ))}
             </Pie>
             <Tooltip 
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--box-shadow-lg)', fontSize: '12px' }}
+              contentStyle={{ 
+                borderRadius: '8px', 
+                border: 'none', 
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', 
+                fontSize: '12px' 
+              }}
             />
             <Legend verticalAlign="bottom" align="center" iconSize={8} />
           </PieChart>

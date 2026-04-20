@@ -1,12 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../api/axiosConfig'; // Din nye Axios instans
 import EmployeeTable from '../../components/employee/EmployeeTable';
 import TotalEmployeeCard from '../../components/employee/data-cards/TotalEmployeeCard';
 import RoleDistributionGraph from '../../components/employee/data-cards/RoleDistributionGraph';
-import { employees } from '../../data/DummyData';
 import './EmployeeListOverview.css';
 
 const EmployeeListOverview = () => {
-  const totalEmployees = employees.length;
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        setLoading(true);
+        // Kalder din C# controller: api/Employees
+        const response = await api.get('/employees');
+        setEmployees(response.data);
+      } catch (err) {
+        console.error("Fejl ved hentning af medarbejdere:", err);
+        setError("Kunne ikke forbinde til systemet.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
+  if (loading) return <div className="p-3">Henter data fra serveren...</div>;
+  if (error) return <div className="p-3 text-danger">{error}</div>;
 
   return (
     <div className="employee-list-overview">
@@ -14,38 +37,34 @@ const EmployeeListOverview = () => {
         <h1>Medarbejder Oversigt</h1>
       </div>
 
-      {/* Grid Layout Sektion */}
       <div className="stats-parent-grid">
-        {/* div1: Lille kort øverst til veanstre */}
         <div className="div1">
-          <TotalEmployeeCard totalEmployees={totalEmployees} />
+          <TotalEmployeeCard totalEmployees={employees.length} />
         </div>
 
-        {/* div2: Lille kort under div1 */}
         <div className="div2">
-          <div className="placeholder-card">
+          <div className="stat-card stat-card-success">
             <div className="stat-content">
-              <p>Mere data følger...</p>
+              <h3>{employees.length}</h3>
+              <p>Total i systemet</p>
             </div>
           </div>
         </div>
 
-        {/* div3: Stor graf ved siden af de små kort (fylder 2 rækker) */}
         <div className="div3">
           <RoleDistributionGraph employees={employees} />
         </div>
 
-        {/* div4: Ekstra plads til fremtidig data (fylder 2 rækker) */}
         <div className="div4">
           <div className="placeholder-card">
             <div className="stat-content text-center">
-              <p>Mere data følger...</p>
+              <p className="text-muted">Detaljeret statistik</p>
+              <small>Hentet fra C# Service</small>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabel Sektion nedenunder */}
       <div className="table-section">
         <div className="table-wrapper">
           <EmployeeTable employees={employees} />

@@ -1,37 +1,29 @@
+using Postgrest.Attributes;
+using Postgrest.Models;
+
 namespace SportCenter.Api.Models;
-public class Employee {
 
-    public string FirstName { get; set; }
+[Table("Employees")]
+public class Employee : BaseModel
+{
+    [PrimaryKey("employee_id", false)]
+    public int EmployeeId { get; set; }
 
-    public string LastName { get; set; }
+    [Column("first_name")]
+    public string FirstName { get; set; } = string.Empty;
 
-    public string? Phone { get; set; }
-    
+    [Column("last_name")]
+    public string LastName { get; set; } = string.Empty;
+
+    [Column("email")]
     public string? Email { get; set; }
 
-    public DateOnly? birthday { get; set; }
+    [Column("phone")]
+    public string? Phone { get; set; }
 
-    public int EmployeeId { get; }
+    [Column("birthday")]
+    public DateOnly? Birthday { get; set; }
 
-    public string? ProfileImageURL { get; set; }
-
-    public List<Role> Roles { get; set; } = new List<Role>();
-
-    public List<Qualification> Qualifications { get; set; } = new List<Qualification>();
-
-    public List<Shift> Shifts { get; set; } = new List<Shift>();
-
-	public Employee(string firstName, string lastName, int id)
-    {
-        FirstName = firstName;
-        LastName = lastName;
-        EmployeeId = id;
-	}
-
-    override
-    public string ToString()
-    {
-        return FirstName + " " + LastName + "\nID: " + EmployeeId + "\n phone: " + Phone + "\n mail: " + Email;
-    }
-
+    [Reference(typeof(EmployeeRole), ReferenceAttribute.JoinType.Left, true, "employee_id")]
+    public List<EmployeeRole> EmployeeRoles { get; set; } = new List<EmployeeRole>();
 }

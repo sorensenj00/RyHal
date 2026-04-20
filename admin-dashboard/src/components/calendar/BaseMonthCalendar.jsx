@@ -1,18 +1,9 @@
 import React from 'react';
 import { 
   format, startOfMonth, endOfMonth, startOfWeek, 
-  endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday 
+  endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday, parseISO 
 } from 'date-fns';
 import './BaseMonthCalendar.css';
-
-// Opdaterede farver der matcher din BaseDayCalendar.css
-const ROLE_COLORS = {
-  'Hal Mand': '#B8BB0B',
-  'Cafemedarbejder': '#22C55E',
-  'Administration': '#F59E0B',
-  'Rengøring': '#7C3AED',
-  'default': '#94a3b8'
-};
 
 const BaseMonthCalendar = ({ currentDate, onDateSelect, shifts = [], employees = [] }) => {
   const monthStart = startOfMonth(currentDate);
@@ -23,29 +14,47 @@ const BaseMonthCalendar = ({ currentDate, onDateSelect, shifts = [], employees =
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
   const weekDays = ['Ma', 'Ti', 'On', 'To', 'Fr', 'Lø', 'Sø'];
 
+  // Dynamisk udledning af unikke kategorier til legenden baseret på data fra DB
+  const uniqueCategories = shifts.reduce((acc, shift) => {
+    if (shift.categoryId && !acc.find(c => c.id === shift.categoryId)) {
+      acc.push({
+        id: shift.categoryId,
+        name: shift.categoryName,
+        color: shift.categoryColor
+      });
+    }
+    return acc;
+  }, []).sort((a, b) => a.id - b.id);
+
   const getDayStats = (day) => {
-    // Sikrer at vi ikke crasher hvis shifts er undefined
-    const dayShifts = (shifts || []).filter(s => isSameDay(new Date(s.date), day));
+    const dayShifts = (shifts || []).filter(s => {
+      const shiftDate = typeof s.startTime === 'string' ? parseISO(s.startTime) : new Date(s.startTime);
+      return isSameDay(shiftDate, day);
+    });
     
     return dayShifts.reduce((acc, shift) => {
-      const employee = employees.find(e => e.id === shift.employeeId);
-      const role = employee ? employee.role : 'default';
-      acc[role] = (acc[role] || 0) + 1;
+      const catId = shift.categoryId;
+      if (!acc[catId]) {
+        acc[catId] = {
+          count: 0,
+          color: shift.categoryColor,
+          name: shift.categoryName
+        };
+      }
+      acc[catId].count += 1;
       return acc;
     }, {});
   };
 
   return (
     <div className="calendar-page-container">
-      {/* Legend med de korrekte farver */}
+      {/* Legenden genereres nu automatisk ud fra databasens kategorier */}
       <div className="calendar-legend">
-        {Object.entries(ROLE_COLORS).map(([role, color]) => (
-          role !== 'default' && (
-            <div key={role} className="legend-item">
-              <span className="legend-dot" style={{ backgroundColor: color }}></span>
-              <span className="legend-label">{role}</span>
-            </div>
-          )
+        {uniqueCategories.map((cat) => (
+          <div key={cat.id} className="legend-item">
+            <span className="legend-dot" style={{ backgroundColor: cat.color }}></span>
+            <span className="legend-label">{cat.name}</span>
+          </div>
         ))}
       </div>
 
@@ -66,13 +75,13 @@ const BaseMonthCalendar = ({ currentDate, onDateSelect, shifts = [], employees =
               <span className="day-number">{format(day, 'd')}</span>
               
               <div className="day-stats-container">
-                {Object.entries(stats).map(([role, count]) => (
-                  <div key={role} className="role-stat-badge">
+                {Object.entries(stats).map(([catId, data]) => (
+                  <div key={catId} className="role-stat-badge">
                     <span 
                       className="stat-dot" 
-                      style={{ backgroundColor: ROLE_COLORS[role] || ROLE_COLORS.default }}
+                      style={{ backgroundColor: data.color }}
                     ></span>
-                    <span className="stat-count-month-calendar">{count}</span>
+                    <span className="stat-count-month-calendar">{data.count}</span>
                   </div>
                 ))}
               </div>

@@ -1,58 +1,40 @@
-using SportCenter.Api.Models;
+using Supabase;
 using SportCenter.Api.Services;
-using SportCenter.Api.DTOs;
-using SportCenter.Api.Data;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddOpenApi();
+// 1. Konfigurér CORS så din React frontend (port 3000) må kalde din API
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowReact", policy => {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
-// Register DbContext and EventService for DI
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<EventService>();
+// 2. Registrér Supabase Klienten
+// Sørg for at "Supabase:Url" og "Supabase:Key" findes i din appsettings.json
+builder.Services.AddScoped<Supabase.Client>(_ => 
+    new Supabase.Client(
+        builder.Configuration["Supabase:Url"] ?? throw new InvalidOperationException("Supabase URL mangler"),
+        builder.Configuration["Supabase:Key"] ?? throw new InvalidOperationException("Supabase Key mangler"),
+        new SupabaseOptions { AutoConnectRealtime = true }
+    )
+);
+
+// 3. Registrér dine business logic services (Dependency Injection)
+builder.Services.AddScoped<EmployeeService>();
+builder.Services.AddScoped<ShiftService>(); // Vigtigt: Denne manglede for at fjerne build-fejl
+
+// 4. Registrér controllers
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Apply pending migrations automatically (optional for dev)
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
+// 5. Middleware pipeline
+app.UseCors("AllowReact");
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-// Map controllers
+// Sørg for at dine controllers bliver mappet til dine ruter (f.eks. /api/employees)
 app.MapControllers();
-
-// Testing EventService in-memory CRUD
-var eventService = app.Services.GetRequiredService<EventService>();
-
-await eventService.CreateEventAsync(
-    "Test Event",
-    "Test Description",
-    DateTime.Now,
-    DateTime.Now.AddHours(1),
-    EventCategory.OTHER,
-    new List<LocationBookingDto> { new LocationBookingDto(1, DateTime.Now, DateTime.Now.AddHours(1)) },
-    null,
-    "System"
-);
-
-var testEvents = await eventService.GetTestEventsAsync();
-Console.WriteLine($"[Test] Number of events in memory: {testEvents.Count}");
-foreach (var e in testEvents)
-{
-    Console.WriteLine($"[Test] Event Name: {e.Name}");
-}
 
 app.Run();

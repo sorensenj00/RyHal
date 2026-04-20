@@ -1,122 +1,147 @@
 import React, { useState } from 'react';
-import { format } from 'date-fns';
+import { isSameDay, parseISO, getHours, getMinutes } from 'date-fns';
 import EmployeeCardForCalendar from '../employee/EmployeeCardForCalendar';
 import EditShift from '../shift/EditShift';
 import './BaseDayCalendar.css';
 
-const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [] }) => {
+const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [], onRefresh }) => {
   const [selectedShift, setSelectedShift] = useState(null);
 
   const START_HOUR = 5;
   const TOTAL_HOURS = 24;
+  const STEPS_PER_HOUR = 4; // Giver 15-minutters præcision
 
   const hours = Array.from({ length: TOTAL_HOURS }, (_, idx) => (idx + START_HOUR) % 24);
-  const dateKey = format(date, 'yyyy-MM-dd');
-  const roleOrder = ['Hal Mand', 'Cafemedarbejder', 'Administration', 'Rengøring'];
 
-  // --- OPDATERET LOGIK FOR GRID PLACERING ---
-  const getShiftStyles = (startHour, endHour) => {
-    // gridStart er kolonnen, hvor vagten begynder
-    let gridStart = startHour - START_HOUR;
-    if (gridStart < 0) gridStart += 24;
+  const getShiftStyles = (startStr, endStr) => {
+    if (!startStr || !endStr) return { display: 'none' };
 
-    // Varighed i antal timer (kolonner)
-    let duration = endHour - startHour;
+    const start = typeof startStr === 'string' ? parseISO(startStr) : new Date(startStr);
+    const end = typeof endStr === 'string' ? parseISO(endStr) : new Date(endStr);
+
+    // Beregn decimaltid (f.eks. 8:15 bliver 8.25)
+    let startDecimal = getHours(start) + getMinutes(start) / 60;
+    let endDecimal = getHours(end) + getMinutes(end) / 60;
+
+    // Juster for start-tidspunktet på kalenderen (kl. 05:00)
+    let gridStartOffset = startDecimal - START_HOUR;
+    if (gridStartOffset < 0) gridStartOffset += 24;
+
+    let duration = endDecimal - startDecimal;
     if (duration <= 0) duration += 24;
 
+    // Konverter til grid-kolonner (1 time = 4 kolonner)
+    const colStart = Math.round(gridStartOffset * STEPS_PER_HOUR) + 1;
+    const colSpan = Math.round(duration * STEPS_PER_HOUR);
+
     return {
-      // Vi starter ved gridStart + 1 (da grid er 1-indekseret)
-      // og spænder over det antal timer, vagten varer.
-      gridColumn: `${gridStart + 1} / span ${duration}`,
+      gridColumn: `${colStart} / span ${colSpan}`,
     };
   };
 
-  const employeesWithShift = employees.filter((employee) =>
-    shifts.some((shiftItem) => shiftItem.employeeId === employee.id && shiftItem.date === dateKey)
-  );
+  const shiftsThisDay = (shifts || []).filter(s => {
+    if (!s?.startTime) return false;
+    const shiftDate = typeof s.startTime === 'string' ? parseISO(s.startTime) : new Date(s.startTime);
+    return isSameDay(shiftDate, date);
+  });
 
-  const employeesByRole = employeesWithShift.reduce((groups, employee) => {
-    const roleKey = employee.role;
-    if (!groups[roleKey]) groups[roleKey] = [];
-    groups[roleKey].push(employee);
+  const shiftsByCategory = shiftsThisDay.reduce((groups, shift) => {
+    const catId = shift.categoryId || 999;
+    if (!groups[catId]) groups[catId] = [];
+    groups[catId].push(shift);
     return groups;
   }, {});
+
+  const activeCategoryIds = Object.keys(shiftsByCategory).sort((a, b) => a - b);
 
   return (
     <div className="day-calendar-container">
       <div className="day-calendar">
-        <div className="timeline-header">
-          <div className="sidebar-header-spacer" />
-          {hours.map((hour) => (
-            <div key={hour} className="timeline-hour">
-              {hour.toString().padStart(2, '0')}:00
-            </div>
-          ))}
+        {/* Header - flugter med sidebaren */}
+        <div className="calendar-grid-row timeline-header">
+          <div className="sidebar-cell sidebar-header-spacer" />
+          <div className="timeline-data-container hour-labels">
+            {hours.map((hour) => (
+              <div key={hour} className="timeline-hour">
+                {hour.toString().padStart(2, '0')}:00
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="calendar-body">
-          {roleOrder.map((role) => {
-            const employeesForRole = (employeesByRole[role] || []).sort((a, b) =>
-              a.firstName.localeCompare(b.firstName)
-            );
-
-            if (!employeesForRole.length) return null;
+          {activeCategoryIds.map((catId) => {
+            const shiftsInCat = shiftsByCategory[catId];
+            const categoryName = shiftsInCat[0]?.categoryName || 'Ukendt kategori';
 
             return (
-              <React.Fragment key={role}>
-                <div className="calendar-row role-row">
-                  <div className="sidebar-cell employee-role-title">{role}</div>
-                  <div className="timeline-role-container" />
+              <React.Fragment key={catId}>
+                {/* Kategori-overskrift række */}
+                <div className="calendar-grid-row role-row full-width-row">
+                  <div className="employee-role-title">
+                    {categoryName}
+                  </div>
                 </div>
+                <div className="timeline-data-container role-placeholder" />
 
-                {employeesForRole.map((employee) => {
-                  const shift = shifts.find(
-                    (s) => s.employeeId === employee.id && s.date === dateKey
-                  );
+                {
+              shiftsInCat.map((shift) => {
+                const employee = shift.employeeId
+                  ? employees?.find(e => e.employeeId === shift.employeeId)
+                  : null;
 
-                  const categoryName = shift?.category || 'andet';
-                  const safeCategoryName = categoryName.toLowerCase()
-                    .replace(/\s+/g, '-') // "Hal Mand" -> "hal-mand"
-                    .replace(/ø/g, 'o')   // "Rengøring" -> "rengoring" (bemærk: kun ét 'o')
-                    .replace(/æ/g, 'ae')
-                    .replace(/å/g, 'aa');
+                const isUnassigned = !employee;
+                const shiftStyle = getShiftStyles(shift.startTime, shift.endTime);
 
-                  const categoryClass = `role-${safeCategoryName}`;
-                  const shiftStyle = shift ? getShiftStyles(shift.startHour, shift.endHour) : null;
+                return (
+                  <div key={shift.shiftId} className="calendar-grid-row shift-row">
+                    <div className="sidebar-cell">
+                      {!isUnassigned ? (
+                        <EmployeeCardForCalendar
+                          employee={{
+                            ...employee,
+                            role: categoryName
+                          }}
+                        />
+                      ) : (
+                        <div className="unassigned-shift-label">Mangler medarbejder</div>
+                      )}
+                    </div>
 
-                  return (
-                    <div key={employee.id} className="calendar-row">
-                      <div className="sidebar-cell sidebar-row-item">
-                        <EmployeeCardForCalendar employee={employee} />
-                      </div>
-
-                      <div className="timeline-row-item">
-                        {shift && (
-                          <div
-                            className={`shift-line ${categoryClass}`}
-                            style={shiftStyle}
-                            onClick={() => setSelectedShift(shift)}
-                          >
-                            {employee.firstName}
-                          </div>
-                        )}
+                    <div className="timeline-data-container">
+                      <div
+                        className={`shift-line ${isUnassigned ? 'unassigned' : ''}`}
+                        style={{
+                          ...shiftStyle,
+                          backgroundColor: isUnassigned ? '#ef4444' : (shift.categoryColor || '#94a3b8')
+                        }}
+                        onClick={() => setSelectedShift(shift)}
+                      >
+                        <span className="shift-text">
+                          {isUnassigned ? "LEDIG VAGT" : employee?.firstName}
+                        </span>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })
+            }
               </React.Fragment>
-            );
+        );
           })}
-        </div>
       </div>
-
-      {selectedShift && (
-        <EditShift 
-          shift={selectedShift} 
-          onClose={() => setSelectedShift(null)} 
-        />
-      )}
     </div>
+
+      {
+    selectedShift && (
+      <EditShift
+        shift={selectedShift}
+        onClose={() => setSelectedShift(null)}
+        onRefresh={onRefresh}
+      />
+    )
+  }
+    </div >
   );
 };
 

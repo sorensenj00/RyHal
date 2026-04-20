@@ -2,27 +2,40 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { employees } from '../../data/DummyData';
-import './EmployeeSearchBar.css'; // Husk at importere din CSS her!
+import api from '../../api/axiosConfig'; // Bruges kun hvis du ikke sender listen som prop
+import './EmployeeSearchBar.css';
 
 const EmployeeSearchBar = ({ onSelect, initialEmployeeId }) => {
+  const [employees, setEmployees] = useState([]); // Nu henter vi fra DB
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef(null);
 
-  // Synkroniser inputfeltet hvis initialEmployeeId ændrer sig (f.eks. når man åbner EditShift)
+  // 1. Hent medarbejdere fra databasen når komponenten mounter
   useEffect(() => {
-    if (initialEmployeeId) {
-      const emp = employees.find(e => e.id === initialEmployeeId);
+    const fetchEmployees = async () => {
+      try {
+        const response = await api.get('/employees');
+        setEmployees(response.data);
+      } catch (err) {
+        console.error("Fejl ved hentning af medarbejdere til søgefelt:", err);
+      }
+    };
+    fetchEmployees();
+  }, []);
+
+  // 2. Synkroniser inputfeltet med initialEmployeeId fra DB
+  useEffect(() => {
+    if (initialEmployeeId && employees.length > 0) {
+      const emp = employees.find(e => e.employeeId === initialEmployeeId);
       if (emp) {
         setSearchTerm(`${emp.firstName} ${emp.lastName}`);
       }
-    } else {
+    } else if (!initialEmployeeId) {
       setSearchTerm('');
     }
-  }, [initialEmployeeId]);
+  }, [initialEmployeeId, employees]);
 
-  // Luk dropdown når man klikker udenfor komponenten
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -33,11 +46,12 @@ const EmployeeSearchBar = ({ onSelect, initialEmployeeId }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filtreringslogik baseret på de nye attributter (firstName, lastName, role)
+  // 3. Filtreringslogik rettet til de nye database-attributter
   const filteredEmployees = employees.filter(emp => {
     const search = searchTerm.toLowerCase();
-    const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
-    const role = emp.role.toLowerCase();
+    const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
+    // Vi kigger på den første rolle i arrayet
+    const role = emp.roles?.[0]?.name?.toLowerCase() || '';
     return fullName.includes(search) || role.includes(search);
   });
 
@@ -81,15 +95,18 @@ const EmployeeSearchBar = ({ onSelect, initialEmployeeId }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
           >
-            {/* Mulighed for at nulstille/vælge ledig vagt */}
             <div className="dropdown-item empty" onClick={() => handleSelect(null)}>
-              <em>vælg ingen</em>
+              <em>Vælg ingen (Ledig vagt)</em>
             </div>
 
             {filteredEmployees.map(emp => (
-              <div key={emp.id} className="dropdown-item" onClick={() => handleSelect(emp)}>
-                <span className="emp-name">{emp.firstName} {emp.lastName}</span>
-                <span className="emp-role">{emp.role}</span>
+              <div key={emp.employeeId} className="dropdown-item" onClick={() => handleSelect(emp)}>
+                <div className="emp-info">
+                  <span className="emp-name">{emp.firstName} {emp.lastName}</span>
+                  <span className="emp-role">
+                    {emp.roles?.[0]?.name || 'Ingen rolle'}
+                  </span>
+                </div>
               </div>
             ))}
 

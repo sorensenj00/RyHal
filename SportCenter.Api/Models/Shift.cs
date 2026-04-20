@@ -1,21 +1,28 @@
-namespace SportCenter.Api.Models;
-public class Shift
-{
-	public int ShiftId { get; }
+using Postgrest.Attributes;
+using Postgrest.Models;
 
+namespace SportCenter.Api.Models;
+
+[Table("shifts")]
+public class Shift : BaseModel
+{
+    [PrimaryKey("shift_id", false)]
+    public long ShiftId { get; set; }
+
+    [Column("start_time")]
     public DateTime StartTime { get; set; }
 
+    [Column("end_time")]
     public DateTime EndTime { get; set; }
 
-    public ShiftCategory Category { get; set; }
+    [Column("employee_id")]
+    public long? EmployeeId { get; set; }
 
-    public Employee? Employee { get; set; } 
+    [Column("shiftcategory_id")]
+    public long ShiftCategoryId { get; set; }
 
-    public Shift(DateTime startTime, DateTime endTime, ShiftCategory category, int id)
-    {
-        ShiftId = id;
-        StartTime = startTime;
-        EndTime = endTime;
-        Category = category;
-    }
+    [Reference(typeof(ShiftCategory))]
+    public ShiftCategory? Category { get; set; }
+
+    public Shift() { }
 }

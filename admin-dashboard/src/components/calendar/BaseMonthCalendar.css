@@ -1,33 +1,17 @@
 .calendar-page-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Fyld hele skærmens højde */
+  height: 100%; /* Justeret fra 100vh til 100% for at passe ind i WorkCalendar content */
   width: 100%;
   background-color: #fff;
   font-family: sans-serif;
 }
 
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #ddd;
-  background: #f8f9fa;
-}
-
-.calendar-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: #333;
-}
-
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  /* De 7 rækker fordeles ligeligt (1 header række + ca 5-6 uger) */
   grid-template-rows: 40px repeat(6, 1fr); 
-  flex-grow: 1; /* Lad griddet tage resten af pladsen under headeren */
+  flex-grow: 1;
   border-left: 1px solid #ddd;
   border-top: 1px solid #ddd;
 }
@@ -46,13 +30,13 @@
 .calendar-day {
   border-right: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
-  padding: 10px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Tallet øverst til højre */
+  align-items: flex-start;
   cursor: pointer;
   transition: background 0.2s;
-  min-height: 100px; /* Sikrer de ikke bliver for små på mobil */
+  min-height: 100px;
 }
 
 .calendar-day:hover:not(.outside-month) {
@@ -73,6 +57,12 @@
   border: 2px solid #198754;
 }
 
+.day-number {
+  font-size: 0.9rem;
+  font-weight: 500;
+  align-self: flex-end;
+}
+
 .calendar-day.today .day-number {
   background: #1a73e8;
   color: white;
@@ -84,26 +74,6 @@
   justify-content: center;
 }
 
-.day-number {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.nav-btn {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  border: var(--border-width) solid var(--gray-400);
-  background: var(--white);
-  border-radius: var(--border-radius);
-  font-weight: var(--font-weight-bold);
-  transition: var(--transition-base);
-}
-
-.nav-btn:hover {
-  background: var(--gray-100);
-}
-
-/* Legend i toppen */
 .calendar-legend {
   display: flex;
   gap: 20px;
@@ -132,10 +102,10 @@
   font-weight: 500;
 }
 
-/* Stats inde i selve dagen */
 .day-stats-container {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap; /* Gør at prikkerne hopper ned på næste linje hvis der er mange */
   gap: 4px;
   margin-top: 5px;
   width: 100%;
@@ -161,14 +131,3 @@
   font-weight: bold;
   color: #333;
 }
-
-/* Sørg for at calendar-day ikke centrerer alt */
-.calendar-day {
-  align-items: flex-start; /* Tal og stats til venstre/start */
-  padding: 6px;
-}
-
-.day-number {
-  align-self: flex-end; /* Dato-tallet forbliver i hjørnet */
-}
-
