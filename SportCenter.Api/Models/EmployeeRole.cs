@@ -6,7 +6,7 @@ namespace SportCenter.Api.Models;
 [Postgrest.Attributes.Table("employee_roles")]
 public class EmployeeRole : BaseModel
 {
-    [PrimaryKey("employee_id", false)]
+    [PrimaryKey("employee_id", true)]
     public int EmployeeId { get; set; }
 
     [Postgrest.Attributes.Column("role_id")]
