@@ -54,7 +54,17 @@ namespace SportCenter.Api.Services
             return result.Models.First();
         }
 
+        public async Task<Employee> RemoveEmployeeAsync()
+        {
+            //TODO
+            return null;
+        }
 
+        public async Task<Employee> GetEmployeeAsync()
+        {
+            //TODO
+            return null;
+        }
 
 
         public async Task<bool> IsOver18Async(int employeeId)
@@ -68,6 +78,73 @@ namespace SportCenter.Api.Services
             }
 
             return employee.Birthday.Value.AddYears(18) <= DateOnly.FromDateTime(DateTime.Now);
+        }
+
+        public async Task<List<Qualification>> GetAllQualificationsAsync()
+        {
+            //TODO
+            return null;
+        }
+        public async Task<Qualification> CreateQualificationAsync()
+        {
+            //TODO
+            return null;
+        }
+        public async Task<Qualification> RemoveQualificationAsync()
+        {
+            //TODO
+            return null;
+        }
+        public async Task<Qualification> GetQualificationAsync()
+        {
+            //TODO
+            return null;
+        }
+
+        public async Task<Qualification> AddQualificationToEmployeeAsync()
+        {
+            //TODO
+            return null;
+        }
+
+        public async Task<Qualification> RemoveQualificationFromEmployeeAsync()
+        {
+            //TODO
+            return null;
+        }
+
+        public async Task<List<Role>> GetAllRolesAsync()
+        {
+            //TODO
+            return null;
+        }
+
+        public async Task<Role> CreateRoleAsync()
+        {
+            //TODO
+            return null;
+        }
+        public async Task<Role> RemoveRoleAsync()
+        {
+            //TODO
+            return null;
+        }
+        public async Task<Role> GetRoleAsync()
+        {
+            //TODO
+            return null;
+        }
+
+        public async Task<Role> AddRoleToEmployeeAsync()
+        {
+            //TODO
+            return null;
+        }
+
+        public async Task<Role> RemoveRoleFromEmployeeAsync()
+        {
+            //TODO
+            return null;
         }
 
         public async Task<List<Shift>> GetFutureShiftsForEmployeeAsync(int employeeId)
