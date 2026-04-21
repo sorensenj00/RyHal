@@ -12,7 +12,7 @@ const ROLE_COLORS = {
   'default': '#94a3b8'
 };
 
-// Hjælpekomponent til visning af den enkelte medarbejder
+// Hjælpekomponent til visning af den enkelte vagt-slot
 function EmployeeBriefItem({ employee, roleColor }) {
   return (
     <div className="brief-employee-info">
@@ -28,10 +28,40 @@ function EmployeeBriefItem({ employee, roleColor }) {
   );
 }
 
+function EmptyShiftItem() {
+  return (
+    <div className="brief-employee-info">
+      <div className="image-wrapper image-wrapper-empty">
+        <span className="empty-shift-icon">?</span>
+      </div>
+      <span className="brief-employee-name">Mangler medarbejder</span>
+    </div>
+  );
+}
+
+function UnknownEmployeeItem() {
+  return (
+    <div className="brief-employee-info">
+      <div className="image-wrapper image-wrapper-unknown">
+        <span className="empty-shift-icon">!</span>
+      </div>
+      <span className="brief-employee-name">Ukendt medarbejder</span>
+    </div>
+  );
+}
+
 const EmployeesOnWorkTodayList = ({ targetDate = new Date() }) => {
   const [employees, setEmployees] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const employeesById = employees.reduce((acc, emp) => {
+    const employeeKey = emp.employeeId ?? emp.id ?? emp.EmployeeId;
+    if (employeeKey !== undefined && employeeKey !== null) {
+      acc[String(employeeKey)] = emp;
+    }
+    return acc;
+  }, {});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,16 +93,50 @@ const EmployeesOnWorkTodayList = ({ targetDate = new Date() }) => {
     return isSameDay(shiftDate, targetDate);
   });
 
-  // Find unikke medarbejdere der har en vagt i dag
-  // Vi mapper til selve medarbejderobjektet med det samme
-  const employeesOnDuty = employees.filter(emp => 
-    dayShifts.some(shift => shift.employeeId === emp.employeeId)
-  );
+  // Brug kategori-data direkte fra dagens vagter (ikke employee.roles)
+  const categoryMetaByName = dayShifts.reduce((acc, shift) => {
+    const roleName = shift.categoryName || 'Andet';
+    if (!acc[roleName]) {
+      acc[roleName] = shift.categoryColor || ROLE_COLORS[roleName] || ROLE_COLORS.default;
+    }
+    return acc;
+  }, {});
 
-  // Tæl statistikker baseret på roller
-  const roleStats = employeesOnDuty.reduce((acc, emp) => {
-    const role = emp.roles?.[0]?.name || "Andet"; // Tilpas hvis din DB struktur er anderledes
-    acc[role] = (acc[role] || 0) + 1;
+  const employeeRoleColorById = dayShifts.reduce((acc, shift) => {
+    const shiftEmployeeId = shift.employeeId ?? shift.EmployeeId;
+    if (!shiftEmployeeId || acc[shiftEmployeeId]) return acc;
+
+    const roleName = shift.categoryName || 'Andet';
+    acc[shiftEmployeeId] = categoryMetaByName[roleName] || ROLE_COLORS.default;
+    return acc;
+  }, {});
+
+  const shiftSlots = dayShifts.map((shift) => {
+    const categoryName = shift.categoryName || 'Andet';
+    const shiftEmployeeId = shift.employeeId ?? shift.EmployeeId;
+    const employee = shiftEmployeeId ? employeesById[String(shiftEmployeeId)] : null;
+
+    return {
+      shiftId: shift.shiftId,
+      categoryName,
+      categoryColor: categoryMetaByName[categoryName] || ROLE_COLORS.default,
+      shiftEmployeeId,
+      employee
+    };
+  });
+
+  // Tæl statistikker baseret på shift categories for den valgte dag
+  const roleStats = dayShifts.reduce((acc, shift) => {
+    const role = shift.categoryName || 'Andet';
+
+    if (!acc[role]) {
+      acc[role] = {
+        count: 0,
+        color: categoryMetaByName[role] || ROLE_COLORS.default
+      };
+    }
+
+    acc[role].count += 1;
     return acc;
   }, {});
 
@@ -80,32 +144,51 @@ const EmployeesOnWorkTodayList = ({ targetDate = new Date() }) => {
     <div className="on-duty-container">
       {/* Prik-oversigt */}
       <div className="role-dot-legend">
-        {Object.entries(roleStats).map(([role, count]) => (
+        {Object.entries(roleStats).map(([role, stat]) => (
           <div key={role} className="role-dot-badge">
             <span 
               className="stat-dot" 
-              style={{ backgroundColor: ROLE_COLORS[role] || ROLE_COLORS.default }}
+              style={{ backgroundColor: stat.color }}
             ></span>
-            <span className="stat-count">{count}</span>
+            <span className="stat-count">{stat.count}</span>
             <span className="role-label">{role}</span>
           </div>
         ))}
       </div>
 
       <div className="on-duty-card">
-        <div className="on-duty-list">
-          {employeesOnDuty.length > 0 ? (
-            employeesOnDuty.map(emp => (
-              <EmployeeBriefItem 
-                key={emp.employeeId} 
-                employee={emp} 
-                roleColor={ROLE_COLORS[emp.roles?.[0]?.name] || ROLE_COLORS.default}
-              />
-            ))
+        {shiftSlots.length > 0 ? (
+          <div className="on-duty-list">
+            {shiftSlots.map((slot, index) => {
+              if (!slot.shiftEmployeeId) {
+                return (
+                  <EmptyShiftItem
+                    key={`empty-${slot.shiftId || index}`}
+                  />
+                );
+              }
+
+              if (!slot.employee) {
+                return (
+                  <UnknownEmployeeItem
+                    key={`unknown-${slot.shiftId || index}`}
+                  />
+                );
+              }
+
+              return (
+                <EmployeeBriefItem
+                  key={`slot-${slot.shiftId || `${slot.shiftEmployeeId}-${index}`}`}
+                  employee={slot.employee}
+                  roleColor={slot.categoryColor || employeeRoleColorById[slot.shiftEmployeeId] || ROLE_COLORS.default}
+                />
+              );
+            })}
+          </div>
           ) : (
             <p className="no-shifts-text">Ingen på arbejde i dag</p>
           )}
-        </div>
+        
       </div>
     </div>
   );

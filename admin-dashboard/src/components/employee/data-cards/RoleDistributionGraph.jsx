@@ -5,7 +5,12 @@ import { da } from 'date-fns/locale';
 import api from '../../../api/axiosConfig';
 import './RoleDistributionGraph.css';
 
-const RoleDistributionGraph = ({ targetDate, employees = [], shifts = [] }) => {
+const RoleDistributionGraph = ({
+  targetDate,
+  shifts = [],
+  employees = [],
+  distributionSource = 'shift-categories'
+}) => {
   const [internalEmployees, setInternalEmployees] = useState([]);
   const [internalShifts, setInternalShifts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,8 +28,8 @@ const RoleDistributionGraph = ({ targetDate, employees = [], shifts = [] }) => {
     'Andet': getVar('--color-andet') || '#94A3B8'
   };
 
-  const shouldFetchEmployees = employees.length === 0;
-  const shouldFetchShifts = Boolean(targetDate) && shifts.length === 0;
+  const shouldFetchEmployees = distributionSource === 'employee-roles' && employees.length === 0;
+  const shouldFetchShifts = distributionSource === 'shift-categories' && shifts.length === 0;
 
   useEffect(() => {
     const fetchMissingData = async () => {
@@ -76,6 +81,20 @@ const RoleDistributionGraph = ({ targetDate, employees = [], shifts = [] }) => {
   };
 
   const roleCounts = useMemo(() => {
+    if (distributionSource === 'employee-roles') {
+      return resolvedEmployees.reduce((acc, employee) => {
+        const roleName = employee.roles?.[0]?.name || 'Andet';
+        const roleColor = roleColorMap[roleName] || getVar('--color-andet');
+
+        if (!acc[roleName]) {
+          acc[roleName] = { count: 0, color: roleColor };
+        }
+
+        acc[roleName].count += 1;
+        return acc;
+      }, {});
+    }
+
     if (targetDate && resolvedShifts.length > 0) {
       // LOGIK TIL VELKOMST-SIDE (Vagter på en bestemt dag)
       const shiftsToday = resolvedShifts.filter((shift) => {
@@ -84,43 +103,48 @@ const RoleDistributionGraph = ({ targetDate, employees = [], shifts = [] }) => {
       });
 
       return shiftsToday.reduce((acc, shift) => {
-        // Find medarbejderen via employeeId
-        const emp = resolvedEmployees.find((e) => e.employeeId === shift.employeeId);
+        const roleName = shift.categoryName || shift.category?.name || shift.category || 'Andet';
+        const roleColor = shift.categoryColor || roleColorMap[roleName] || getVar('--color-andet');
 
-        // Hent rolle-navnet fra databasens array-struktur: roles[0].name
-        const roleName = emp && emp.roles && emp.roles.length > 0
-          ? emp.roles[0].name
-          : (shift.category?.name || shift.category || 'Andet');
+        if (!acc[roleName]) {
+          acc[roleName] = { count: 0, color: roleColor };
+        }
 
-        acc[roleName] = (acc[roleName] || 0) + 1;
+        acc[roleName].count += 1;
         return acc;
       }, {});
     }
 
-    // LOGIK TIL OVERBLIKS-SIDE (Alle medarbejdere fra API)
-    return resolvedEmployees.reduce((acc, emp) => {
-      // Vi tager den første rolle fra listen "roles: [{name: '...'}]"
-      const roleName = emp.roles && emp.roles.length > 0
-        ? emp.roles[0].name
-        : 'Andet';
+    // LOGIK TIL OVERBLIKS-SIDE (Alle vagter)
+    return resolvedShifts.reduce((acc, shift) => {
+      const roleName = shift.categoryName || shift.category?.name || shift.category || 'Andet';
+      const roleColor = shift.categoryColor || roleColorMap[roleName] || getVar('--color-andet');
 
-      acc[roleName] = (acc[roleName] || 0) + 1;
+      if (!acc[roleName]) {
+        acc[roleName] = { count: 0, color: roleColor };
+      }
+
+      acc[roleName].count += 1;
       return acc;
     }, {});
-  }, [targetDate, resolvedShifts, resolvedEmployees]);
+  }, [distributionSource, targetDate, resolvedEmployees, resolvedShifts]);
 
   const getDynamicTitle = () => {
+    if (distributionSource === 'employee-roles') {
+      return 'Medarbejderfordeling (Total)';
+    }
+
     if (targetDate) {
       return `Fordeling d. ${format(targetDate, 'd. MMMM', { locale: da })}`;
     }
-    return "Medarbejderfordeling (Total)";
+    return 'Vagtfordeling (Total)';
   };
 
   // Formater data til Recharts format
   const data = Object.keys(roleCounts).map(role => ({
     name: role,
-    value: roleCounts[role],
-    fill: roleColorMap[role] || getVar('--color-andet')
+    value: roleCounts[role].count,
+    fill: roleCounts[role].color || roleColorMap[role] || getVar('--color-andet')
   }));
 
   if (isLoading) {
