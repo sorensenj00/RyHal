@@ -1,23 +1,13 @@
-﻿using System;
+﻿using Postgrest.Attributes;
+using Postgrest.Models;
 
-public class Qualification
+public class Qualification : BaseModel
 {
-
+    [Column("name")]
 	public string Name { get; set; }
+    [Column("description")]
 	public string Description { get; set; }
-
+    [PrimaryKey("employee_id", false)]
     public int QualificationID { get; set; }
 
-	public Qualification(string name, string description, int id)
-    {
-        Name = name;
-        Description = description;
-        QualificationID = id;
-    }
-
-    override
-    public string ToString()
-    {
-        return Name + "\n" + Description;
-    }
 }

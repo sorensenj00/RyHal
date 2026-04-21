@@ -1,6 +1,8 @@
-﻿using Supabase;
-using SportCenter.Api.Models;
+﻿using Azure.Core;
 using SportCenter.Api.DTOs;
+using SportCenter.Api.Models;
+using Supabase;
+using System.Linq.Expressions;
 
 namespace SportCenter.Api.Services
 {
@@ -249,16 +251,23 @@ namespace SportCenter.Api.Services
             }
         }
 
-        public async Task<Employee> RemoveEmployeeAsync()
+        public async Task<Employee> GetEmployeeAsync(int employeeId, string? accessToken = null)
         {
-            //TODO
-            return null;
-        }
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
 
-        public async Task<Employee> GetEmployeeAsync()
-        {
-            //TODO
-            return null;
+            var EmployeeResponse = await _supabase.From<Employee>().Where(x => x.EmployeeId == employeeId).Get();
+
+            var result = EmployeeResponse.Models.FirstOrDefault();
+
+            if (result == null)
+            {
+                throw new InvalidOperationException("Employee not found");
+            }
+
+            return result;
         }
 
 
@@ -275,71 +284,305 @@ namespace SportCenter.Api.Services
             return employee.Birthday.Value.AddYears(18) <= DateOnly.FromDateTime(DateTime.Now);
         }
 
-        public async Task<List<Qualification>> GetAllQualificationsAsync()
+        public async Task<List<Qualification>> GetAllQualificationsAsync(string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var result = await _supabase.From<Qualification>().Get();
+
+
+            return result.Models;
         }
-        public async Task<Qualification> CreateQualificationAsync()
+        public async Task<Qualification> CreateQualificationAsync(CreateQualificationDto dto, string? accessToken = null)
         {
-            //TODO
-            return null;
+
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var newQualification = new Qualification
+            {
+                Name = dto.Name,
+                Description = dto.Description
+
+            };
+
+            var result = await _supabase.From<Qualification>().Insert(newQualification);
+
+            return result.Models.First();
         }
-        public async Task<Qualification> RemoveQualificationAsync()
+        public async Task<bool> RemoveQualificationAsync(int qualificationId, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var existingQualificationResponse = await _supabase.From<Qualification>()
+                .Where(x => x.QualificationID == qualificationId)
+                .Get();
+
+            var existingQualification = existingQualificationResponse.Models.FirstOrDefault();
+
+            if (existingQualification == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                try
+                {
+                    await _supabase.From<EmployeeQualification>()
+                            .Where(x => x.QualificationId == qualificationId)
+                            .Delete();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Could not unlink employee_qualification for qualification {qualificationId}: {ex.Message}", ex);
+                }
+                try
+                {
+                    await _supabase.From<Qualification>()
+                        .Where(x => x.QualificationID == qualificationId)
+                        .Delete();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Could not delete Qualification {qualificationId}: {ex.Message}", ex);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (ex is InvalidOperationException)
+                {
+                    throw;
+                }
+
+                throw new InvalidOperationException("Qualification could not be deleted due to related data or permission rules.", ex);
+            }
         }
-        public async Task<Qualification> GetQualificationAsync()
+        public async Task<Qualification> GetQualificationAsync(int qualificationId, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var QualificationResponse = await _supabase.From<Qualification>().Where(x => x.QualificationID == qualificationId).Get();
+
+            var result = QualificationResponse.Models.FirstOrDefault();
+
+            if (result == null)
+            {
+                throw new InvalidOperationException("Qualification not found");
+            }
+
+            return result;
         }
 
-        public async Task<Qualification> AddQualificationToEmployeeAsync()
+        public async Task<EmployeeQualification> AddQualificationToEmployeeAsync(int employeeId, int qualificationId, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var newEmployeeQualification = new EmployeeQualification
+            {
+                QualificationId = qualificationId,
+                EmployeeId = employeeId
+            };
+
+            var result = await _supabase.From<EmployeeQualification>().Insert(newEmployeeQualification);
+
+            return result.Models.First();
         }
 
-        public async Task<Qualification> RemoveQualificationFromEmployeeAsync()
+        public async Task<bool> RemoveQualificationFromEmployeeAsync(int employeeId, int qualificationId, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var existingQualificationResponse = await _supabase.From<Qualification>()
+                .Where(x => x.QualificationID == qualificationId)
+                .Get();
+
+            var existingQualification = existingQualificationResponse.Models.FirstOrDefault();
+
+            if (existingQualification == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                await _supabase.From<EmployeeQualification>()
+                        .Where(x => x.QualificationId == qualificationId && x.EmployeeId == employeeId)
+                        .Delete();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Could not unlink employee_qualification for qualification {qualificationId}: {ex.Message}", ex);
+            }
         }
 
-        public async Task<List<Role>> GetAllRolesAsync()
+        public async Task<List<Role>> GetAllRolesAsync(string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var result = await _supabase.From<Role>().Get();
+
+
+            return result.Models;
         }
 
-        public async Task<Role> CreateRoleAsync()
+        public async Task<Role> CreateRoleAsync(CreateRoleDto dto, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var newRole = new Role
+            {
+                Name = dto.Name
+            };
+
+            var result = await _supabase.From<Role>().Insert(newRole);
+
+            return result.Models.First();
         }
-        public async Task<Role> RemoveRoleAsync()
+        public async Task<bool> RemoveRoleAsync(int roleId, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var existingRoleResponse = await _supabase.From<Role>()
+                .Where(x => x.RoleId == roleId)
+                .Get();
+
+            var existingRole = existingRoleResponse.Models.FirstOrDefault();
+
+            if (existingRole == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                try
+                {
+                    //Remove Role from employees before deleting
+                    await _supabase.From<EmployeeRole>()
+                            .Where(x => x.RoleId == roleId)
+                            .Delete();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Could not unlink employee_role for Role {roleId}: {ex.Message}", ex);
+                }
+                try
+                {
+                    await _supabase.From<Role>()
+                        .Where(x => x.RoleId == roleId)
+                        .Delete();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Could not delete Role {roleId}: {ex.Message}", ex);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (ex is InvalidOperationException)
+                {
+                    throw;
+                }
+
+                throw new InvalidOperationException("Role could not be deleted due to related data or permission rules.", ex);
+            }
         }
-        public async Task<Role> GetRoleAsync()
+        public async Task<Role> GetRoleAsync(int roleId, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var RoleResponse = await _supabase.From<Role>().Where(x => x.RoleId == roleId).Get();
+
+            var result = RoleResponse.Models.FirstOrDefault();
+
+            if (result == null)
+            {
+                throw new InvalidOperationException("Role not found");
+            }
+
+            return result;
         }
 
-        public async Task<Role> AddRoleToEmployeeAsync()
+        public async Task<EmployeeRole> AddRoleToEmployeeAsync(int employeeId, int roleId, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var newEmployeeRole = new EmployeeRole
+            {
+                RoleId = roleId,
+                EmployeeId = employeeId
+            };
+
+            var result = await _supabase.From<EmployeeRole>().Insert(newEmployeeRole);
+
+            return result.Models.First();
         }
 
-        public async Task<Role> RemoveRoleFromEmployeeAsync()
+        public async Task<bool> RemoveRoleFromEmployeeAsync(int roleId, string? accessToken = null)
         {
-            //TODO
-            return null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var existingRoleResponse = await _supabase.From<Role>()
+                .Where(x => x.RoleId == roleId)
+                .Get();
+
+            var existingRole = existingRoleResponse.Models.FirstOrDefault();
+
+            if (existingRole == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                await _supabase.From<EmployeeRole>()
+                        .Where(x => x.RoleId == roleId && x.EmployeeId == roleId)
+                        .Delete();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Could not unlink employee_role for Role {roleId}: {ex.Message}", ex);
+            }
         }
 
         public async Task<List<Shift>> GetFutureShiftsForEmployeeAsync(int employeeId)
