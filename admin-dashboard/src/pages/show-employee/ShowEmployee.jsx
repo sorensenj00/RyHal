@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import EmployeeSearchBar from '../../components/search/EmployeeSearchBar';
+import EmployeeProfileCard from '../../components/employee/EmployeeProfileCard';
 import QualificationBox from '../../components/employee/qualifications/QualificationBox';
 import EmployeeShiftList from '../../components/employee/EmployeeShiftList';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
@@ -101,6 +102,65 @@ const ShowEmployee = () => {
     if (emp) navigate(`/employee/${emp.employeeId}`);
   };
 
+  const handleRoleChange = (roleName) => {
+    const nextRole = roleName || 'Ingen rolle';
+
+    setSelectedEmployee(prev => {
+      if (!prev) return prev;
+
+      const previousRole = prev.role || 'Ingen rolle';
+      if (previousRole === nextRole) {
+        return prev;
+      }
+
+      // Gem rolle med det samme ved ændring.
+      void saveEmployeeRole(prev, nextRole, previousRole);
+
+      return {
+        ...prev,
+        role: nextRole
+      };
+    });
+  };
+
+  const saveEmployeeRole = async (employee, nextRole, previousRole) => {
+    if (!employee?.employeeId) return;
+
+    try {
+      setIsSaving(true);
+      setSaveMessage(null);
+
+      await api.put(`/employees/${employee.employeeId}/role`, {
+        roleName: nextRole !== 'Ingen rolle' ? nextRole : ''
+      });
+
+      setEmployees(prevEmployees => prevEmployees.map(emp => (
+        emp.employeeId === employee.employeeId
+          ? {
+              ...emp,
+              role: nextRole
+            }
+          : emp
+      )));
+
+      setSaveMessage({ type: 'success', text: 'Rolle gemt automatisk.' });
+    } catch (err) {
+      console.error('Fejl ved auto-gem af rolle:', err?.response?.data || err);
+
+      setSelectedEmployee(prev => {
+        if (!prev || prev.employeeId !== employee.employeeId) return prev;
+        return {
+          ...prev,
+          role: previousRole
+        };
+      });
+
+      setSaveMessage({ type: 'error', text: 'Kunne ikke gemme rolle automatisk.' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSaveChanges = async () => {
     if (!selectedEmployee?.employeeId) return;
 
@@ -109,14 +169,25 @@ const ShowEmployee = () => {
       setSaveMessage(null);
 
       await api.put(`/employees/${selectedEmployee.employeeId}`, {
-        email: selectedEmployee.email || null,
-        phone: selectedEmployee.phone || null
+        email: selectedEmployee.email,
+        phone: selectedEmployee.phone
       });
 
-      setSaveMessage({ type: 'success', text: 'Ændringer gemt.' });
+      setEmployees(prevEmployees => prevEmployees.map(emp => (
+        emp.employeeId === selectedEmployee.employeeId
+          ? {
+              ...emp,
+              email: selectedEmployee.email,
+              phone: selectedEmployee.phone,
+              role: selectedEmployee.role || 'Ingen rolle'
+            }
+          : emp
+      )));
+
+      setSaveMessage({ type: 'success', text: 'Kontaktoplysninger gemt.' });
     } catch (err) {
-      console.error('Fejl ved gem af medarbejder:', err);
-      setSaveMessage({ type: 'error', text: 'Kunne ikke gemme ændringer.' });
+      console.error('Fejl ved gem af medarbejder:', err?.response?.data || err);
+      setSaveMessage({ type: 'error', text: 'Kunne ikke gemme kontaktoplysninger.' });
     } finally {
       setIsSaving(false);
     }
@@ -141,11 +212,10 @@ const ShowEmployee = () => {
       <div className="employee-profile-container">
         {/* SIDEBAR */}
         <aside className="profile-sidebar">
-          <div className="profile-card">
-            <img src={selectedEmployee.image || defaultAvatar} alt="Profil" className="profile-picture" />
-            <h2 className="profile-name">{selectedEmployee.firstName} {selectedEmployee.lastName}</h2>
-            <div className="profile-role-tag">{selectedEmployee.role}</div>
-          </div>
+          <EmployeeProfileCard
+            employee={selectedEmployee}
+            onRoleChange={handleRoleChange}
+          />
 
           <div className="contact-info-card">
             <h3>Kontaktinformation</h3>
@@ -155,7 +225,7 @@ const ShowEmployee = () => {
                 type="email" 
                 name="email" 
                 className="edit-input" 
-                value={selectedEmployee.email} 
+                value={selectedEmployee.email || ''} 
                 onChange={handleInputChange} 
               />
             </div>

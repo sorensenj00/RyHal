@@ -108,6 +108,36 @@ public class EmployeesController : ControllerBase
         }
     }
 
+    [HttpPut("{id}/role")]
+    public async Task<IActionResult> UpdateEmployeeRole(int id, [FromBody] UpdateEmployeeRoleDto dto)
+    {
+        try
+        {
+            if (dto == null) return BadRequest("Rolledata mangler.");
+
+            var authHeader = Request.Headers["Authorization"].ToString();
+            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+            var success = await _employeeService.UpdateEmployeeRoleAsync(id, dto, token);
+            if (!success) return NotFound();
+
+            return Ok(new
+            {
+                Message = "Medarbejderrolle opdateret korrekt",
+                EmployeeId = id,
+                RoleName = dto.RoleName
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Intern serverfejl: {ex.Message}");
+        }
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteEmployee(int id)
     {

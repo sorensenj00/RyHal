@@ -71,11 +71,97 @@ namespace SportCenter.Api.Services
                 return false;
             }
 
-            await _supabase.From<Employee>()
+            var updateQuery = _supabase.From<Employee>()
+                .Where(x => x.EmployeeId == employeeId);
+
+            var hasUpdates = false;
+
+            if (dto.Email != null)
+            {
+                updateQuery = updateQuery.Set(x => x.Email, dto.Email);
+                hasUpdates = true;
+            }
+
+            if (dto.Phone != null)
+            {
+                updateQuery = updateQuery.Set(x => x.Phone, dto.Phone);
+                hasUpdates = true;
+            }
+
+            if (hasUpdates)
+            {
+                await updateQuery.Update();
+            }
+
+            return true;
+        }
+
+        public async Task<bool> UpdateEmployeeRoleAsync(int employeeId, UpdateEmployeeRoleDto dto, string? accessToken = null)
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+
+            var existingEmployeeResponse = await _supabase.From<Employee>()
                 .Where(x => x.EmployeeId == employeeId)
-                .Set(x => x.Email, dto.Email)
-                .Set(x => x.Phone, dto.Phone)
-                .Update();
+                .Get();
+
+            var existingEmployee = existingEmployeeResponse.Models.FirstOrDefault();
+            if (existingEmployee == null)
+            {
+                return false;
+            }
+
+            var normalizedRoleName = dto.RoleName?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(normalizedRoleName))
+            {
+                await _supabase.From<EmployeeRole>()
+                    .Where(x => x.EmployeeId == employeeId)
+                    .Delete();
+
+                return true;
+            }
+
+            var existingRoleResponse = await _supabase.From<Role>()
+                .Where(x => x.Name == normalizedRoleName)
+                .Get();
+
+            var role = existingRoleResponse.Models.FirstOrDefault();
+
+            if (role == null)
+            {
+                throw new InvalidOperationException($"Rollen '{normalizedRoleName}' findes ikke i databasen.");
+            }
+
+            var existingEmployeeRolesResponse = await _supabase.From<EmployeeRole>()
+                .Where(x => x.EmployeeId == employeeId)
+                .Get();
+
+            var existingEmployeeRole = existingEmployeeRolesResponse.Models.FirstOrDefault();
+
+            if (existingEmployeeRole != null)
+            {
+                if (existingEmployeeRole.RoleId == role.RoleId)
+                {
+                    return true;
+                }
+
+                await _supabase.From<EmployeeRole>()
+                    .Where(x => x.EmployeeId == employeeId)
+                    .Set(x => x.RoleId, role.RoleId)
+                    .Update();
+
+                return true;
+            }
+
+            await _supabase.From<EmployeeRole>()
+                .Insert(new EmployeeRole
+                {
+                    EmployeeId = employeeId,
+                    RoleId = role.RoleId
+                });
 
             return true;
         }
