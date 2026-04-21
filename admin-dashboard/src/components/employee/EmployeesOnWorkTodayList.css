@@ -54,9 +54,10 @@
 .on-duty-list {
   display: flex;
   flex-direction: row;
+  flex-wrap: nowrap;
   gap: 15px;
   overflow-x: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
 }
 
 .image-wrapper {
@@ -65,6 +66,31 @@
   padding: 2px;
   display: flex;
   margin-bottom: 4px;
+}
+
+.image-wrapper-empty {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-shift-icon {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #64748b;
+  line-height: 1;
+}
+
+.image-wrapper-unknown {
+  border-color: #f59e0b;
+  background: #fff7ed;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
 }
 
 .brief-employee-image {

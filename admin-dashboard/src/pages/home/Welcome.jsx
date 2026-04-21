@@ -22,7 +22,10 @@ const Welcome = () => {
         {/* Øverste sektion til grafer og nøgletal */}
         <div className="dashboard-top-row">
           <div className="dashboard-item">
-            <RoleDistributionGraph targetDate={selectedDate} />
+            <RoleDistributionGraph
+              targetDate={selectedDate}
+              distributionSource="shift-categories"
+            />
           </div>
           {/* Her kan du senere tilføje flere komponenter, f.eks. en BelægningsGraph */}
           <div className="dashboard-item placeholder-item">
