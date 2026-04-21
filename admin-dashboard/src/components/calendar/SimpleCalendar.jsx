@@ -45,7 +45,7 @@ const SimpleCalendar = ({ selectedDate, onDateSelect, startDate, endDate }) => {
         <button onClick={() => onDateSelect(addMonths(selectedDate, 1))}>&gt;</button>
       </div>
       <div className="simple-calendar-grid">
-        {weekDays.map(day => <div key={day} className="simple-weekday-label">{day}</div>)}
+        {weekDays.map((day, idx) => <div key={`${day}-${idx}`} className="simple-weekday-label">{day}</div>)}
         {calendarDays.map((day, idx) => (
           <div key={idx} className={getDayClass(day)} onClick={() => onDateSelect(day)}>
             {format(day, 'd')}

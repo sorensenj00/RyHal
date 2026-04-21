@@ -80,4 +80,89 @@ public class EmployeesController : ControllerBase
             return StatusCode(500, $"Intern serverfejl: {ex.Message}");
         }
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateEmployeeContact(int id, [FromBody] UpdateEmployeeContactDto dto)
+    {
+        try
+        {
+            if (dto == null) return BadRequest("Opdateringsdata mangler.");
+
+            var authHeader = Request.Headers["Authorization"].ToString();
+            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+            var success = await _employeeService.UpdateEmployeeContactAsync(id, dto, token);
+            if (!success) return NotFound();
+
+            return Ok(new
+            {
+                Message = "Medarbejder opdateret korrekt",
+                EmployeeId = id,
+                Email = dto.Email,
+                Phone = dto.Phone
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Intern serverfejl: {ex.Message}");
+        }
+    }
+
+    [HttpPut("{id}/role")]
+    public async Task<IActionResult> UpdateEmployeeRole(int id, [FromBody] UpdateEmployeeRoleDto dto)
+    {
+        try
+        {
+            if (dto == null) return BadRequest("Rolledata mangler.");
+
+            var authHeader = Request.Headers["Authorization"].ToString();
+            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+            var success = await _employeeService.UpdateEmployeeRoleAsync(id, dto, token);
+            if (!success) return NotFound();
+
+            return Ok(new
+            {
+                Message = "Medarbejderrolle opdateret korrekt",
+                EmployeeId = id,
+                RoleName = dto.RoleName
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Intern serverfejl: {ex.Message}");
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteEmployee(int id)
+    {
+        var authHeader = Request.Headers["Authorization"].ToString();
+        string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+        try
+        {
+            var success = await _employeeService.RemoveEmployeeAsync(id, token);
+
+            if (!success) return NotFound();
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new
+            {
+                Message = ex.Message,
+                Details = ex.InnerException?.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Intern serverfejl: {ex.Message}");
+        }
+    }
 }

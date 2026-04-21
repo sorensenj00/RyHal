@@ -3,12 +3,12 @@ using Postgrest.Models;
 
 namespace SportCenter.Api.Models;
 
-[Table("Roles")]
+[Postgrest.Attributes.Table("roles")]
 public class Role : BaseModel
 {
     [PrimaryKey("role_id", false)] 
     public int RoleId { get; set; }
 
-    [Column("name")]
+    [Postgrest.Attributes.Column("name")]
     public string Name { get; set; } = string.Empty;
 }

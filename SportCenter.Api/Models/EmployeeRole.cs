@@ -3,13 +3,13 @@ using Postgrest.Models;
 
 namespace SportCenter.Api.Models;
 
-[Table("EmployeeRoles")]
+[Postgrest.Attributes.Table("employee_roles")]
 public class EmployeeRole : BaseModel
 {
-    [PrimaryKey("employee_id", false)]
+    [PrimaryKey("employee_id", true)]
     public int EmployeeId { get; set; }
 
-    [Column("role_id")]
+    [Postgrest.Attributes.Column("role_id")]
     public int RoleId { get; set; }
 
     [Reference(typeof(Role), ReferenceAttribute.JoinType.Left, true, "role_id")]

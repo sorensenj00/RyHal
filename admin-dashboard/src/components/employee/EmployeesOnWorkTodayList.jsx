@@ -1,10 +1,9 @@
-import React from 'react';
-import { isSameDay } from 'date-fns';
-import { employees, shifts } from '../../data/DummyData';
+import React, { useState, useEffect } from 'react';
+import { isSameDay, parseISO } from 'date-fns';
+import api from '../../api/axiosConfig'; // Sikr dig at stien matcher din opsætning
 import defaultAvatar from '../../Assets/images/default-avatar.png';
 import './EmployeesOnWorkTodayList.css';
 
-// Samme farver som i din kalender
 const ROLE_COLORS = {
   'Hal Mand': '#B8BB0B',
   'Cafemedarbejder': '#22C55E',
@@ -13,16 +12,16 @@ const ROLE_COLORS = {
   'default': '#94a3b8'
 };
 
-function EmployeeBriefItem({ employeeId }) {
-  const employee = employees.find(emp => emp.id === employeeId);
-  if (!employee) return null;
-
-  const roleColor = ROLE_COLORS[employee.role] || ROLE_COLORS.default;
-
+// Hjælpekomponent til visning af den enkelte medarbejder
+function EmployeeBriefItem({ employee, roleColor }) {
   return (
     <div className="brief-employee-info">
       <div className="image-wrapper" style={{ borderColor: roleColor }}>
-        <img src={employee.image || defaultAvatar} alt={employee.firstName} className="brief-employee-image" />
+        <img 
+          src={employee.image || defaultAvatar} 
+          alt={employee.firstName} 
+          className="brief-employee-image" 
+        />
       </div>
       <span className="brief-employee-name">{employee.firstName} {employee.lastName}</span>
     </div>
@@ -30,21 +29,56 @@ function EmployeeBriefItem({ employeeId }) {
 }
 
 const EmployeesOnWorkTodayList = ({ targetDate = new Date() }) => {
-  const dayShifts = shifts.filter(shift => isSameDay(new Date(shift.date), targetDate));
-  const uniqueEmployeeIds = [...new Set(dayShifts.map(shift => shift.employeeId))];
+  const [employees, setEmployees] = useState([]);
+  const [shifts, setShifts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Tæl roller præcis som i BaseMonthCalendar
-  const roleStats = uniqueEmployeeIds.reduce((acc, empId) => {
-    const emp = employees.find(e => e.id === empId);
-    if (emp) {
-      acc[emp.role] = (acc[emp.role] || 0) + 1;
-    }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        // Hent både medarbejdere og vagter samtidigt
+        const [empRes, shiftRes] = await Promise.all([
+          api.get('/employees'),
+          api.get('/shifts')
+        ]);
+        
+        setEmployees(empRes.data);
+        setShifts(shiftRes.data);
+      } catch (err) {
+        console.error("Fejl ved hentning af data til overblik:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (isLoading) return <div className="on-duty-container">Henter overblik...</div>;
+
+  // Filtrer vagter for den valgte dag (håndterer ISO-strenge fra DB)
+  const dayShifts = shifts.filter(shift => {
+    const shiftDate = typeof shift.startTime === 'string' ? parseISO(shift.startTime) : new Date(shift.startTime);
+    return isSameDay(shiftDate, targetDate);
+  });
+
+  // Find unikke medarbejdere der har en vagt i dag
+  // Vi mapper til selve medarbejderobjektet med det samme
+  const employeesOnDuty = employees.filter(emp => 
+    dayShifts.some(shift => shift.employeeId === emp.employeeId)
+  );
+
+  // Tæl statistikker baseret på roller
+  const roleStats = employeesOnDuty.reduce((acc, emp) => {
+    const role = emp.roles?.[0]?.name || "Andet"; // Tilpas hvis din DB struktur er anderledes
+    acc[role] = (acc[role] || 0) + 1;
     return acc;
   }, {});
 
   return (
     <div className="on-duty-container">
-      {/* Prik-oversigt magen til BaseMonthCalendar */}
+      {/* Prik-oversigt */}
       <div className="role-dot-legend">
         {Object.entries(roleStats).map(([role, count]) => (
           <div key={role} className="role-dot-badge">
@@ -60,9 +94,13 @@ const EmployeesOnWorkTodayList = ({ targetDate = new Date() }) => {
 
       <div className="on-duty-card">
         <div className="on-duty-list">
-          {uniqueEmployeeIds.length > 0 ? (
-            uniqueEmployeeIds.map(empId => (
-              <EmployeeBriefItem key={empId} employeeId={empId} />
+          {employeesOnDuty.length > 0 ? (
+            employeesOnDuty.map(emp => (
+              <EmployeeBriefItem 
+                key={emp.employeeId} 
+                employee={emp} 
+                roleColor={ROLE_COLORS[emp.roles?.[0]?.name] || ROLE_COLORS.default}
+              />
             ))
           ) : (
             <p className="no-shifts-text">Ingen på arbejde i dag</p>
@@ -74,3 +112,4 @@ const EmployeesOnWorkTodayList = ({ targetDate = new Date() }) => {
 };
 
 export default EmployeesOnWorkTodayList;
+  

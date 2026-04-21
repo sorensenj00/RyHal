@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './EmployeeTable.css';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
 
-const EmployeeTable = ({ employees = [] }) => {
+const EmployeeTable = ({ employees = [], onDeleteEmployee = async () => {} }) => {
   const navigate = useNavigate();
+  const [deletingId, setDeletingId] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
   
   const getVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -23,6 +25,27 @@ const EmployeeTable = ({ employees = [] }) => {
     if (!roles || roles.length === 0) return 'Ingen rolle';
     // Vi tager den første rolle i listen (eller du kan lave logik for 'vigtigste' rolle)
     return roles[0].name; 
+  };
+
+  const openDeleteConfirm = (id, fullName) => {
+    setPendingDelete({ id, fullName });
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deletingId !== null) return;
+    setPendingDelete(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+
+    try {
+      setDeletingId(pendingDelete.id);
+      await onDeleteEmployee(pendingDelete.id, pendingDelete.fullName);
+      setPendingDelete(null);
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -86,7 +109,13 @@ const EmployeeTable = ({ employees = [] }) => {
                       >
                         Rediger
                       </button>
-                      <button className="btn-action delete">Slet</button>
+                      <button
+                        className="btn-action delete"
+                        onClick={() => openDeleteConfirm(id, `${employee.firstName} ${employee.lastName}`)}
+                        disabled={deletingId === id}
+                      >
+                        {deletingId === id ? 'Sletter...' : 'Slet'}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -95,6 +124,43 @@ const EmployeeTable = ({ employees = [] }) => {
           </tbody>
         </table>
       </div>
+
+      {pendingDelete && (
+        <div className="delete-modal-overlay" onClick={closeDeleteConfirm}>
+          <div
+            className="delete-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="delete-modal-title">Slet medarbejder?</h3>
+            <p>
+              Er du sikker på, at du vil slette <strong>{pendingDelete.fullName}</strong>?<br />
+              Denne handling kan ikke fortrydes.
+            </p>
+
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                className="btn-action"
+                onClick={closeDeleteConfirm}
+                disabled={deletingId !== null}
+              >
+                Annuller
+              </button>
+              <button
+                type="button"
+                className="btn-action delete"
+                onClick={confirmDelete}
+                disabled={deletingId !== null}
+              >
+                {deletingId !== null ? 'Sletter...' : 'Ja, slet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

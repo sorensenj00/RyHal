@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { isSameDay, parseISO, format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import api from '../../../api/axiosConfig';
 import './RoleDistributionGraph.css';
 
 const RoleDistributionGraph = ({ targetDate, employees = [], shifts = [] }) => {
+  const [internalEmployees, setInternalEmployees] = useState([]);
+  const [internalShifts, setInternalShifts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   // Funktion til at hente CSS-variabler (farver) fra dit stylesheet
   const getVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -18,35 +23,91 @@ const RoleDistributionGraph = ({ targetDate, employees = [], shifts = [] }) => {
     'Andet': getVar('--color-andet') || '#94A3B8'
   };
 
-  let roleCounts = {};
+  const shouldFetchEmployees = employees.length === 0;
+  const shouldFetchShifts = Boolean(targetDate) && shifts.length === 0;
 
-  if (targetDate && shifts.length > 0) {
-    // LOGIK TIL VELKOMST-SIDE (Vagter på en bestemt dag)
-    const shiftsToday = shifts.filter(shift => isSameDay(parseISO(shift.date), targetDate));
-    roleCounts = shiftsToday.reduce((acc, shift) => {
-      // Find medarbejderen via employeeId
-      const emp = employees.find(e => e.employeeId === shift.employeeId);
-      
-      // Hent rolle-navnet fra databasens array-struktur: roles[0].name
-      const roleName = emp && emp.roles && emp.roles.length > 0 
-        ? emp.roles[0].name 
-        : (shift.category || 'Andet');
+  useEffect(() => {
+    const fetchMissingData = async () => {
+      if (!shouldFetchEmployees && !shouldFetchShifts) {
+        return;
+      }
 
-      acc[roleName] = (acc[roleName] || 0) + 1;
-      return acc;
-    }, {});
-  } else {
+      try {
+        setIsLoading(true);
+
+        const requests = [];
+
+        if (shouldFetchEmployees) {
+          requests.push(api.get('/employees'));
+        }
+
+        if (shouldFetchShifts) {
+          requests.push(api.get('/shifts'));
+        }
+
+        const results = await Promise.all(requests);
+        let resultIndex = 0;
+
+        if (shouldFetchEmployees) {
+          setInternalEmployees(results[resultIndex].data || []);
+          resultIndex += 1;
+        }
+
+        if (shouldFetchShifts) {
+          setInternalShifts(results[resultIndex].data || []);
+        }
+      } catch (error) {
+        console.error('Fejl ved hentning af data til rollefordeling:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMissingData();
+  }, [shouldFetchEmployees, shouldFetchShifts]);
+
+  const resolvedEmployees = shouldFetchEmployees ? internalEmployees : employees;
+  const resolvedShifts = shouldFetchShifts ? internalShifts : shifts;
+
+  const getShiftDate = (shift) => {
+    const rawValue = shift?.startTime ?? shift?.date;
+    if (!rawValue) return null;
+    return typeof rawValue === 'string' ? parseISO(rawValue) : new Date(rawValue);
+  };
+
+  const roleCounts = useMemo(() => {
+    if (targetDate && resolvedShifts.length > 0) {
+      // LOGIK TIL VELKOMST-SIDE (Vagter på en bestemt dag)
+      const shiftsToday = resolvedShifts.filter((shift) => {
+        const shiftDate = getShiftDate(shift);
+        return shiftDate ? isSameDay(shiftDate, targetDate) : false;
+      });
+
+      return shiftsToday.reduce((acc, shift) => {
+        // Find medarbejderen via employeeId
+        const emp = resolvedEmployees.find((e) => e.employeeId === shift.employeeId);
+
+        // Hent rolle-navnet fra databasens array-struktur: roles[0].name
+        const roleName = emp && emp.roles && emp.roles.length > 0
+          ? emp.roles[0].name
+          : (shift.category?.name || shift.category || 'Andet');
+
+        acc[roleName] = (acc[roleName] || 0) + 1;
+        return acc;
+      }, {});
+    }
+
     // LOGIK TIL OVERBLIKS-SIDE (Alle medarbejdere fra API)
-    roleCounts = employees.reduce((acc, emp) => {
+    return resolvedEmployees.reduce((acc, emp) => {
       // Vi tager den første rolle fra listen "roles: [{name: '...'}]"
-      const roleName = emp.roles && emp.roles.length > 0 
-        ? emp.roles[0].name 
+      const roleName = emp.roles && emp.roles.length > 0
+        ? emp.roles[0].name
         : 'Andet';
 
       acc[roleName] = (acc[roleName] || 0) + 1;
       return acc;
     }, {});
-  }
+  }, [targetDate, resolvedShifts, resolvedEmployees]);
 
   const getDynamicTitle = () => {
     if (targetDate) {
@@ -61,6 +122,15 @@ const RoleDistributionGraph = ({ targetDate, employees = [], shifts = [] }) => {
     value: roleCounts[role],
     fill: roleColorMap[role] || getVar('--color-andet')
   }));
+
+  if (isLoading) {
+    return (
+      <div className="role-graph-container">
+        <h3 className="graph-title">{getDynamicTitle()}</h3>
+        <p className="text-muted text-center p-3">Henter data...</p>
+      </div>
+    );
+  }
 
   if (data.length === 0) {
     return (
