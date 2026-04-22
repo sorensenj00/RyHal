@@ -15,10 +15,7 @@ namespace SportCenter.Api.Services
 
         public async Task<List<SwapRequest>> GetAllSwapRequestsAsync(string? accessToken = null)
         {
-            if (!string.IsNullOrEmpty(accessToken))
-            {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
-            }
+            await SetSessionIfNeededAsync(accessToken);
 
             var result = await _supabase.From<SwapRequest>().Get();
             return result.Models;
@@ -26,10 +23,7 @@ namespace SportCenter.Api.Services
 
         public async Task<SwapRequest?> CreateSwapRequestAsync(long requesterId, long offeredShiftId, long requestedShiftId, string? accessToken = null)
         {
-            if (!string.IsNullOrEmpty(accessToken))
-            {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
-            }
+            await SetSessionIfNeededAsync(accessToken);
 
             ValidateIds(requesterId, offeredShiftId, requestedShiftId);
 
@@ -57,6 +51,53 @@ namespace SportCenter.Api.Services
             return result.Models.FirstOrDefault();
         }
 
+        public async Task<SwapRequest?> AcceptSwapRequestAsync(long swapRequestId, long employeeId, string? accessToken = null)
+        {
+            await SetSessionIfNeededAsync(accessToken);
+            ValidateAcceptSwapRequestIds(swapRequestId, employeeId);
+
+            var swapRequest = await GetSwapRequestAsync(swapRequestId);
+            ValidateSwapRequestExists(swapRequest);
+            ValidateCanBeAcceptedByEmployee(swapRequest!, employeeId);
+
+            var offeredShift = await GetShiftAsync(swapRequest!.OfferedShiftId);
+            var requestedShift = await GetShiftAsync(swapRequest.RequestedShiftId);
+
+            try
+            {
+                ValidateShiftsExist(offeredShift, requestedShift);
+                ValidateShiftOwnershipForSwapRequest(swapRequest, offeredShift!, requestedShift!);
+                ValidateShiftTimes(offeredShift!, requestedShift!);
+                await ValidateNoOverlapAsync(swapRequest.RequesterId, offeredShift!, requestedShift!);
+
+            }
+            catch (InvalidOperationException)
+            {
+                swapRequest.Status = new SwapStatus { Name = "Invalid" };
+                await _supabase.From<SwapRequest>().Update(swapRequest);
+                throw;
+            }
+
+            swapRequest.Status = new SwapStatus { Name = "AwaitingApproval" };
+
+            var result = await _supabase
+                .From<SwapRequest>()
+                .Update(swapRequest);
+
+            return result.Models.FirstOrDefault();
+        }
+
+
+
+        // Hjælpemetoder til validering og hentning af data
+
+        private async Task SetSessionIfNeededAsync(string? accessToken)
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+            }
+        }
 
         private bool Overlaps(DateTime start1, DateTime end1, DateTime start2, DateTime end2)
         {
@@ -165,5 +206,51 @@ namespace SportCenter.Api.Services
                 throw new InvalidOperationException("En af vagterne indgår allerede i en aktiv bytteanmodning.");
         }
 
+        private async Task<SwapRequest?> GetSwapRequestAsync(long swapRequestId)
+        {
+            return await _supabase
+                .From<SwapRequest>()
+                .Where(sr => sr.SwapRequestId == swapRequestId)
+                .Single();
+        }
+
+        private void ValidateAcceptSwapRequestIds(long swapRequestId, long employeeId)
+        {
+            if (swapRequestId <= 0)
+                throw new ArgumentException("Ugyldigt swapRequestId");
+
+            if (employeeId <= 0)
+                throw new ArgumentException("Ugyldigt employeeId");
+        }
+
+        private void ValidateSwapRequestExists(SwapRequest? swapRequest)
+        {
+            if (swapRequest == null)
+                throw new InvalidOperationException("Swap request findes ikke.");
+        }
+
+        private void ValidateCanBeAcceptedByEmployee(SwapRequest swapRequest, long employeeId)
+        {
+            if (swapRequest.TargetEmployeeId != employeeId)
+                throw new InvalidOperationException("Kun den anmodede medarbejder kan acceptere byttet.");
+
+            if (swapRequest.Status?.Name != "Pending")
+                throw new InvalidOperationException("Kun swap requests med status 'Pending' kan accepteres.");
+        }
+
+        private void ValidateShiftsExist(Shift? offeredShift, Shift? requestedShift)
+        {
+            if (offeredShift == null || requestedShift == null)
+                throw new InvalidOperationException("En eller begge vagter findes ikke.");
+        }
+
+        private void ValidateShiftOwnershipForSwapRequest(SwapRequest swapRequest, Shift offeredShift, Shift requestedShift)
+        {
+            if (offeredShift.EmployeeId != swapRequest.RequesterId)
+                throw new InvalidOperationException("Den tilbudte vagt ejes ikke længere af requester.");
+
+            if (requestedShift.EmployeeId != swapRequest.TargetEmployeeId)
+                throw new InvalidOperationException("Den ønskede vagt ejes ikke længere af target-medarbejderen.");
+        }
     }
 }
