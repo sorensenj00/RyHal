@@ -15,6 +15,7 @@ import ActivitiesList from './components/activities/ActivitiesList';
 import CreateActivity from './components/activities/CreateActivity';
 import DraftActivitiesList from './components/activities/DraftActivitiesList';
 import WorkCalendar from "./pages/work-calendar/WorkCalendar";
+import EventShiftOverview from "./pages/event-shift-overview/EventShiftOverview";
 import CreateNewEmployee from "./pages/create-new-employee/CreateNewEmployee";
 import Welcome from "./pages/home/Welcome";
 import ShowEmployee from "./pages/show-employee/ShowEmployee";
@@ -38,6 +39,8 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+    console.log("Session:", session);
 
   // Vis ingenting (eller en spinner) mens vi tjekker om brugeren er logget ind
   if (loading) {
@@ -70,6 +73,7 @@ function App() {
             <Route path="/activities/drafts" element={session ? <DraftActivitiesList /> : <Navigate to="/login" />} />
             <Route path="/create-activity" element={session ? <CreateActivity /> : <Navigate to="/login" />} />
             <Route path="/work-calendar" element={session ? <WorkCalendar /> : <Navigate to="/login" />} />
+  		    <Route path="/event-shift-overview" element={session ? <EventShiftOverview /> : <Navigate to="/login" />} />
             <Route path="/create-employee" element={session ? <CreateNewEmployee /> : <Navigate to="/login" />} />
             <Route path="/event-overview" element={session ? <EventOverview /> : <Navigate to="/login" />} />
 

@@ -26,6 +26,7 @@ export const ActivePagesForNavBar  = [
     children: [
       { to: "/work-calendar", label: "Kalender" },
       { to: "/calendar", label: "Vagtkalender" },
+      { to: "/event-shift-overview", label: "Aktivitet og Vagt Oversigt" },
     ],
   },
   {
