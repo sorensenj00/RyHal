@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import EventHeatmap from '../../components/heatmap/EventHeatmap';
 import { locations } from '../../data/DummyData';
 import api from '../../api/axiosConfig';
-import BaseDayCalendar from '../../components/calendar/BaseDayCalendar';
-import BaseWeekCalendar from '../../components/calendar/BaseWeekCalendar';
-import { format, addDays, subDays } from 'date-fns';
+import EventShiftDayCalendar from '../../components/eventShiftCalendar/EventShiftDayCalendar';
+import EventShiftWeekCalendar from '../../components/eventShiftCalendar/EventShiftWeekCalendar';
+import { format, addDays, subDays, setWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faFilter,
-    faCalendarAlt,
     faChevronLeft,
     faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
@@ -75,7 +73,7 @@ const EventShiftOverview = () => {
 
     const handleDateSelect = (date) => {
         setSelectedDate(date);
-        setView('day'); // Valgfrit: hop til dagvisning når man klikker på en dato i måneden
+        setView('day');
     };
 
     return (
@@ -108,24 +106,42 @@ const EventShiftOverview = () => {
 
                         {/* ⬅️ dag/uge tilbage */}
                         <button
-                            onClick={() => setSelectedDate(prev => subDays(prev, 1))}
+                            onClick={() => setSelectedDate(prev =>
+                                subDays(prev, view === 'week' ? 7 : 1)
+                            )}
                             className="nav-btn"
                         >
                             <FontAwesomeIcon icon={faChevronLeft} />
                         </button>
 
                         {/* 📅 date picker */}
+                        {view === 'week' ? (
+                            <input
+                                type="week"
+                                value={format(selectedDate, "yyyy-'W'II")}
+                                onChange={(e) => {
+                                    const [year, week] = e.target.value.split('-W');
+
+                                    const newDate = setWeek(new Date(Number(year), 0, 1), Number(week), { locale: da });
+
+                                    setSelectedDate(newDate);
+                                }}
+                                className="date-input"
+                        />) : (
                         <input
                             type="date"
                             value={format(selectedDate, 'yyyy-MM-dd')}
                             onChange={(e) => setSelectedDate(new Date(e.target.value))}
                             className="date-input"
-                        />
+                        />)}
 
                         {/* ➡️ dag/uge frem */}
                         <button
-                            onClick={() => setSelectedDate(prev => addDays(prev, 1))}
-                            className="nav-btn"
+                            onClick={() =>
+                                setSelectedDate(prev =>
+                                    addDays(prev, view === 'week' ? 7 : 1)
+                                )}
+                        className="nav-btn"
                         >
                             <FontAwesomeIcon icon={faChevronRight} />
                         </button>
@@ -176,14 +192,15 @@ const EventShiftOverview = () => {
             
             <div className="calendar-content">
                 {view === 'week' ? (
-                    <BaseWeekCalendar
-                        currentDate={selectedDate}
+                    <EventShiftWeekCalendar
+                        date={selectedDate}
                         onDateSelect={handleDateSelect}
                         shifts={shifts}
                         employees={employees}
+                        onRefresh={fetchData}
                     />
                 ) : (
-                    <BaseDayCalendar
+                    <EventShiftDayCalendar
                         date={selectedDate}
                         employees={employees}
                         shifts={shifts}
@@ -191,14 +208,6 @@ const EventShiftOverview = () => {
                     />
                 )}
             </div>
-
-            {/*<main className="heatmap-section">*/}
-            {/*    <EventHeatmap*/}
-            {/*        selectedDate={selectedDate}*/}
-            {/*        activeCategories={activeCategories}*/}
-            {/*        activeLocations={activeLocations}*/}
-            {/*    />*/}
-            {/*</main>*/}
 
         </div>
     );

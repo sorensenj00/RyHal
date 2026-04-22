@@ -19,6 +19,7 @@
 	display: grid;
 	grid-template-columns: 220px 1fr;
 	border-bottom: 1px solid #f3f4f6;
+	grid-template-columns: 220px minmax(0, 1fr);
 	width: 100%;
 	box-sizing: border-box;
 }
@@ -33,12 +34,14 @@
 
 .week-timeline-data-container {
 	display: grid;
-	grid-template-columns: repeat(672, 1fr);
+	grid-template-columns: repeat(672, minmax(0, 1fr));
 	position: relative;
-/*	 min-width: 0 er vigtig for at grid-items ikke tvinger containeren bredere*/
+	/*	 min-width: 0 er vigtig for at grid-items ikke tvinger containeren bredere*/
 	min-width: 0;
+	width: 100%;
+	max-width: 100%;
 	background-image: linear-gradient(90deg, #f3f4f6 1px, transparent 1px);
-	background-size: calc(100% / 7) 100%;
+	background-size: calc((100% - 1px) / 7) 100%;
 	overflow: hidden;
 }
 
@@ -56,10 +59,8 @@
 	display: grid;
 	grid-template-columns: repeat(7, 1fr);
 	min-width: 0;
-	justify-items: center;
+	height: 100%;
 }
-
-
 
 .week-calendar-body {
 	flex: 1;
@@ -134,8 +135,10 @@
 		transform: scale(1.005);
 	}
 
-}
-.timeline-hour {
+}*/
+.timeline-day {
+	width: 100%;
+	height: 100%; 
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -144,4 +147,10 @@
 	color: #6b7280;
 	border-right: 1px solid #f3f4f6;
 	white-space: nowrap;
-}*/
+	cursor: pointer; 
+}
+
+
+.timeline-day:hover {
+	background-color: #f1f3f4;
+}

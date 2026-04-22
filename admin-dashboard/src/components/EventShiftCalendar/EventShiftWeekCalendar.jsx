@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { isSameDay, parseISO, getHours, getMinutes } from 'date-fns';
+import { parseISO, getHours, getMinutes } from 'date-fns';
 import EmployeeCardForCalendar from '../employee/EmployeeCardForCalendar';
 import EditShift from '../shift/EditShift';
-import './BaseWeekCalendar.css';
-import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import './EventShiftWeekCalendar.css';
+import { startOfWeek, endOfWeek, isWithinInterval, addDays } from 'date-fns';
 
-const BaseWeekCalendar = ({ date = new Date(), employees = [], shifts = [], onRefresh }) => {
+const EventShiftWeekCalendar = ({ date = new Date(), onDateSelect, employees = [], shifts = [], onRefresh }) => {
     const [selectedShift, setSelectedShift] = useState(null);
 
 
@@ -57,8 +57,6 @@ const BaseWeekCalendar = ({ date = new Date(), employees = [], shifts = [], onRe
         });
     });
 
-
-
     const shiftsByCategory = shiftsThisWeek.reduce((groups, shift) => {
         const catId = shift.categoryId || 999;
         const shiftDate = typeof shift.startTime === 'string'
@@ -81,11 +79,20 @@ const BaseWeekCalendar = ({ date = new Date(), employees = [], shifts = [], onRe
                 <div className="week-calendar-grid-row week-timeline-header">
                     <div className="week-sidebar-cell sidebar-header-spacer" />
                     <div className="week-timeline-data-container day-labels">
-                        {weekDays.map((day, idx) => (
-                            <div key={day} className="timeline-week">
-                                {day}
-                            </div>
-                        ))}
+                        {weekDays.map((label, idx) => {
+                            const dayDate = addDays(weekStart, idx);
+
+                            return (
+                                <div
+                                    className="timeline-day"
+                                    key={label}
+
+                                    onClick={() => onDateSelect(dayDate)}
+                                >
+                                    {label + " d. " + dayDate.getDate() + "/" + (dayDate.getMonth() + 1)}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -172,4 +179,4 @@ const BaseWeekCalendar = ({ date = new Date(), employees = [], shifts = [], onRe
     );
 };
 
-export default BaseWeekCalendar;
+export default EventShiftWeekCalendar;
