@@ -1,4 +1,5 @@
 using Postgrest.Attributes;
+using System.Text.Json.Serialization;
 using Postgrest.Models;
 
 namespace SportCenter.Api.Models;
@@ -7,9 +8,8 @@ namespace SportCenter.Api.Models;
 public class Contact : BaseModel
 {
     [PrimaryKey("contact_id", true)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public int ContactId { get; set; }
-
-    public bool ShouldSerializeContactId() => false;
 
     [Postgrest.Attributes.Column("name")]
     public string Name { get; set; } = string.Empty;

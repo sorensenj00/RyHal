@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../api/axiosConfig';
 import AllContactsTable from '../../components/contacts/AllContactsTable';
-import './ViewContacts.css';
+import './ViewAllContacts.css';
 
 const pickValue = (obj, ...keys) => {
   for (const key of keys) {
@@ -12,7 +12,7 @@ const pickValue = (obj, ...keys) => {
   return null;
 };
 
-const ViewContacts = () => {
+const ViewAllContacts = () => {
   const [contacts, setContacts] = useState([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [contactsError, setContactsError] = useState('');
@@ -121,4 +121,4 @@ const ViewContacts = () => {
   );
 };
 
-export default ViewContacts;
+export default ViewAllContacts;

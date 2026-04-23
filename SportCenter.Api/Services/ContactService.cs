@@ -1,11 +1,37 @@
 using Supabase;
 using SportCenter.Api.DTOs;
 using SportCenter.Api.Models;
+using Postgrest.Exceptions;
+using Postgrest.Attributes;
+using Postgrest.Models;
 
 namespace SportCenter.Api.Services;
 
 public class ContactService
 {
+    [Table("contact")]
+    private class ContactInsertWithId : BaseModel
+    {
+        [PrimaryKey("contact_id", false)]
+        [Column("contact_id")]
+        public int ContactId { get; set; }
+
+        [Column("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [Column("title")]
+        public string? Title { get; set; }
+
+        [Column("profile_image_url")]
+        public string? ProfileImageUrl { get; set; }
+
+        [Column("phone")]
+        public string? Phone { get; set; }
+
+        [Column("email")]
+        public string? Email { get; set; }
+    }
+
     private readonly Client _supabase;
 
     public ContactService(Client supabase)
@@ -51,7 +77,7 @@ public class ContactService
 
         await ApplySessionAsync(accessToken);
 
-        var contact = new Contact
+        var newContact = new Contact
         {
             Name = dto.Name.Trim(),
             Title = string.IsNullOrWhiteSpace(dto.Title) ? null : dto.Title.Trim(),
@@ -60,8 +86,100 @@ public class ContactService
             Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim()
         };
 
-        var created = (await _supabase.From<Contact>().Insert(contact)).Models.First();
+        var normalizedName = newContact.Name;
+        var normalizedTitle = newContact.Title;
+        var normalizedProfileImageUrl = newContact.ProfileImageUrl;
+        var normalizedPhone = newContact.Phone;
+        var normalizedEmail = newContact.Email;
+
+        Contact created;
+
+        try
+        {
+            Console.WriteLine($"Attempting to create contact: {newContact.Name}");
+            created = (await _supabase.From<Contact>().Insert(newContact)).Models.First();
+            Console.WriteLine($"Contact created with ID: {created.ContactId}");
+
+            if (created.ContactId <= 0)
+            {
+                Console.WriteLine($"Invalid ContactId returned: {created.ContactId}, using fallback logic");
+                // Defensive self-heal: if DB returns an invalid ID, remove it and recreate with an explicit valid ID.
+                await _supabase.From<Contact>()
+                    .Where(c => c.ContactId == created.ContactId)
+                    .Delete();
+
+                var recreated = await CreateContactWithExplicitPositiveIdAsync(
+                    normalizedName, normalizedTitle, normalizedProfileImageUrl, normalizedPhone, normalizedEmail);
+
+                return ToDto(recreated);
+            }
+        }
+        catch (PostgrestException ex) when (IsContactPrimaryKeyConflict(ex))
+        {
+            Console.WriteLine($"Primary key conflict detected: {ex.Message}, using fallback logic");
+            try
+            {
+                var fallbackCreated = await CreateContactWithExplicitPositiveIdAsync(
+                    normalizedName, normalizedTitle, normalizedProfileImageUrl, normalizedPhone, normalizedEmail);
+
+                return ToDto(fallbackCreated);
+            }
+            catch (PostgrestException fallbackEx) when (IsContactPrimaryKeyConflict(fallbackEx))
+            {
+                throw new InvalidOperationException(
+                    "Kontakten kunne ikke oprettes pga. vedvarende ID-konflikt i databasen. Verificér at contact_id default bruger nextval(...) og at sekvensen er synkroniseret.",
+                    fallbackEx);
+            }
+        }
+
         return ToDto(created);
+    }
+
+    private static bool IsContactPrimaryKeyConflict(PostgrestException exception)
+        => exception.Message.Contains("contact_pkey") || exception.Message.Contains("\"code\":\"23505\"");
+
+    private async Task<Contact> CreateContactWithExplicitPositiveIdAsync(
+        string name, string? title, string? profileImageUrl, string? phone, string? email)
+    {
+        var existingContacts = (await _supabase
+            .From<Contact>()
+            .Select("contact_id")
+            .Get()).Models;
+
+        var currentMax = existingContacts.Count == 0
+            ? 0
+            : existingContacts.Max(c => c.ContactId);
+
+        var nextContactId = Math.Max(1, currentMax + 1);
+
+        Console.WriteLine($"Using explicit ContactId: {nextContactId} (current max: {currentMax})");
+
+        var fallbackContact = new ContactInsertWithId
+        {
+            ContactId = nextContactId,
+            Name = name,
+            Title = title,
+            ProfileImageUrl = profileImageUrl,
+            Phone = phone,
+            Email = email
+        };
+
+        var inserted = (await _supabase
+            .From<ContactInsertWithId>()
+            .Insert(fallbackContact)).Models.First();
+
+        Console.WriteLine($"Fallback contact created with ID: {inserted.ContactId}");
+
+        // Convert back to Contact for consistency
+        return new Contact
+        {
+            ContactId = inserted.ContactId,
+            Name = inserted.Name,
+            Title = inserted.Title,
+            ProfileImageUrl = inserted.ProfileImageUrl,
+            Phone = inserted.Phone,
+            Email = inserted.Email
+        };
     }
 
     public async Task<ContactDto?> UpdateAsync(int contactId, UpdateContactDto dto, string? accessToken = null)

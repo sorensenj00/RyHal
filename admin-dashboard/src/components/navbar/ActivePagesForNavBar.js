@@ -66,6 +66,7 @@ export const ActivePagesForNavBar  = [
     label: "Kontakter",
     children: [
       { to: "/view-contacts", label: "Alle Kontakter" },
+      { to: "/view-contact", label: "Se Kontakt Person" },
       { to: "/create-contact", label: "Opret Kontakt" },
     ],
   },

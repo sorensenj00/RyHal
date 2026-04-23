@@ -23,7 +23,8 @@ import Association from "./pages/association/Association";
 import AllAssociations from "./pages/association/AllAssociations";
 import ViewAssociation from "./pages/association/ViewAssociation";
 import CreateNewContact from "./pages/contacts/CreateNewContact";
-import ViewContacts from "./pages/contacts/ViewContacts";
+import ViewAllContacts from "./pages/contacts/ViewAllContacts";
+import ViewContact from "./pages/contacts/ViewContact";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -36,7 +37,7 @@ function App() {
       setLoading(false);
     });
 
-    // 2. Lyt efter ændringer i auth (login, logud, session refresh)
+    // 2. Lyt efter ændringer i auth (login, logud, seContactInformationCardssion refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -81,7 +82,9 @@ function App() {
             <Route path="/associations" element={session ? <AllAssociations /> : <Navigate to="/login" />} />
             <Route path="/view-association" element={session ? <ViewAssociation /> : <Navigate to="/login" />} />
             <Route path="/create-contact" element={session ? <CreateNewContact /> : <Navigate to="/login" />} />
-            <Route path="/view-contacts" element={session ? <ViewContacts /> : <Navigate to="/login" />} />
+            <Route path="/view-contacts" element={session ? <ViewAllContacts /> : <Navigate to="/login" />} />
+            <Route path="/view-contact" element={session ? <ViewContact /> : <Navigate to="/login" />} />
+            <Route path="/view-contact/:id" element={session ? <ViewContact /> : <Navigate to="/login" />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to={session ? "/home" : "/login"} />} />

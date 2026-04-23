@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './AllContactsTable.css';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
 
@@ -97,6 +98,9 @@ const AllContactsTable = ({ contacts = [], loading = false, error = '', onDelete
 
                   <td className="text-right">
                     <div className="action-buttons">
+                      <Link to={`/view-contact/${contactId}`} className="btn-action view">
+                        Se
+                      </Link>
                       <button
                         className="btn-action delete"
                         onClick={() => openDeleteConfirm(contactId, name)}
