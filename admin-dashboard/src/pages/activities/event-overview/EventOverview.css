@@ -160,9 +160,9 @@
 
 /* Farver til kategorier når de er aktive */
 .filter-chip.cat-sport.active { background: var(--color-hal-mand); }
-.filter-chip.cat-meeting.active { background: var(--color-administration); }
-.filter-chip.cat-maintenance.active { background: var(--color-rengoering); }
-.filter-chip.cat-other.active { background: var(--color-andet); }
+.filter-chip.cat-mode.active { background: var(--color-administration); }
+.filter-chip.cat-vedligeholdelse.active { background: var(--color-rengoering); }
+.filter-chip.cat-andet.active { background: var(--color-andet); }
 
 /* Lokations-chip styling */
 .loc-chip.active {

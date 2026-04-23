@@ -2,7 +2,7 @@ using SportCenter.Api.Models;
 
 namespace SportCenter.Api.DTOs;
 
-public record LocationBookingDto(int? LocationId, DateTime? StartTime, DateTime? EndTime);
+public record LocationBookingDto(int? LocationId, DateTime? StartTime, DateTime? EndTime, DateTime? Date);
 
 public record EventResponseDto(
     int Id,
@@ -10,13 +10,15 @@ public record EventResponseDto(
     string Description,
     DateTime? StartTime,
     DateTime? EndTime,
+    DateTime? Date,
     string Category,
     int? SeriesId,
     bool IsModifiedFromSeries,
     bool IsCancelled,
     bool IsDraft,
     List<LocationBookingDto> Locations,
-    int? TemplateId
+    int? TemplateId,
+    int? AssociationId
 );
 
 public record CreateEventDto(
@@ -24,6 +26,7 @@ public record CreateEventDto(
     string Description,
     DateTime? StartTime,
     DateTime? EndTime,
+    DateTime? Date,
     EventCategory Category,
     List<LocationBookingDto> Locations,
     int? TemplateId,

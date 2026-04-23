@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { locations } from '../../data/DummyData';
 import './EventModal.css';
 
-const EventModal = ({ event, onClose, onSave, onDelete }) => {
+const EventModal = ({ event, locations = [], onClose, onSave, onDelete }) => {
   // Hjælpefunktion til at formatere ISO til 'YYYY-MM-DDTHH:mm' som input feltet kræver
   const formatForInput = (isoString) => {
     return format(parseISO(isoString), "yyyy-MM-dd'T'HH:mm");
+  };
+
+  const toLocalApiDateTime = (value) => {
+    if (!value) return null;
+    return value.length === 16 ? `${value}:00` : value;
   };
 
   const [formData, setFormData] = useState({
@@ -22,12 +26,12 @@ const EventModal = ({ event, onClose, onSave, onDelete }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Konvertér tilbage til ISO format før lagring
+    // Bevar lokal tid fra datetime-local input for at undgå timezone-forskydning.
     const updatedEvent = {
       ...formData,
       locationId: parseInt(formData.locationId),
-      startTime: new Date(formData.startTime).toISOString(),
-      endTime: new Date(formData.endTime).toISOString()
+      startTime: toLocalApiDateTime(formData.startTime),
+      endTime: toLocalApiDateTime(formData.endTime)
     };
     onSave(updatedEvent);
   };
@@ -37,7 +41,7 @@ const EventModal = ({ event, onClose, onSave, onDelete }) => {
       <div className="modal-content login-card" onClick={e => e.stopPropagation()}>
         <div className="login-header">
           <h2>Administrer Event</h2>
-          <p className="text-muted">Event ID: {event.eventId}</p>
+          <p className="text-muted">Event ID: {event.eventId || event.id}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
@@ -63,6 +67,7 @@ const EventModal = ({ event, onClose, onSave, onDelete }) => {
             <select name="category" value={formData.category} onChange={handleChange} className="p-2 border rounded">
               <option value="SPORT">Sport</option>
               <option value="MEETING">Møde</option>
+              <option value="MAINTENANCE">Vedligehold</option>
               <option value="OTHER">Andet</option>
             </select>
           </div>
@@ -93,7 +98,7 @@ const EventModal = ({ event, onClose, onSave, onDelete }) => {
           </div>
 
           <div className="d-flex justify-content-between mt-3">
-            <button type="button" className="btn btn-danger" onClick={() => onDelete(event.id)}>
+            <button type="button" className="btn btn-danger" onClick={() => onDelete(event.eventId || event.id)}>
               Slet Event
             </button>
             <div className="d-flex gap-2">

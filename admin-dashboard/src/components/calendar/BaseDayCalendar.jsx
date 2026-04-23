@@ -39,6 +39,14 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [], onRef
     };
   };
 
+  const formatShiftTime = (timeValue) => {
+    if (!timeValue) return '--:--';
+    const dateValue = typeof timeValue === 'string' ? parseISO(timeValue) : new Date(timeValue);
+    const hh = String(getHours(dateValue)).padStart(2, '0');
+    const mm = String(getMinutes(dateValue)).padStart(2, '0');
+    return `${hh}:${mm}`;
+  };
+
   const shiftsThisDay = (shifts || []).filter(s => {
     if (!s?.startTime) return false;
     const shiftDate = typeof s.startTime === 'string' ? parseISO(s.startTime) : new Date(s.startTime);
@@ -92,6 +100,7 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [], onRef
 
                 const isUnassigned = !employee;
                 const shiftStyle = getShiftStyles(shift.startTime, shift.endTime);
+                const shiftTimeLabel = `${formatShiftTime(shift.startTime)}-${formatShiftTime(shift.endTime)}`;
 
                 return (
                   <div key={shift.shiftId} className="calendar-grid-row shift-row">
@@ -118,7 +127,9 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [], onRef
                         onClick={() => setSelectedShift(shift)}
                       >
                         <span className="shift-text">
-                          {isUnassigned ? "LEDIG VAGT" : employee?.firstName}
+                          {isUnassigned
+                            ? `${shiftTimeLabel} | LEDIG VAGT`
+                            : `${shiftTimeLabel} | ${employee?.firstName}`}
                         </span>
                       </div>
                     </div>
