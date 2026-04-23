@@ -1,0 +1,76 @@
+.all-associations-page {
+	padding: 1.5rem 2rem;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	height: 100%;
+	min-height: 0;
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.all-associations-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+	gap: 1rem;
+	align-items: stretch;
+	flex: 1;
+	min-height: 0;
+}
+
+.all-associations-list-column {
+	min-width: 0;
+	min-height: 0;
+}
+
+.all-associations-cards-column {
+	display: flex;
+	flex-direction: column;
+	gap: 0.9rem;
+	min-height: 0;
+}
+
+.all-associations-data-card {
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+	box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+	padding: 1rem;
+}
+
+.all-associations-data-card h2 {
+	margin: 0;
+	font-size: 1rem;
+	color: #0f172a;
+}
+
+.all-associations-data-card p {
+	margin: 0.45rem 0 0;
+	color: #64748b;
+}
+
+.all-associations-header h1 {
+	margin: 0;
+	color: #1e293b;
+	font-size: 1.9rem;
+}
+
+.all-associations-header p {
+	margin: 0.45rem 0 0;
+	color: #64748b;
+}
+
+@media (max-width: 900px) {
+	.all-associations-page {
+		padding: 1rem;
+		height: auto;
+		overflow: visible;
+	}
+
+	.all-associations-layout {
+		grid-template-columns: 1fr;
+	}
+}

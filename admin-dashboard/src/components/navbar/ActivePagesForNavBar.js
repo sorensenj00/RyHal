@@ -5,10 +5,12 @@ import {
   faCalendar,
   faUserCircle,
   faDumbbell,
+  faBuilding,
+  faAddressBook,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const ActivePagesForNavBar  = [
-  { to: "/home", icon: faHome, label: "Home" },
+  { to: "/home", icon: faHome, label: "Hjem" },
   {
     to: "/employees",
     icon: faUsers,
@@ -22,7 +24,7 @@ export const ActivePagesForNavBar  = [
   {
     to: "/work-schedule",
     icon: faCalendar,
-    label: "Arbejdskalender",
+    label: "Kalender",
     children: [
       { to: "/work-calendar", label: "Kalender" },
       { to: "/calendar", label: "Vagtkalender" },
@@ -46,7 +48,25 @@ export const ActivePagesForNavBar  = [
       { to: "/create-activity", label: "Opret aktivitet" },
       { to: "/event-overview", label: "Event Oversigt" },
       { to: "/activities/drafts", label: "Oversigt: Kladdeaktiviter" },
-      { to: "/create-activity", label: "Opret aktivitet" },
+    ],
+  },
+  {
+    to: "/associations",
+    icon: faBuilding,
+    label: "Foreninger",
+    children: [
+      { to: "/associations", label: "Alle Foreninger" },
+      { to: "/view-association", label: "Se Forening" },
+      { to: "/association", label: "Opret Forening" },
+    ],
+  },
+  {
+    to: "/contacts",
+    icon: faAddressBook,
+    label: "Kontakter",
+    children: [
+      { to: "/view-contacts", label: "Alle Kontakter" },
+      { to: "/create-contact", label: "Opret Kontakt" },
     ],
   },
 ];
