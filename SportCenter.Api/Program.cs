@@ -25,7 +25,6 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
 // 3. Registrér dine business logic services (Dependency Injection)
 builder.Services.AddScoped<EmployeeService>();
 builder.Services.AddScoped<ShiftService>(); // Vigtigt: Denne manglede for at fjerne build-fejl
-builder.Services.AddScoped<EventService>();
 
 // 4. Registrér controllers
 builder.Services.AddControllers();
