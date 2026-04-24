@@ -44,7 +44,11 @@ public class EmployeesController : ControllerBase
                     Roles = e.EmployeeRoles?
                         .Where(er => er.Role != null)
                         .Select(er => new RoleDto { Name = er.Role!.Name })
-                        .ToList() ?? new List<RoleDto>()
+                        .ToList() ?? new List<RoleDto>(),
+                    Qualifications = e.EmployeeQualifications?
+                        .Where(eq => eq.Qualification != null)
+                        .Select(eq => new QualificationDto { Name = eq.Qualification!.Name, Description = eq.Qualification!.Description })
+                        .ToList() ?? new List<QualificationDto>()
                 });
             }
 
@@ -163,6 +167,55 @@ public class EmployeesController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"Intern serverfejl: {ex.Message}");
+        }
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetEmployee(int id)
+    {
+        try
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+            var employee = await _employeeService.GetEmployeeAsync(id, token);
+
+            if (employee == null)
+                return StatusCode(500, "employee er null");
+
+            var toReturn = new EmployeeDto
+            {
+                EmployeeId = employee.EmployeeId,
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                Email = employee.Email,
+                Phone = employee.Phone,
+                Birthday = employee.Birthday,
+                Roles = employee.EmployeeRoles?
+                        .Where(er => er.Role != null)
+                        .Select(er => new RoleDto { Name = er.Role!.Name })
+                        .ToList() ?? new List<RoleDto>(),
+                Qualifications = employee.EmployeeQualifications?
+                        .Where(eq => eq.Qualification != null)
+                        .Select(eq => new QualificationDto { Name = eq.Qualification!.Name, Description = eq.Qualification!.Description})
+                        .ToList() ?? new List<QualificationDto>()
+
+            };
+            
+
+            return Ok(toReturn);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new
+            {
+                Message = ex.Message,
+                Details = ex.InnerException?.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.ToString());
         }
     }
 }

@@ -27,6 +27,6 @@ public class Employee : BaseModel
     [Reference(typeof(EmployeeRole), ReferenceAttribute.JoinType.Left, true, "employee_id")]
     public List<EmployeeRole> EmployeeRoles { get; set; } = new List<EmployeeRole>();
 
-    [Reference(typeof(EmployeeRole), ReferenceAttribute.JoinType.Left, true, "employee_id")]
-    public List<Qualification> Qualifications { get; set; } = new List<Qualification>();
+    [Reference(typeof(EmployeeQualification), ReferenceAttribute.JoinType.Left, true, "employee_id")]
+    public List<EmployeeQualification> EmployeeQualifications { get; set; } = new List<EmployeeQualification>();
 }
