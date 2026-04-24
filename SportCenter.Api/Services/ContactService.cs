@@ -353,6 +353,36 @@ public class ContactService
             .ToList();
     }
 
+    public async Task<List<ContactEventDto>> GetEventsForContactAsync(int contactId, string? accessToken = null)
+    {
+        await ApplySessionAsync(accessToken);
+
+        var links = (await _supabase.From<EventContact>()
+                .Where(ec => ec.ContactId == contactId)
+                .Get())
+            .Models;
+
+        if (links.Count == 0)
+        {
+            return new List<ContactEventDto>();
+        }
+
+        var linkedEventIds = links
+            .Select(link => link.EventId)
+            .Distinct()
+            .ToHashSet();
+
+        var events = (await _supabase.From<Event>().Get())
+            .Models
+            .Where(evt => linkedEventIds.Contains(evt.Id))
+            .OrderBy(evt => evt.Date ?? evt.StartTime)
+            .ThenBy(evt => evt.StartTime)
+            .Select(ToContactEventDto)
+            .ToList();
+
+        return events;
+    }
+
     private static ContactDto ToDto(Contact contact)
         => new(
             contact.ContactId,
@@ -361,5 +391,19 @@ public class ContactService
             contact.ProfileImageUrl,
             contact.Phone,
             contact.Email
+        );
+
+    private static ContactEventDto ToContactEventDto(Event evt)
+        => new(
+            evt.Id,
+            evt.Name,
+            evt.Description ?? string.Empty,
+            evt.StartTime,
+            evt.EndTime,
+            evt.Date,
+            evt.Category.ToString(),
+            evt.AssociationId,
+            evt.IsCancelled ?? false,
+            evt.IsDraft ?? false
         );
 }

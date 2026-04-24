@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../../api/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
+import ContactsSearchBar from '../../../components/search/ContactsSearchBar';
 import './CreateNewEvent.css';
 
 const EVENT_CATEGORIES = ['SPORT', 'MØDE', 'VEDLIGEHOLDELSE', 'ANDET'];
@@ -125,6 +126,8 @@ const CreateNewEvent = () => {
   const [availableContacts, setAvailableContacts] = useState([]);
   const [selectedAssociationId, setSelectedAssociationId] = useState(0);
   const [selectedContactIds, setSelectedContactIds] = useState([]);
+  const [contactSearchTerm, setContactSearchTerm] = useState('');
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [locations, setLocations] = useState([]);
 
   const selectedAssociation = availableAssociations.find(
@@ -135,9 +138,60 @@ const CreateNewEvent = () => {
     ? selectedAssociation.contacts
     : [];
 
+  const associationContactIds = normalizeIdList(
+    associationContacts.map((contact) => pickValue(contact, 'contactId', 'ContactId'))
+  );
+
+  const contactAssociationNamesById = availableAssociations.reduce((lookup, association) => {
+    const associationName = pickValue(association, 'name', 'Name');
+    const contacts = Array.isArray(association?.contacts) ? association.contacts : [];
+
+    contacts.forEach((contact) => {
+      const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
+      if (!contactId || !associationName) {
+        return;
+      }
+
+      if (!lookup[contactId]) {
+        lookup[contactId] = [];
+      }
+
+      if (!lookup[contactId].includes(associationName)) {
+        lookup[contactId].push(associationName);
+      }
+    });
+
+    return lookup;
+  }, {});
+
+  const filteredContacts = availableContacts.filter((contact) => {
+    const normalizedSearchTerm = contactSearchTerm.trim().toLowerCase();
+
+    if (!normalizedSearchTerm) {
+      return true;
+    }
+
+    const haystack = [
+      pickValue(contact, 'name', 'Name'),
+      pickValue(contact, 'title', 'Title'),
+      pickValue(contact, 'phone', 'Phone'),
+      pickValue(contact, 'email', 'Email'),
+      ...(contactAssociationNamesById[Number(pickValue(contact, 'contactId', 'ContactId')) || 0] || [])
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return haystack.includes(normalizedSearchTerm);
+  });
+
   const closeMessageModal = () => {
     setSuccessMsg('');
     setErrorMsg('');
+  };
+
+  const closeContactModal = () => {
+    setIsContactModalOpen(false);
   };
 
   useEffect(() => {
@@ -637,36 +691,37 @@ const CreateNewEvent = () => {
                 {availableContacts.length === 0 ? (
                   <p className="muted">Ingen kontaktpersoner fundet endnu.</p>
                 ) : (
-                  <div className="contact-selection-list">
-                    {availableContacts.map((contact) => {
-                      const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
-                      const contactName = pickValue(contact, 'name', 'Name') || 'Ukendt kontakt';
-                      const contactTitle = pickValue(contact, 'title', 'Title');
-                      const contactEmail = pickValue(contact, 'email', 'Email');
-                      const isSelected = selectedContactIds.includes(contactId);
-                      const belongsToSelectedAssociation = associationContacts.some(
-                        (associationContact) => Number(pickValue(associationContact, 'contactId', 'ContactId')) === contactId
-                      );
+                  <>
+                    <button
+                      type="button"
+                      className="btn-add"
+                      onClick={() => setIsContactModalOpen(true)}
+                    >
+                      Tilføj kontaktperson
+                    </button>
 
-                      return (
-                        <label key={contactId} className={`contact-option ${isSelected ? 'selected' : ''}`}>
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleContactSelection(contactId)}
-                          />
-                          <div className="contact-option-text">
-                            <span className="contact-option-name">{contactName}</span>
-                            <span className="contact-option-meta">
-                              {[contactTitle, contactEmail, belongsToSelectedAssociation ? 'også på valgt forening' : null]
-                                .filter(Boolean)
-                                .join(' · ') || 'Ingen ekstra oplysninger'}
-                            </span>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
+                    {selectedContactIds.length > 0 && (
+                      <div className="contact-selected-chips">
+                        {availableContacts
+                          .filter((contact) => selectedContactIds.includes(Number(pickValue(contact, 'contactId', 'ContactId')) || 0))
+                          .map((contact) => {
+                            const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
+                            const contactName = pickValue(contact, 'name', 'Name') || 'Ukendt kontakt';
+
+                            return (
+                              <button
+                                key={contactId}
+                                type="button"
+                                className="contact-selected-chip"
+                                onClick={() => toggleContactSelection(contactId)}
+                              >
+                                {contactName} ×
+                              </button>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </section>
@@ -766,6 +821,70 @@ const CreateNewEvent = () => {
                 Luk
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isContactModalOpen && (
+        <div className="contact-modal-overlay" onClick={closeContactModal}>
+          <div
+            className="contact-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="contact-modal-header">
+              <h3 id="contact-modal-title">Tilføj kontaktperson</h3>
+              <button type="button" className="contact-modal-close" onClick={closeContactModal}>
+                Luk
+              </button>
+            </div>
+
+            <ContactsSearchBar
+              searchTerm={contactSearchTerm}
+              onSearchTermChange={setContactSearchTerm}
+              inputId="event-contacts-search"
+            />
+
+            {filteredContacts.length === 0 ? (
+              <p className="muted">Ingen kontaktpersoner matcher din søgning.</p>
+            ) : (
+              <div className="contact-selection-list">
+                {filteredContacts.map((contact) => {
+                  const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
+                  const contactName = pickValue(contact, 'name', 'Name') || 'Ukendt kontakt';
+                  const contactTitle = pickValue(contact, 'title', 'Title');
+                  const contactEmail = pickValue(contact, 'email', 'Email');
+                  const isSelected = selectedContactIds.includes(contactId);
+                  const belongsToSelectedAssociation = associationContactIds.includes(contactId);
+                  const associationNames = contactAssociationNamesById[contactId] || [];
+
+                  return (
+                    <label key={contactId} className={`contact-option ${isSelected ? 'selected' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleContactSelection(contactId)}
+                      />
+                      <div className="contact-option-text">
+                        <span className="contact-option-name">{contactName}</span>
+                        <span className="contact-option-meta">
+                          {[
+                            contactTitle,
+                            contactEmail,
+                            associationNames.length > 0 ? `Foreninger: ${associationNames.join(', ')}` : null,
+                            belongsToSelectedAssociation ? 'også på valgt forening' : null
+                          ]
+                            .filter(Boolean)
+                            .join(' · ') || 'Ingen ekstra oplysninger'}
+                        </span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

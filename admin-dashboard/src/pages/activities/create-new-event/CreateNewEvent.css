@@ -263,13 +263,81 @@
   margin-top: 0.95rem;
 }
 
+.contact-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+  padding: 1rem;
+}
+
+.contact-modal {
+  width: min(780px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(2, 6, 23, 0.28);
+  padding: 1rem;
+}
+
+.contact-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.contact-modal-header h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.contact-modal-close {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  padding: 0.45rem 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.contact-modal-close:hover {
+  background: #eff6ff;
+}
+
+.contact-selected-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.contact-selected-chip {
+  border: none;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .contact-selection-list {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  max-height: 240px;
+  max-height: 280px;
   overflow-y: auto;
   padding-right: 0.2rem;
+  margin-top: 0.85rem;
 }
 
 .contact-option {

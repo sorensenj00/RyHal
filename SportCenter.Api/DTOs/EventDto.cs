@@ -21,6 +21,19 @@ public record EventResponseDto(
     int? AssociationId
 );
 
+public record ContactEventDto(
+    int Id,
+    string Name,
+    string Description,
+    DateTime? StartTime,
+    DateTime? EndTime,
+    DateTime? Date,
+    string Category,
+    int? AssociationId,
+    bool IsCancelled,
+    bool IsDraft
+);
+
 public record CreateEventDto(
     string Name,
     string Description,
