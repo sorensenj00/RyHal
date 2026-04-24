@@ -39,6 +39,14 @@ public class ContactsController : ControllerBase
         return Ok(contacts);
     }
 
+    [HttpGet("{contactId:int}/events")]
+    public async Task<IActionResult> GetEventsForContact(int contactId)
+    {
+        var token = ReadBearerToken();
+        var events = await _contactService.GetEventsForContactAsync(contactId, token);
+        return Ok(events);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateContactDto dto)
     {

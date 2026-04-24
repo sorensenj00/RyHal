@@ -1,5 +1,6 @@
 import React from 'react';
 import './ContactInformationCard.css';
+import defaultAvatar from '../../Assets/images/default-avatar.png';
 
 const pickValue = (obj, ...keys) => {
   for (const key of keys) {
@@ -28,17 +29,13 @@ const ContactInformationCard = ({ contact }) => {
   return (
     <div className="contact-info-card">
       <div className="contact-info-header">
-        {profileImageUrl && (
-          <img
-            src={profileImageUrl}
-            alt={`${name} profilbillede`}
-            className="contact-profile-image"
-          />
-        )}
-        <div className="contact-name-section">
-          <h2>{name}</h2>
-          {title && <p className="contact-title">{title}</p>}
-        </div>
+        <img
+          src={profileImageUrl || defaultAvatar}
+          alt={`${name} profilbillede`}
+          className="contact-profile-image"
+        />
+        <h2 className="contact-name">{name}</h2>
+        {title && <p className="contact-title">{title}</p>}
       </div>
 
       <div className="contact-info-details">

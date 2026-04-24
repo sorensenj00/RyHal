@@ -1,69 +1,149 @@
 .view-contact-page {
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  max-width: none;
+  margin: 0;
 }
 
 .view-contact-header {
-  margin-bottom: 30px;
-  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 .view-contact-header h1 {
   margin: 0;
-  font-size: 2em;
-  color: #333;
+  font-size: 1.9rem;
+  color: #1e293b;
 }
 
 .view-contact-header p {
-  margin: 10px 0 0 0;
-  color: #666;
+  margin: 0.35rem 0 0;
+  color: #64748b;
 }
 
-.view-contact-content {
+.view-contact-search-wrap {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.view-contact-search-results {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  z-index: 25;
+  margin-top: 0;
   display: flex;
-  justify-content: center;
-  margin-bottom: 30px;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.6rem;
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.16);
+}
+
+.view-contact-search-result-item {
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.view-contact-search-result-item:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.view-contact-search-result-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.view-contact-search-result-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.view-contact-search-empty {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.view-contact-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.view-contact-sidebar {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.view-contact-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .view-contact-associations {
-  margin-top: 40px;
-  padding-top: 30px;
-  border-top: 2px solid #e2e8f0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 1.25rem 1.5rem;
 }
 
-.view-contact-associations h2 {
-  margin: 0 0 10px 0;
-  font-size: 1.5em;
-  color: #333;
+.view-contact-events {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 1.25rem 1.5rem;
 }
 
-.view-contact-associations-help {
-  margin: 5px 0 20px 0;
-  color: #666;
-  font-size: 0.95em;
+.view-contact-associations h2,
+.view-contact-events h2 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.15rem;
+  color: #1e293b;
 }
 
-.view-contact-navigation {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.view-contact-navigation button {
-  padding: 8px 16px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.view-contact-navigation button:hover {
-  background: #0056b3;
+.view-contact-associations-help,
+.view-contact-events-help {
+  margin: 0 0 1rem 0;
+  color: #64748b;
+  font-size: 0.9rem;
 }
 
 .error {
-  color: red;
-  text-align: center;
+  color: #dc2626;
+}
+
+@media (max-width: 900px) {
+  .view-contact-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .view-contact-sidebar {
+    position: static;
+  }
+
+  .view-contact-search-result-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
