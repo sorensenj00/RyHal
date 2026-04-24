@@ -7,7 +7,7 @@ public class Qualification : BaseModel
 	public string Name { get; set; }
     [Column("description")]
 	public string Description { get; set; }
-    [PrimaryKey("employee_id", false)]
+    [PrimaryKey("qualification_id", false)]
     public int QualificationID { get; set; }
 
 }
