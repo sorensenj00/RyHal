@@ -25,22 +25,29 @@ const EventShiftOverview = () => {
     const [view, setView] = useState('week');
     const [employees, setEmployees] = useState([]);
     const [shifts, setShifts] = useState([]);
+    const [events, setEvents] = useState([]);
     const [selectedDate, setSelectedDate] = useState(Date.now());
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
-            const [empRes, shiftRes] = await Promise.all([
+            const [empRes, shiftRes, eventRes] = await Promise.all([
                 api.get('/employees'),
-                api.get('/shifts')
+                api.get('/shifts'),
+                api.get('/events')
             ]);
             setEmployees(empRes.data);
             setShifts(shiftRes.data);
+            setEvents(eventRes.data);
             setError(null);
         } catch (err) {
             console.error("Fejl ved hentning af kalenderdata:", err);
             setError("Kunne ikke hente data fra databasen.");
+            if (err.response) {
+                console.error("Server Error Data:", err.response.data);
+                console.error("Server Status:", err.response.status);
+            }
         } finally {
             setLoading(false);
         }
@@ -197,6 +204,8 @@ const EventShiftOverview = () => {
                         onDateSelect={handleDateSelect}
                         shifts={shifts}
                         employees={employees}
+                        events={events}
+                        locations={locations}
                         onRefresh={fetchData}
                     />
                 ) : (

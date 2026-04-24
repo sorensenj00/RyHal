@@ -5,7 +5,7 @@ import EditShift from '../shift/EditShift';
 import './EventShiftWeekCalendar.css';
 import { startOfWeek, endOfWeek, isWithinInterval, addDays } from 'date-fns';
 
-const EventShiftWeekCalendar = ({ date = new Date(), onDateSelect, employees = [], shifts = [], onRefresh }) => {
+const EventShiftWeekCalendar = ({ date = new Date(), onDateSelect, employees = [], shifts = [],events = [], locations = [], onRefresh }) => {
     const [selectedShift, setSelectedShift] = useState(null);
 
 
@@ -56,6 +56,17 @@ const EventShiftWeekCalendar = ({ date = new Date(), onDateSelect, employees = [
             end: weekEnd
         });
     });
+
+    const eventsThisWeek = (events || []).filter(e => {
+        if (!e?.startTime) return false;
+        const eventDate = typeof e.startTime === 'string'
+            ? parseISO(e.startTime)
+            : new Date(e.startTime);
+        return isWithinInterval(eventDate, {
+            start: weekStart,
+			end: weekEnd
+        })
+    })
 
     const shiftsByCategory = shiftsThisWeek.reduce((groups, shift) => {
         const catId = shift.categoryId || 999;
