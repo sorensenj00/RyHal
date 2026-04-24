@@ -96,7 +96,7 @@ namespace SportCenter.Api.Services
 
             var update = await _supabase.From<Shift>()
                 .Where(x => x.ShiftId == shiftId)
-                .Set(x => x.EmployeeId, dbEmployeeId)
+                .Set(x => (object)x.EmployeeId!, dbEmployeeId)
                 .Update();
 
             return update.Models.Any();

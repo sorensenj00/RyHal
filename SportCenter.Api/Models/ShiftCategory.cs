@@ -1,4 +1,4 @@
-﻿using Postgrest.Attributes;
+using Postgrest.Attributes;
 using Postgrest.Models;
 
 namespace SportCenter.Api.Models;
@@ -10,8 +10,8 @@ public class ShiftCategory : BaseModel
     public long ShiftCategoryId { get; set; }
 
     [Postgrest.Attributes.Column("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [Postgrest.Attributes.Column("color")]
-    public string Color { get; set; }
+    public string Color { get; set; } = string.Empty;
 }

@@ -5,7 +5,7 @@ import './App.css';
 
 // Komponenter
 import NavBar from "./components/navbar/NavBar";
-import Login from "./pages/login/Login"; 
+import Login from "./pages/login/Login";
 
 // Sider
 import EmployeeBigCard from './components/employee/EmployeeBigCard';
@@ -25,6 +25,7 @@ import ViewAssociation from "./pages/association/ViewAssociation";
 import CreateNewContact from "./pages/contacts/CreateNewContact";
 import ViewAllContacts from "./pages/contacts/ViewAllContacts";
 import ViewContact from "./pages/contacts/ViewContact";
+import EmployeeHoursOverview from "./pages/employee-hours/EmployeeHoursOverview";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -54,8 +55,8 @@ function App() {
     <Router>
       <div className="app-container">
         {/* Vis kun NavBar, hvis brugeren er logget ind */}
-        {session && <NavBar />} 
-        
+        {session && <NavBar />}
+
         <main className={session ? "app-content" : "auth-content"}>
           <Routes>
             {/* Login rute - Hvis man er logget ind, sendes man væk fra login */}
@@ -63,10 +64,11 @@ function App() {
 
             {/* Automatisk redirect ved rod-URL */}
             <Route path="/" element={<Navigate to={session ? "/home" : "/login"} />} />
-            
+
             {/* Beskyttede ruter */}
             <Route path="/home" element={session ? <Welcome /> : <Navigate to="/login" />} />
             <Route path="/employee-list" element={session ? <EmployeeListOverview /> : <Navigate to="/login" />} />
+            <Route path="/employee-hours" element={session ? <EmployeeHoursOverview /> : <Navigate to="/login" />} />
             <Route path="/employee/:id" element={session ? <ShowEmployee /> : <Navigate to="/login" />} />
             <Route path="/show-employee" element={session ? <ShowEmployee /> : <Navigate to="/login" />} />
             <Route path="/employee-card" element={session ? <EmployeeBigCard /> : <Navigate to="/login" />} />

@@ -1,4 +1,4 @@
-﻿using Supabase;
+using Supabase;
 using SportCenter.Api.Models;
 using SportCenter.Api.DTOs;
 
@@ -78,13 +78,13 @@ namespace SportCenter.Api.Services
 
             if (dto.Email != null)
             {
-                updateQuery = updateQuery.Set(x => x.Email, dto.Email);
+                updateQuery = updateQuery.Set(x => (object)x.Email!, dto.Email);
                 hasUpdates = true;
             }
 
             if (dto.Phone != null)
             {
-                updateQuery = updateQuery.Set(x => x.Phone, dto.Phone);
+                updateQuery = updateQuery.Set(x => (object)x.Phone!, dto.Phone);
                 hasUpdates = true;
             }
 
@@ -193,7 +193,7 @@ namespace SportCenter.Api.Services
                 {
                     await _supabase.From<Shift>()
                         .Where(x => x.EmployeeId == employeeIdForShift)
-                        .Set(x => x.EmployeeId, (long?)null)
+                        .Set(x => (object)x.EmployeeId!, (long?)null)
                         .Update();
                 }
                 catch (Exception ex)
@@ -281,11 +281,11 @@ namespace SportCenter.Api.Services
                 .Where(x => x.EmployeeId == employeeId)
                 .Get();
 
-            var shiftsInMonth = result.Models
-                .Where(s => s.StartTime.Month == month && s.StartTime.Year == year)
-                .ToList();
+            var monthStart = new DateTime(year, month, 1);
+            var monthEnd = monthStart.AddMonths(1).AddDays(-1);
 
-            return shiftsInMonth.Sum(s => (s.EndTime - s.StartTime).TotalHours);
+            return EmployeeHoursCalculator
+                .CalculateTotalMinutesForEmployee(result.Models, monthStart, monthEnd) / 60.0;
         }
     }
 }

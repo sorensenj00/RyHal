@@ -193,6 +193,11 @@ const ShowEmployee = () => {
     }
   };
 
+  const handleOpenHoursOverview = () => {
+    if (!selectedEmployee?.employeeId) return;
+    navigate(`/employee-hours?employeeId=${selectedEmployee.employeeId}`);
+  };
+
   if (loading) return <div className="show-employee-page">Henter medarbejderprofil...</div>;
   if (error) return <div className="show-employee-page">{error}</div>;
   if (!selectedEmployee) return <div className="show-employee-page">Ingen medarbejder fundet.</div>;
@@ -204,8 +209,11 @@ const ShowEmployee = () => {
           <h1>Medarbejderprofil</h1>
           <p>Dashboard for {selectedEmployee.firstName} {selectedEmployee.lastName}</p>
         </div>
-        <div className="header-search">
+        <div className="header-actions">
           <EmployeeSearchBar onSelect={handleEmployeeChange} />
+          <button type="button" className="hours-overview-btn" onClick={handleOpenHoursOverview}>
+            Se timeoversigt
+          </button>
         </div>
       </header>
 

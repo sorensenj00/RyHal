@@ -17,6 +17,7 @@ export const ActivePagesForNavBar  = [
     label: "Medarbejdere",
     children: [
       { to: "/employee-list", label: "Medarbejder oversigt" },
+      { to: "/employee-hours", label: "Timeoversigt" },
       { to: "/show-employee", label: "Vis medarbejder" },
       { to: "/create-employee", label: "Tilføj ny medarbejder" },
     ],

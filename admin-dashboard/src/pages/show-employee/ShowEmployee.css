@@ -20,6 +20,29 @@
 .header-text h1 { margin: 0; font-size: 1.75rem; color: #1e293b; font-weight: 800; }
 .header-text p { margin: 0.25rem 0 0; color: #64748b; font-size: 0.9rem; }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.hours-overview-btn {
+  border: none;
+  border-radius: 10px;
+  background: var(--primary-color);
+  color: white;
+  font-weight: 700;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0, 123, 255, 0.18);
+}
+
+.hours-overview-btn:hover {
+  filter: brightness(0.96);
+}
+
 /* 3-KOLONNE DASHBOARD GRID */
 .employee-profile-container {
   display: grid;

@@ -29,6 +29,8 @@ builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<AssociationService>();
 builder.Services.AddScoped<ContactService>();
+builder.Services.AddScoped<EmployeeHoursService>();
+
 
 // 4. Registrér controllers
 builder.Services.AddControllers();

@@ -1,8 +1,20 @@
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import EmployeeHoursSummaryCards from './components/employee-hours/EmployeeHoursSummaryCards';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test('renders employee hours summary cards', () => {
+  render(
+    <EmployeeHoursSummaryCards
+      summary={{
+        totalMinutes: 480,
+        totalShiftCount: 2,
+        activeEmployees: 1,
+        totalEmployees: 2,
+        employeesWithoutHours: 1,
+      }}
+    />
+  );
+
+  expect(screen.getByText(/Total timer/i)).toBeInTheDocument();
+  expect(screen.getByText(/8\.00 timer/i)).toBeInTheDocument();
+  expect(screen.getByText(/Aktive medarbejdere/i)).toBeInTheDocument();
 });
