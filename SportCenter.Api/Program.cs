@@ -3,38 +3,32 @@ using SportCenter.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Konfigurér CORS så din React frontend (port 3000) må kalde din API
-builder.Services.AddCors(options => {
-    options.AddPolicy("AllowReact", policy => {
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact", policy =>
+    {
         policy.WithOrigins("http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
-// 2. Registrér Supabase Klienten
-// Sørg for at "Supabase:Url" og "Supabase:Key" findes i din appsettings.json
-builder.Services.AddScoped<Supabase.Client>(_ => 
-    new Supabase.Client(
+builder.Services.AddScoped<Client>(_ =>
+    new Client(
         builder.Configuration["Supabase:Url"] ?? throw new InvalidOperationException("Supabase URL mangler"),
         builder.Configuration["Supabase:Key"] ?? throw new InvalidOperationException("Supabase Key mangler"),
         new SupabaseOptions { AutoConnectRealtime = true }
     )
 );
 
-// 3. Registrér dine business logic services (Dependency Injection)
+builder.Services.AddScoped<IEmployeeRepository, SupabaseEmployeeRepository>();
 builder.Services.AddScoped<EmployeeService>();
-builder.Services.AddScoped<ShiftService>(); // Vigtigt: Denne manglede for at fjerne build-fejl
+builder.Services.AddScoped<ShiftService>();
 
-// 4. Registrér controllers
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// 5. Middleware pipeline
 app.UseCors("AllowReact");
-
-// Sørg for at dine controllers bliver mappet til dine ruter (f.eks. /api/employees)
 app.MapControllers();
-
 app.Run();

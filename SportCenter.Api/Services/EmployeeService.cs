@@ -1,43 +1,32 @@
-﻿using Azure.Core;
 using SportCenter.Api.DTOs;
 using SportCenter.Api.Models;
-using Supabase;
-using System.Linq.Expressions;
 
 namespace SportCenter.Api.Services
 {
     public class EmployeeService
     {
-        private readonly Supabase.Client _supabase;
+        private readonly IEmployeeRepository _employeeRepository;
 
-        public EmployeeService(Supabase.Client supabase)
+        public EmployeeService(IEmployeeRepository employeeRepository)
         {
-            _supabase = supabase;
+            _employeeRepository = employeeRepository;
         }
 
         public async Task<List<Employee>> GetAllEmployeesAsync(string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            // Midlertidigt hentes kun medarbejderfelter for at undgaa SQL-fejl i nested join.
-            var result = await _supabase
-                .From<Employee>()
-                .Select("*")
-                .Get();
-
-
-            return result.Models;
+            return await _employeeRepository.GetAllEmployeesAsync();
         }
-
 
         public async Task<Employee> CreateEmployeeAsync(CreateEmployeeDto dto, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
             var newEmployee = new Employee
@@ -46,53 +35,29 @@ namespace SportCenter.Api.Services
                 LastName = dto.LastName,
                 Email = dto.Email,
                 Phone = dto.Phone,
-                // Konverterer DateTime fra React til DateOnly som din model kræver
                 Birthday = DateOnly.FromDateTime(dto.Birthday)
             };
 
-            // Gemmer i Supabase
-            var result = await _supabase.From<Employee>().Insert(newEmployee);
-
-            return result.Models.First();
+            return await _employeeRepository.InsertEmployeeAsync(newEmployee);
         }
 
         public async Task<bool> UpdateEmployeeContactAsync(int employeeId, UpdateEmployeeContactDto dto, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var existingEmployeeResponse = await _supabase.From<Employee>()
-                .Where(x => x.EmployeeId == employeeId)
-                .Get();
-
-            var existingEmployee = existingEmployeeResponse.Models.FirstOrDefault();
+            var existingEmployee = await _employeeRepository.GetEmployeeByIdAsync(employeeId);
             if (existingEmployee == null)
             {
                 return false;
             }
 
-            var updateQuery = _supabase.From<Employee>()
-                .Where(x => x.EmployeeId == employeeId);
-
-            var hasUpdates = false;
-
-            if (dto.Email != null)
-            {
-                updateQuery = updateQuery.Set(x => x.Email, dto.Email);
-                hasUpdates = true;
-            }
-
-            if (dto.Phone != null)
-            {
-                updateQuery = updateQuery.Set(x => x.Phone, dto.Phone);
-                hasUpdates = true;
-            }
-
+            var hasUpdates = dto.Email != null || dto.Phone != null;
             if (hasUpdates)
             {
-                await updateQuery.Update();
+                await _employeeRepository.UpdateEmployeeContactAsync(employeeId, dto.Email, dto.Phone);
             }
 
             return true;
@@ -102,14 +67,10 @@ namespace SportCenter.Api.Services
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var existingEmployeeResponse = await _supabase.From<Employee>()
-                .Where(x => x.EmployeeId == employeeId)
-                .Get();
-
-            var existingEmployee = existingEmployeeResponse.Models.FirstOrDefault();
+            var existingEmployee = await _employeeRepository.GetEmployeeByIdAsync(employeeId);
             if (existingEmployee == null)
             {
                 return false;
@@ -119,30 +80,17 @@ namespace SportCenter.Api.Services
 
             if (string.IsNullOrWhiteSpace(normalizedRoleName))
             {
-                await _supabase.From<EmployeeRole>()
-                    .Where(x => x.EmployeeId == employeeId)
-                    .Delete();
-
+                await _employeeRepository.DeleteEmployeeRolesByEmployeeIdAsync(employeeId);
                 return true;
             }
 
-            var existingRoleResponse = await _supabase.From<Role>()
-                .Where(x => x.Name == normalizedRoleName)
-                .Get();
-
-            var role = existingRoleResponse.Models.FirstOrDefault();
-
+            var role = await _employeeRepository.GetRoleByNameAsync(normalizedRoleName);
             if (role == null)
             {
                 throw new InvalidOperationException($"Rollen '{normalizedRoleName}' findes ikke i databasen.");
             }
 
-            var existingEmployeeRolesResponse = await _supabase.From<EmployeeRole>()
-                .Where(x => x.EmployeeId == employeeId)
-                .Get();
-
-            var existingEmployeeRole = existingEmployeeRolesResponse.Models.FirstOrDefault();
-
+            var existingEmployeeRole = await _employeeRepository.GetEmployeeRoleByEmployeeIdAsync(employeeId);
             if (existingEmployeeRole != null)
             {
                 if (existingEmployeeRole.RoleId == role.RoleId)
@@ -150,20 +98,15 @@ namespace SportCenter.Api.Services
                     return true;
                 }
 
-                await _supabase.From<EmployeeRole>()
-                    .Where(x => x.EmployeeId == employeeId)
-                    .Set(x => x.RoleId, role.RoleId)
-                    .Update();
-
+                await _employeeRepository.UpdateEmployeeRoleAsync(employeeId, role.RoleId);
                 return true;
             }
 
-            await _supabase.From<EmployeeRole>()
-                .Insert(new EmployeeRole
-                {
-                    EmployeeId = employeeId,
-                    RoleId = role.RoleId
-                });
+            await _employeeRepository.InsertEmployeeRoleAsync(new EmployeeRole
+            {
+                EmployeeId = employeeId,
+                RoleId = role.RoleId
+            });
 
             return true;
         }
@@ -172,15 +115,10 @@ namespace SportCenter.Api.Services
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var existingEmployeeResponse = await _supabase.From<Employee>()
-                .Where(x => x.EmployeeId == employeeId)
-                .Get();
-
-            var existingEmployee = existingEmployeeResponse.Models.FirstOrDefault();
-
+            var existingEmployee = await _employeeRepository.GetEmployeeByIdAsync(employeeId);
             if (existingEmployee == null)
             {
                 return false;
@@ -188,39 +126,27 @@ namespace SportCenter.Api.Services
 
             try
             {
-                long? employeeIdForShift = employeeId;
-
-                // Bevar eksisterende data: afkobl vagter fra medarbejderen i stedet for at slette vagter.
                 try
                 {
-                    await _supabase.From<Shift>()
-                        .Where(x => x.EmployeeId == employeeIdForShift)
-                        .Set(x => x.EmployeeId, (long?)null)
-                        .Update();
+                    await _employeeRepository.UnlinkShiftsFromEmployeeAsync(employeeId);
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidOperationException($"Could not unlink shifts for employee {employeeId}: {ex.Message}", ex);
                 }
 
-                // Fjern kun koblinger mellem medarbejder og roller.
                 try
                 {
-                    await _supabase.From<EmployeeRole>()
-                        .Where(x => x.EmployeeId == employeeId)
-                        .Delete();
+                    await _employeeRepository.DeleteEmployeeRolesByEmployeeIdAsync(employeeId);
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidOperationException($"Could not unlink employee_roles for employee {employeeId}: {ex.Message}", ex);
                 }
 
-                // Fjern kun koblinger mellem medarbejder og kvalifikationer.
                 try
                 {
-                    await _supabase.From<EmployeeQualification>()
-                        .Where(x => x.EmployeeId == employeeId)
-                        .Delete();
+                    await _employeeRepository.DeleteEmployeeQualificationsByEmployeeIdAsync(employeeId);
                 }
                 catch (Exception ex)
                 {
@@ -229,9 +155,7 @@ namespace SportCenter.Api.Services
 
                 try
                 {
-                    await _supabase.From<Employee>()
-                        .Where(x => x.EmployeeId == employeeId)
-                        .Delete();
+                    await _employeeRepository.DeleteEmployeeAsync(employeeId);
                 }
                 catch (Exception ex)
                 {
@@ -240,13 +164,8 @@ namespace SportCenter.Api.Services
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not InvalidOperationException)
             {
-                if (ex is InvalidOperationException)
-                {
-                    throw;
-                }
-
                 throw new InvalidOperationException("Employee could not be deleted due to related data or permission rules.", ex);
             }
         }
@@ -255,13 +174,10 @@ namespace SportCenter.Api.Services
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var EmployeeResponse = await _supabase.From<Employee>().Where(x => x.EmployeeId == employeeId).Get();
-
-            var result = EmployeeResponse.Models.FirstOrDefault();
-
+            var result = await _employeeRepository.GetEmployeeByIdAsync(employeeId);
             if (result == null)
             {
                 throw new InvalidOperationException("Employee not found");
@@ -270,12 +186,9 @@ namespace SportCenter.Api.Services
             return result;
         }
 
-
         public async Task<bool> IsOver18Async(int employeeId)
         {
-            var response = await _supabase.From<Employee>().Where(x => x.EmployeeId == employeeId).Get();
-            var employee = response.Models.FirstOrDefault();
-
+            var employee = await _employeeRepository.GetEmployeeByIdAsync(employeeId);
             if (employee?.Birthday == null)
             {
                 throw new ArgumentNullException("Employee birthday is not set");
@@ -288,46 +201,36 @@ namespace SportCenter.Api.Services
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var result = await _supabase.From<Qualification>().Get();
-
-
-            return result.Models;
+            return await _employeeRepository.GetAllQualificationsAsync();
         }
+
         public async Task<Qualification> CreateQualificationAsync(CreateQualificationDto dto, string? accessToken = null)
         {
-
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
             var newQualification = new Qualification
             {
                 Name = dto.Name,
                 Description = dto.Description
-
             };
 
-            var result = await _supabase.From<Qualification>().Insert(newQualification);
-
-            return result.Models.First();
+            return await _employeeRepository.InsertQualificationAsync(newQualification);
         }
+
         public async Task<bool> RemoveQualificationAsync(int qualificationId, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var existingQualificationResponse = await _supabase.From<Qualification>()
-                .Where(x => x.QualificationID == qualificationId)
-                .Get();
-
-            var existingQualification = existingQualificationResponse.Models.FirstOrDefault();
-
+            var existingQualification = await _employeeRepository.GetQualificationByIdAsync(qualificationId);
             if (existingQualification == null)
             {
                 return false;
@@ -337,47 +240,38 @@ namespace SportCenter.Api.Services
             {
                 try
                 {
-                    await _supabase.From<EmployeeQualification>()
-                            .Where(x => x.QualificationId == qualificationId)
-                            .Delete();
+                    await _employeeRepository.DeleteEmployeeQualificationsByQualificationIdAsync(qualificationId);
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidOperationException($"Could not unlink employee_qualification for qualification {qualificationId}: {ex.Message}", ex);
                 }
+
                 try
                 {
-                    await _supabase.From<Qualification>()
-                        .Where(x => x.QualificationID == qualificationId)
-                        .Delete();
+                    await _employeeRepository.DeleteQualificationAsync(qualificationId);
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidOperationException($"Could not delete Qualification {qualificationId}: {ex.Message}", ex);
                 }
+
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not InvalidOperationException)
             {
-                if (ex is InvalidOperationException)
-                {
-                    throw;
-                }
-
                 throw new InvalidOperationException("Qualification could not be deleted due to related data or permission rules.", ex);
             }
         }
+
         public async Task<Qualification> GetQualificationAsync(int qualificationId, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var QualificationResponse = await _supabase.From<Qualification>().Where(x => x.QualificationID == qualificationId).Get();
-
-            var result = QualificationResponse.Models.FirstOrDefault();
-
+            var result = await _employeeRepository.GetQualificationByIdAsync(qualificationId);
             if (result == null)
             {
                 throw new InvalidOperationException("Qualification not found");
@@ -390,7 +284,7 @@ namespace SportCenter.Api.Services
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
             var newEmployeeQualification = new EmployeeQualification
@@ -399,24 +293,17 @@ namespace SportCenter.Api.Services
                 EmployeeId = employeeId
             };
 
-            var result = await _supabase.From<EmployeeQualification>().Insert(newEmployeeQualification);
-
-            return result.Models.First();
+            return await _employeeRepository.InsertEmployeeQualificationAsync(newEmployeeQualification);
         }
 
         public async Task<bool> RemoveQualificationFromEmployeeAsync(int employeeId, int qualificationId, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var existingQualificationResponse = await _supabase.From<Qualification>()
-                .Where(x => x.QualificationID == qualificationId)
-                .Get();
-
-            var existingQualification = existingQualificationResponse.Models.FirstOrDefault();
-
+            var existingQualification = await _employeeRepository.GetQualificationByIdAsync(qualificationId);
             if (existingQualification == null)
             {
                 return false;
@@ -424,9 +311,7 @@ namespace SportCenter.Api.Services
 
             try
             {
-                await _supabase.From<EmployeeQualification>()
-                        .Where(x => x.QualificationId == qualificationId && x.EmployeeId == employeeId)
-                        .Delete();
+                await _employeeRepository.DeleteEmployeeQualificationAsync(employeeId, qualificationId);
                 return true;
             }
             catch (Exception ex)
@@ -439,20 +324,17 @@ namespace SportCenter.Api.Services
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var result = await _supabase.From<Role>().Get();
-
-
-            return result.Models;
+            return await _employeeRepository.GetAllRolesAsync();
         }
 
         public async Task<Role> CreateRoleAsync(CreateRoleDto dto, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
             var newRole = new Role
@@ -460,23 +342,17 @@ namespace SportCenter.Api.Services
                 Name = dto.Name
             };
 
-            var result = await _supabase.From<Role>().Insert(newRole);
-
-            return result.Models.First();
+            return await _employeeRepository.InsertRoleAsync(newRole);
         }
+
         public async Task<bool> RemoveRoleAsync(int roleId, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var existingRoleResponse = await _supabase.From<Role>()
-                .Where(x => x.RoleId == roleId)
-                .Get();
-
-            var existingRole = existingRoleResponse.Models.FirstOrDefault();
-
+            var existingRole = await _employeeRepository.GetRoleByIdAsync(roleId);
             if (existingRole == null)
             {
                 return false;
@@ -486,48 +362,38 @@ namespace SportCenter.Api.Services
             {
                 try
                 {
-                    //Remove Role from employees before deleting
-                    await _supabase.From<EmployeeRole>()
-                            .Where(x => x.RoleId == roleId)
-                            .Delete();
+                    await _employeeRepository.DeleteEmployeeRolesByRoleIdAsync(roleId);
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidOperationException($"Could not unlink employee_role for Role {roleId}: {ex.Message}", ex);
                 }
+
                 try
                 {
-                    await _supabase.From<Role>()
-                        .Where(x => x.RoleId == roleId)
-                        .Delete();
+                    await _employeeRepository.DeleteRoleAsync(roleId);
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidOperationException($"Could not delete Role {roleId}: {ex.Message}", ex);
                 }
+
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not InvalidOperationException)
             {
-                if (ex is InvalidOperationException)
-                {
-                    throw;
-                }
-
                 throw new InvalidOperationException("Role could not be deleted due to related data or permission rules.", ex);
             }
         }
+
         public async Task<Role> GetRoleAsync(int roleId, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var RoleResponse = await _supabase.From<Role>().Where(x => x.RoleId == roleId).Get();
-
-            var result = RoleResponse.Models.FirstOrDefault();
-
+            var result = await _employeeRepository.GetRoleByIdAsync(roleId);
             if (result == null)
             {
                 throw new InvalidOperationException("Role not found");
@@ -540,7 +406,7 @@ namespace SportCenter.Api.Services
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
             var newEmployeeRole = new EmployeeRole
@@ -549,24 +415,17 @@ namespace SportCenter.Api.Services
                 EmployeeId = employeeId
             };
 
-            var result = await _supabase.From<EmployeeRole>().Insert(newEmployeeRole);
-
-            return result.Models.First();
+            return await _employeeRepository.InsertEmployeeRoleAsync(newEmployeeRole);
         }
 
-        public async Task<bool> RemoveRoleFromEmployeeAsync(int roleId, string? accessToken = null)
+        public async Task<bool> RemoveRoleFromEmployeeAsync(int employeeId, int roleId, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
-                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+                await _employeeRepository.SetSessionAsync(accessToken);
             }
 
-            var existingRoleResponse = await _supabase.From<Role>()
-                .Where(x => x.RoleId == roleId)
-                .Get();
-
-            var existingRole = existingRoleResponse.Models.FirstOrDefault();
-
+            var existingRole = await _employeeRepository.GetRoleByIdAsync(roleId);
             if (existingRole == null)
             {
                 return false;
@@ -574,9 +433,7 @@ namespace SportCenter.Api.Services
 
             try
             {
-                await _supabase.From<EmployeeRole>()
-                        .Where(x => x.RoleId == roleId && x.EmployeeId == roleId)
-                        .Delete();
+                await _employeeRepository.DeleteEmployeeRoleAsync(employeeId, roleId);
                 return true;
             }
             catch (Exception ex)
@@ -587,21 +444,14 @@ namespace SportCenter.Api.Services
 
         public async Task<List<Shift>> GetFutureShiftsForEmployeeAsync(int employeeId)
         {
-            var result = await _supabase.From<Shift>()
-                .Where(x => x.EmployeeId == employeeId)
-                .Where(x => x.StartTime > DateTime.Now)
-                .Get();
-
-            return result.Models;
+            return await _employeeRepository.GetFutureShiftsForEmployeeAsync(employeeId, DateTime.Now);
         }
 
         public async Task<double> GetTotalHoursForMonthAsync(int employeeId, int month, int year)
         {
-            var result = await _supabase.From<Shift>()
-                .Where(x => x.EmployeeId == employeeId)
-                .Get();
+            var shifts = await _employeeRepository.GetShiftsForEmployeeAsync(employeeId);
 
-            var shiftsInMonth = result.Models
+            var shiftsInMonth = shifts
                 .Where(s => s.StartTime.Month == month && s.StartTime.Year == year)
                 .ToList();
 
