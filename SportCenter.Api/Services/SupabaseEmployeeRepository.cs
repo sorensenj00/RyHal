@@ -31,6 +31,7 @@ public class SupabaseEmployeeRepository : IEmployeeRepository
     {
         var response = await _supabase
             .From<Employee>()
+            .Select("*")
             .Where(x => x.EmployeeId == employeeId)
             .Get();
 
