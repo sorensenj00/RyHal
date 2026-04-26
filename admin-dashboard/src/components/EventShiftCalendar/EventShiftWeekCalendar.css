@@ -26,7 +26,7 @@
 
 .week-sidebar-cell {
 	width: 220px;
-	min-width: 220px;  /*Låser sidebaren*/ 
+	min-width: 220px;  
 	border-right: 1px solid #e5e7eb;
 	background-color: #ffffff;
 	overflow: hidden;
@@ -34,9 +34,9 @@
 
 .week-timeline-data-container {
 	display: grid;
+	grid-template-rows: 1fr;
 	grid-template-columns: repeat(672, minmax(0, 1fr));
 	position: relative;
-	/*	 min-width: 0 er vigtig for at grid-items ikke tvinger containeren bredere*/
 	min-width: 0;
 	width: 100%;
 	max-width: 100%;
@@ -64,7 +64,6 @@
 
 .week-calendar-body {
 	flex: 1;
-	 /*tillad kun vertikal scroll */
 	overflow-y: auto;
 	overflow-x: hidden;
 	background-color: #f9fafb;
@@ -75,7 +74,7 @@
 }
 
 .week-full-width-row {
-	grid-template-columns: 1fr !important;  /*Overskriver 220px 1fr*/ 
+	grid-template-columns: 1fr !important;  
 	border-bottom: 1px solid #e2e8f0;
 }
 
@@ -111,6 +110,8 @@
 	z-index: 10;
 	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 	transition: filter 0.2s, transform 0.1s;
+	min-width: 0;
+	box-sizing: border-box;
 }
 
 	
@@ -127,15 +128,6 @@
 	font-style: italic;
 }
 
-/*.shift-line.unassigned {
-	border: 2px dashed rgba(255, 255, 255, 0.5);
-}
-.shift-line:hover {
-		filter: brightness(1.1);
-		transform: scale(1.005);
-	}
-
-}*/
 .timeline-day {
 	width: 100%;
 	height: 100%; 
@@ -153,4 +145,59 @@
 
 .timeline-day:hover {
 	background-color: #f1f3f4;
+}
+
+.week-event-block {
+	height: 42px;
+	align-self: center;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	color: white;
+	font-size: 11px;
+	font-weight: 700;
+	z-index: 10;
+	overflow: hidden;
+	cursor: pointer;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	transition: filter 0.2s, transform 0.1s;
+	white-space: nowrap;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.week-event-content {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	overflow: hidden;
+}
+
+.week-event-icon {
+	font-size: 12px;
+}
+
+.week-event-block.sport {
+	background-color: #B8BB0B;
+	color: white;
+}
+
+.week-event-block.mode {
+	background-color: #F59E0B;
+	color: white;
+}
+
+.week-event-block.vedligeholdelse {
+	background-color: #7C3AED;
+	color: white;
+}
+
+.week-event-block.andet {
+	background-color: #94A3B8;
+	color: white;
+}
+
+.week-event-block.unassigned {
+	background-color: #ef4444;
 }

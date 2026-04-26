@@ -83,6 +83,7 @@ const EventShiftOverview = () => {
         setView('day');
     };
 
+
     return (
         <div className="event-overview-page">
 
@@ -213,6 +214,8 @@ const EventShiftOverview = () => {
                         date={selectedDate}
                         employees={employees}
                         shifts={shifts}
+                        events={events}
+                        locations={locations}
                         onRefresh={fetchData}
                     />
                 )}

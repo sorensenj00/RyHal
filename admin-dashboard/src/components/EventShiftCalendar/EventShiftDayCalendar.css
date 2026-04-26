@@ -152,3 +152,59 @@
 .shift-line.unassigned {
   border: 2px dashed rgba(255, 255, 255, 0.5);
 }
+
+
+.week-event-block {
+	height: 42px;
+	align-self: center;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	color: white;
+	font-size: 11px;
+	font-weight: 700;
+	z-index: 10;
+	overflow: hidden;
+	cursor: pointer;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	transition: filter 0.2s, transform 0.1s;
+	white-space: nowrap;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.event-content {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	overflow: hidden;
+}
+
+.event-icon {
+	font-size: 12px;
+}
+
+.event-block.sport {
+	background-color: #B8BB0B;
+	color: white;
+}
+
+.event-block.mode {
+	background-color: #F59E0B;
+	color: white;
+}
+
+.event-block.vedligeholdelse {
+	background-color: #7C3AED;
+	color: white;
+}
+
+.event-block.andet {
+	background-color: #94A3B8;
+	color: white;
+}
+
+.event-block.unassigned {
+	background-color: #ef4444;
+}
