@@ -50,21 +50,23 @@ const EventShiftWeekCalendar = ({ date = new Date(), onDateSelect, employees = [
         const start = typeof startStr === 'string' ? parseISO(startStr) : new Date(startStr);
         const end = typeof endStr === 'string' ? parseISO(endStr) : new Date(endStr);
 
-        const dayIndex = (start.getDay() + 6) % 7; // Monday = 0
+        const dayIndex = (start.getDay() + 6) % 7;
 
-        const startDecimal = getHours(start) + getMinutes(start) / 60;
-        let endDecimal = getHours(end) + getMinutes(end) / 60;
+        const startMinutes = getHours(start) * 60 + getMinutes(start);
+        let endMinutes = getHours(end) * 60 + getMinutes(end);
 
-        let duration = endDecimal - startDecimal;
-        if (duration <= 0) duration += 24;
+        let duration = endMinutes - startMinutes;
+        if (duration <= 0) duration += 24 * 60;
 
-        const STEPS_PER_HOUR = 4;
-        const COLUMNS_PER_DAY = 24 * STEPS_PER_HOUR;
+        const STEPS_PER_HOUR = 4; // 15 min
+        const TOTAL_COLUMNS_PER_DAY = 24 * STEPS_PER_HOUR;
 
-        const timeOffset = Math.round(startDecimal * STEPS_PER_HOUR);
-        const colStart = dayIndex * COLUMNS_PER_DAY + timeOffset + 1;
+        const colStart =
+            dayIndex * TOTAL_COLUMNS_PER_DAY +
+            Math.floor(startMinutes / 15) +
+            1;
 
-        const colSpan = Math.round(duration * STEPS_PER_HOUR);
+        const colSpan = Math.max(1, Math.ceil(duration / 15));
 
         return {
             gridColumn: `${colStart} / span ${colSpan}`,
@@ -108,11 +110,19 @@ const EventShiftWeekCalendar = ({ date = new Date(), onDateSelect, employees = [
         return groups;
     }, {});
 
-    const eventsByLocation = eventsThisWeek.reduce((groups, event) => {
+    const eventsByLocationAndDay = eventsThisWeek.reduce((groups, event) => {
         const locId = event.locationId || 'unassigned';
 
-        if (!groups[locId]) groups[locId] = [];
-        groups[locId].push(event);
+        const eventDate = typeof event.startTime === 'string'
+            ? parseISO(event.startTime)
+            : new Date(event.startTime);
+
+        const dayIndex = (eventDate.getDay() + 6) % 7;
+
+        if (!groups[locId]) groups[locId] = {};
+        if (!groups[locId][dayIndex]) groups[locId][dayIndex] = [];
+
+        groups[locId][dayIndex].push(event);
 
         return groups;
     }, {});
@@ -154,42 +164,39 @@ const EventShiftWeekCalendar = ({ date = new Date(), onDateSelect, employees = [
                     <div className="week-timeline-data-container role-placeholder" />
 
                     {
-                        Object.entries(eventsByLocation).map(([locId, events]) => {
+                        Object.entries(eventsByLocationAndDay).map(([locId, daysObj]) => {
                             const location = locations.find(l => l.locationId === Number(locId));
                             const locationName = location?.name || 'Mangler lokation';
                             const isUnassigned = locId === 'unassigned';
 
                             return (
                                 <div key={locId} className="week-calendar-grid-row week-shift-row">
-
-                                    {/* Left side: location name */}
                                     <div className="week-sidebar-cell">
                                         <div className="week-employee-role-title">
                                             {locationName}
                                         </div>
                                     </div>
 
-                                    {/* Timeline */}
                                     <div className="week-timeline-data-container">
-                                        {events.map(event => {
-                                            const eventStyle = getEventStyles(event.startTime, event.endTime);
+                                        {Object.entries(daysObj).map(([dayIndex, events]) =>
+                                            events.map(event => {
+                                                const eventStyle = getEventStyles(event.startTime, event.endTime);
 
-                                            return (
-                                                <div
-                                                    key={event.eventId}
-                                                    className={`week-shift-line ${isUnassigned ? 'unassigned' : ''}`}
-                                                    style={{
-                                                        ...eventStyle,
-                                                        backgroundColor: isUnassigned
-                                                            ? '#ef4444'
-                                                            : (event.categoryColor || '#94a3b8')
-                                                    }}
-                                                    onClick={() => setSelectedShift(event)}
-                                                >
-                                                    <span className="shift-text" />
-                                                </div>
-                                            );
-                                        })}
+                                                return (
+                                                    <div
+                                                        key={event.eventId}
+                                                        className={`week-shift-line ${isUnassigned ? 'unassigned' : ''}`}
+                                                        style={{
+                                                            ...eventStyle,
+                                                            backgroundColor: isUnassigned
+                                                                ? '#ef4444'
+                                                                : (event.categoryColor || '#94a3b8')
+                                                        }}
+                                                        onClick={() => setSelectedShift(event)}
+                                                    />
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </div>
                             );
