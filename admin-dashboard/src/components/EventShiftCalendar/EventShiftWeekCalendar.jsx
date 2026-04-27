@@ -413,8 +413,8 @@ const EventShiftWeekCalendar = ({ date = new Date(), onDateSelect, employees = [
                         locations={locations}
                         onClose={() => setSelectedEvent(null)}
                         onRefresh={onRefresh}
-                        onSave={handleUpdateEvent}
-                        onDelete={handleDeleteEvent}
+                        //onSave={handleUpdateEvent}
+                        //onDelete={handleDeleteEvent}
                     />
                 )
             }
