@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import AssociationSearchBar from '../../components/search/AssociationSearchBar';
+import ContactInformationCard from '../../components/contacts/ContactInformationCard';
 import './ViewAssociation.css';
 
 const pickValue = (obj, ...keys) => {
@@ -112,6 +113,8 @@ const ViewAssociation = () => {
 		return filteredAssociations[0] || null;
 	}, [filteredAssociations, selectedAssociationId]);
 
+	const selectedAssociationContacts = Array.isArray(selectedAssociation?.contacts) ? selectedAssociation.contacts : [];
+
 	return (
 		<div className="view-association-page">
 			<header className="view-association-header">
@@ -142,9 +145,7 @@ const ViewAssociation = () => {
 				<section className="view-association-card">
 					<div className="view-association-card-header">
 						<h2>{pickValue(selectedAssociation, 'name', 'Name') || 'Ukendt forening'}</h2>
-						<span>
-							{(Array.isArray(selectedAssociation?.contacts) ? selectedAssociation.contacts.length : 0)} kontakter
-						</span>
+						<span>{selectedAssociationContacts.length} kontakter</span>
 					</div>
 
 					{pickValue(selectedAssociation, 'websiteUrl', 'WebsiteUrl') ? (
@@ -162,23 +163,15 @@ const ViewAssociation = () => {
 
 					<div className="view-association-contact-block">
 						<p className="view-association-caption">Kontaktpersoner</p>
-						{(Array.isArray(selectedAssociation?.contacts) ? selectedAssociation.contacts.length : 0) > 0 ? (
-							<ul className="view-association-contact-list">
-								{(selectedAssociation.contacts || []).map((contact) => {
+						{selectedAssociationContacts.length > 0 ? (
+							<div className="view-association-contact-cards">
+								{selectedAssociationContacts.map((contact, index) => {
 									const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
-									const name = pickValue(contact, 'name', 'Name') || 'Ukendt kontakt';
-									const title = pickValue(contact, 'title', 'Title');
-									const email = pickValue(contact, 'email', 'Email');
-									const phone = pickValue(contact, 'phone', 'Phone');
+									const contactName = pickValue(contact, 'name', 'Name') || `kontakt-${index}`;
 
-									return (
-										<li key={contactId || name} className="view-association-contact-item">
-											<strong>{name}</strong>
-											<span>{[title, email, phone].filter(Boolean).join(' · ') || 'Ingen detaljer'}</span>
-										</li>
-									);
+									return <ContactInformationCard key={contactId || contactName} contact={contact} />;
 								})}
-							</ul>
+							</div>
 						) : (
 							<p className="view-association-muted">Ingen kontaktpersoner tilknyttet endnu.</p>
 						)}

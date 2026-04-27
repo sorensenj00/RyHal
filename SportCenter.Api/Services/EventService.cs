@@ -763,6 +763,12 @@ public class EventService
             .ToListAsync();
     }
 
+    public async Task<Event?> GetByIdAsync(int id, string? accessToken = null)
+    {
+        var allEvents = await GetAllAsync(accessToken);
+        return allEvents.FirstOrDefault(e => e.Id == id);
+    }
+
     // Get draft events
     public async Task<List<Event>> GetDraftEventsAsync(string? accessToken = null)
     {

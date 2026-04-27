@@ -34,13 +34,23 @@ namespace SportCenter.Api.Services
                 await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
             }
 
+            if (categoryId <= 0)
+            {
+                throw new ArgumentException("Ugyldig kategori for vagt.");
+            }
+
+            if (endTime <= startTime)
+            {
+                throw new ArgumentException("Sluttid skal vaere efter starttid.");
+            }
+
             var start = DateTime.SpecifyKind(startTime, DateTimeKind.Unspecified);
             var end = DateTime.SpecifyKind(endTime, DateTimeKind.Unspecified);
 
             var newShift = new Shift
             {
-                StartTime = startTime,
-                EndTime = endTime,
+                StartTime = start,
+                EndTime = end,
                 ShiftCategoryId = categoryId,
                 EmployeeId = (employeeId == 0) ? null : employeeId
             };

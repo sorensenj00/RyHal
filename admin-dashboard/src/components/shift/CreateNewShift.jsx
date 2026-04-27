@@ -53,15 +53,23 @@ const CreateNewShift = ({ initialDate, onRefresh }) => {
     e.preventDefault();
     setIsSaving(true);
     try {
+      if (!formData.date || !formData.categoryId) {
+        throw new Error('Vælg dato og kategori før du opretter vagten.');
+      }
+
       // FIX: Send som lokal streng
       const startLocal = `${formData.date}T${formData.startTime}:00`;
       const endLocal = `${formData.date}T${formData.endTime}:00`;
 
+      if (new Date(endLocal) <= new Date(startLocal)) {
+        throw new Error('Sluttid skal være efter starttid.');
+      }
+
       const newShift = {
-        CategoryId: Number(formData.categoryId),
-        EmployeeId: formData.employeeId ? Number(formData.employeeId) : null,
-        StartTime: startLocal,
-        EndTime: endLocal
+        categoryId: Number(formData.categoryId),
+        employeeId: formData.employeeId ? Number(formData.employeeId) : null,
+        startTime: startLocal,
+        endTime: endLocal
       };
 
       await api.post('/shifts', newShift);
@@ -69,8 +77,14 @@ const CreateNewShift = ({ initialDate, onRefresh }) => {
       setIsOpen(false);
       setFormData({ categoryId: '', date: '', startTime: '08:00', endTime: '16:00', employeeId: null });
     } catch (err) {
-      console.error("Fejl:", err.response?.data);
-      alert("Kunne ikke oprette vagt");
+      const apiMessage = err?.response?.data;
+      const message =
+        typeof apiMessage === 'string'
+          ? apiMessage
+          : apiMessage?.message || err.message || 'Kunne ikke oprette vagt';
+
+      console.error('Fejl ved oprettelse af vagt:', err?.response?.data || err);
+      alert(message);
     } finally {
       setIsSaving(false);
     }

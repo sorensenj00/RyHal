@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../../api/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ContactsSearchBar from '../../../components/search/ContactsSearchBar';
-import './CreateNewEvent.css';
+import '../create-new-event/CreateNewEvent.css';
 
 const EVENT_CATEGORIES = ['SPORT', 'MØDE', 'VEDLIGEHOLDELSE', 'ANDET'];
 const CATEGORY_TO_ENUM = {
@@ -101,12 +101,11 @@ const normalizeIdList = (values) => [...new Set(
     .filter((value) => Number.isInteger(value) && value > 0)
 )];
 
-const CreateNewEvent = () => {
+const EditEvent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const draftEvent = location.state?.draftEvent || null;
-  const isEditMode = Boolean(draftEvent?.id);
-  const returnTo = location.state?.returnTo || '/activities/drafts';
+  const returnTo = location.state?.returnTo || '/event-overview';
   const isEditingDraft = Boolean(pickValue(draftEvent, 'isDraft', 'IsDraft'));
 
   const [title, setTitle] = useState('');
@@ -300,7 +299,7 @@ const CreateNewEvent = () => {
 
   useEffect(() => {
     const fetchExistingEventContacts = async () => {
-      if (!isEditMode || !draftEvent?.id) {
+      if (!draftEvent?.id) {
         setSelectedContactIds([]);
         return;
       }
@@ -318,7 +317,7 @@ const CreateNewEvent = () => {
     };
 
     fetchExistingEventContacts();
-  }, [draftEvent?.id, isEditMode]);
+  }, [draftEvent?.id]);
 
   useEffect(() => {
     if (isRecurring && !recurrenceEndDate) {
@@ -543,19 +542,23 @@ const CreateNewEvent = () => {
         IsDraft: draftToSave
       };
 
-      const response = isEditMode
-        ? await api.put(`/events/${draftEvent.id}`, payload)
-        : await api.post('/events', payload);
+      const eventIdForUpdate = Number(pickValue(draftEvent, 'id', 'Id', 'eventId', 'EventId')) || null;
+      if (!eventIdForUpdate) {
+        setErrorMsg('Der mangler et event-id. Åbn eventet igen fra oversigten og prøv igen.');
+        return;
+      }
+
+      const response = await api.put(`/events/${eventIdForUpdate}`, payload);
 
       const savedEvent = response?.data || {};
       const fallbackEventId = Number(pickValue(draftEvent, 'id', 'Id', 'eventId', 'EventId')) || null;
       const fallbackSeriesId = Number(pickValue(draftEvent, 'seriesId', 'SeriesId')) || null;
       const resolvedIds = await resolveTargetIdsAfterSave({
         savedEvent,
-        fallbackEventId,
+        fallbackEventId: eventIdForUpdate || fallbackEventId,
         fallbackSeriesId,
         payload,
-        isEdit: isEditMode
+        isEdit: true
       });
       const targetEventId = resolvedIds.eventId;
       const targetSeriesId = resolvedIds.seriesId;
@@ -584,21 +587,15 @@ const CreateNewEvent = () => {
         return;
       }
 
-      if (isEditMode) {
-        setSuccessMsg(
-          draftToSave
-            ? (isEditingDraft ? 'Kladde opdateret!' : 'Aktivitet opdateret som kladde!')
-            : (isEditingDraft ? 'Kladde publiceret!' : 'Aktivitet opdateret!')
-        );
-        setTimeout(() => {
-          setSuccessMsg('');
-          navigate(returnTo);
-        }, 1200);
-      } else {
-        setSuccessMsg(draftToSave ? 'Aktivitet gemt som kladde!' : 'Aktivitet oprettet succesfuldt!');
-        resetForm();
-        setTimeout(() => setSuccessMsg(''), 3000);
-      }
+      setSuccessMsg(
+        draftToSave
+          ? (isEditingDraft ? 'Kladde opdateret!' : 'Aktivitet opdateret som kladde!')
+          : (isEditingDraft ? 'Kladde publiceret!' : 'Aktivitet opdateret!')
+      );
+      setTimeout(() => {
+        setSuccessMsg('');
+        navigate(returnTo);
+      }, 1200);
     } catch (err) {
       const apiError = err?.response?.data;
       const message = toFriendlyApiMessage(apiError, err.message || 'Kunne ikke oprette aktivitet.');
@@ -612,16 +609,12 @@ const CreateNewEvent = () => {
     <div className="create-event-page">
       <header className="create-event-header">
         <h1>
-          {isEditMode
-            ? (isEditingDraft ? 'Rediger Kladde' : 'Rediger Aktivitet')
-            : 'Opret Ny Aktivitet'}
+          {isEditingDraft ? 'Rediger Kladde' : 'Rediger Aktivitet'}
         </h1>
         <p>
-          {isEditMode
-            ? (isEditingDraft
-              ? 'Rediger kladde og publicer direkte til backend.'
-              : 'Opdater aktivitet med tid, kategori, lokationer og relationer.')
-            : 'Planlaeg aktiviteter med tid, kategori, lokation og eventuel gentagelse.'}
+          {isEditingDraft
+            ? 'Rediger kladde og publicer direkte til backend.'
+            : 'Opdater aktivitet med tid, kategori, lokationer og relationer.'}
         </p>
       </header>
 
@@ -916,7 +909,7 @@ const CreateNewEvent = () => {
 
             <div className="submit-row">
               <button type="submit" className="btn-submit">
-                {isEditMode ? (isDraft ? 'Opdater kladde' : 'Opdater og publicer') : (isDraft ? 'Gem kladde' : 'Opret aktivitet')}
+                {isDraft ? 'Opdater kladde' : 'Opdater og publicer'}
               </button>
             </div>
           </div>
@@ -1004,4 +997,4 @@ const CreateNewEvent = () => {
   );
 };
 
-export default CreateNewEvent;
+export default EditEvent;

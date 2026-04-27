@@ -368,18 +368,6 @@ public class AssociationService
             throw new KeyNotFoundException($"Event med id {eventId} blev ikke fundet.");
         }
 
-        var conflictingEvent = (await _supabase.From<Event>()
-                .Where(e => e.AssociationId == associationId)
-                .Get())
-            .Models
-            .FirstOrDefault(e => e.Id != eventId);
-
-        if (conflictingEvent != null)
-        {
-            throw new InvalidOperationException(
-                $"Foreningen er allerede koblet til event {conflictingEvent.Id}. Fjern koblingen før ny tildeling.");
-        }
-
         await _supabase.From<Event>()
             .Where(e => e.Id == eventId)
             .Set(e => e.AssociationId, associationId)

@@ -101,6 +101,37 @@
 	gap: 0.55rem;
 }
 
+.view-association-contact-cards {
+	margin-top: 0.6rem;
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+@media (max-width: 1400px) {
+	.view-association-contact-cards {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 1100px) {
+	.view-association-contact-cards {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 820px) {
+	.view-association-contact-cards {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 560px) {
+	.view-association-contact-cards {
+		grid-template-columns: 1fr;
+	}
+}
+
 .view-association-contact-item {
 	border: 1px solid #dbe2ea;
 	border-radius: 12px;

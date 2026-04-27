@@ -141,6 +141,10 @@ public class ShiftsController : ControllerBase
 
             return Ok(resultDto);
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
         catch (Exception ex)
         {
             return StatusCode(500, ex.Message);

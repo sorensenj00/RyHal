@@ -58,6 +58,17 @@ public class EventsController : ControllerBase
         return Ok(events.Select(ToResponseDto).ToList());
     }
 
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var authHeader = Request.Headers["Authorization"].ToString();
+        string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+        var evt = await _service.GetByIdAsync(id, token);
+        if (evt == null) return NotFound($"Event med id {id} blev ikke fundet.");
+        return Ok(ToResponseDto(evt));
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateEventDto dto)
     {

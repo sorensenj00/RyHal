@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { locations } from '../../data/DummyData';
 import api from '../../api/axiosConfig';
-import EventShiftDayCalendar from '../../components/eventShiftCalendar/EventShiftDayCalendar';
-import EventShiftWeekCalendar from '../../components/eventShiftCalendar/EventShiftWeekCalendar';
+import EventShiftDayCalendar from '../../components/EventShiftCalendar/EventShiftDayCalendar';
+import EventShiftWeekCalendar from '../../components/EventShiftCalendar/EventShiftWeekCalendar';
 import { format, addDays, subDays, setWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 
