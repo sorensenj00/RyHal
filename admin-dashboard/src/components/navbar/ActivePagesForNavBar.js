@@ -38,6 +38,7 @@ export const ActivePagesForNavBar  = [
     label: "Vagtstyring",
       children: [
         { to: "/create-shift", label: "Opret Ny Vagt" },
+        { to: "/staffing-overview", label: "Bemandingsoversigt" },
       ]
   },
   {
@@ -68,7 +69,7 @@ export const ActivePagesForNavBar  = [
     label: "Kontakter",
     children: [
       { to: "/view-contacts", label: "Alle Kontakter" },
-      { to: "/view-contact", label: "Se Kontakt Person" },
+      { to: "/view-contact", label: "Find Kontakt Person" },
       { to: "/create-contact", label: "Opret Kontakt" },
     ],
   },

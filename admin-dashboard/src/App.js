@@ -19,6 +19,7 @@ import Welcome from "./pages/home/Welcome";
 import ShowEmployee from "./pages/show-employee/ShowEmployee";
 import EventOverview from "./pages/activities/event-overview/EventOverview";
 import CreateNewEvent from "./pages/activities/create-new-event/CreateNewEvent";
+import EditEvent from "./pages/activities/edit-event/EditEvent";
 import Drafts from "./pages/activities/drafts/Drafts";
 import Association from "./pages/association/Association";
 import AllAssociations from "./pages/association/AllAssociations";
@@ -27,6 +28,7 @@ import CreateNewContact from "./pages/contacts/CreateNewContact";
 import ViewAllContacts from "./pages/contacts/ViewAllContacts";
 import ViewContact from "./pages/contacts/ViewContact";
 import EmployeeHoursOverview from "./pages/employee-hours/EmployeeHoursOverview";
+import StaffingOverview from "./pages/shift-management/StaffingOverview";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -76,12 +78,16 @@ function App() {
             <Route path="/show-employee" element={session ? <ShowEmployee /> : <Navigate to="/login" />} />
             <Route path="/employee-card" element={session ? <EmployeeBigCard /> : <Navigate to="/login" />} />
             <Route path="/create-shift" element={session ? <CreateNewShift /> : <Navigate to="/login" />} />
+            <Route path="/staffing-overview" element={session ? <StaffingOverview /> : <Navigate to="/login" />} />
             <Route path="/activities/recurring" element={session ? <ActivitiesList type="recurring" /> : <Navigate to="/login" />} />
             <Route path="/activities/single" element={session ? <ActivitiesList type="single" /> : <Navigate to="/login" />} />
             <Route path="/activities/drafts" element={session ? <Drafts /> : <Navigate to="/login" />} />
             <Route path="/create-activity" element={session ? <CreateNewEvent /> : <Navigate to="/login" />} />
+            <Route path="/edit-activity" element={session ? <EditEvent /> : <Navigate to="/login" />} />
             <Route path="/work-calendar" element={session ? <WorkCalendar /> : <Navigate to="/login" />} />
-  		    <Route path="/event-shift-overview" element={session ? <EventShiftOverview /> : <Navigate to="/login" />} />
+
+  		      <Route path="/event-shift-overview" element={session ? <EventShiftOverview /> : <Navigate to="/login" />} />
+            
             <Route path="/create-employee" element={session ? <CreateNewEmployee /> : <Navigate to="/login" />} />
             <Route path="/event-overview" element={session ? <EventOverview /> : <Navigate to="/login" />} />
             <Route path="/association" element={session ? <Association /> : <Navigate to="/login" />} />

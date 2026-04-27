@@ -1,12 +1,12 @@
 /* Create New Shift Component Styles */
 .create-shift-btn {
   appearance: none;
-  border: 1px solid #1d4ed8;
-  background: linear-gradient(180deg, #0f3a68 0%, #1d4ed8 100%);
+  border: 1px solid #3f7fc3;
+  background: linear-gradient(180deg, #6aa4e2 0%, var(--primary-color) 100%);
   color: #ffffff;
-  padding: 0.62rem 1rem;
+  padding: 0.58rem 0.92rem;
   border-radius: 10px;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
@@ -14,13 +14,13 @@
   gap: 0.45rem;
   line-height: 1;
   transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
-  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25);
+  box-shadow: 0 10px 20px rgba(74, 143, 217, 0.25);
 }
 
 .create-shift-btn:hover {
-  border-color: #1e40af;
-  background: linear-gradient(180deg, #0f3460 0%, #1e40af 100%);
-  box-shadow: 0 14px 22px rgba(29, 78, 216, 0.3);
+  border-color: #346ea9;
+  background: linear-gradient(180deg, #5a95d7 0%, #3f7fc3 100%);
+  box-shadow: 0 14px 22px rgba(74, 143, 217, 0.3);
   transform: translateY(-1px);
 }
 
@@ -30,7 +30,7 @@
 }
 
 .create-shift-btn:focus-visible {
-  outline: 2px solid #1d4ed8;
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 /* Modal Styles */
@@ -106,7 +106,7 @@
 
 .form-group input:focus, .form-group select:focus {
   outline: none; border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(74, 143, 217, 0.2);
 }
 /* Form Actions */
 .form-actions {
@@ -118,9 +118,9 @@
 .cancel-btn,
 .submit-btn {
   appearance: none;
-  border: 1px solid #d0d8e5;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
-  color: #1f2937;
+  border: 1px solid #3f7fc3;
+  background: linear-gradient(180deg, #6aa4e2 0%, var(--primary-color) 100%);
+  color: #ffffff;
   padding: 0.62rem 1rem;
   border-radius: 10px;
   font-size: 0.88rem;
@@ -131,13 +131,14 @@
   align-items: center;
   gap: 0.45rem;
   transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 20px rgba(74, 143, 217, 0.25);
 }
 
 .cancel-btn:hover,
 .submit-btn:hover {
-  border-color: #aeb9cc;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+  border-color: #346ea9;
+  background: linear-gradient(180deg, #5a95d7 0%, #3f7fc3 100%);
+  box-shadow: 0 14px 22px rgba(74, 143, 217, 0.3);
   transform: translateY(-1px);
 }
 
@@ -149,24 +150,24 @@
 
 .cancel-btn:focus-visible,
 .submit-btn:focus-visible {
-  outline: 2px solid #1d4ed8;
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
 .cancel-btn {
-  color: #334155;
+  color: #ffffff;
 }
 
 .submit-btn {
-  border-color: #1d4ed8;
-  background: linear-gradient(180deg, #0f3a68 0%, #1d4ed8 100%);
+  border-color: #3f7fc3;
+  background: linear-gradient(180deg, #6aa4e2 0%, var(--primary-color) 100%);
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25);
+  box-shadow: 0 10px 20px rgba(74, 143, 217, 0.25);
 }
 
 .submit-btn:hover {
-  border-color: #1e40af;
-  background: linear-gradient(180deg, #0f3460 0%, #1e40af 100%);
+  border-color: #346ea9;
+  background: linear-gradient(180deg, #5a95d7 0%, #3f7fc3 100%);
 }
 
 .submit-btn:disabled {

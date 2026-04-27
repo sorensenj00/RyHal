@@ -61,7 +61,7 @@
 
 .form-group input:focus, .form-group select:focus {
   outline: none; border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(74, 143, 217, 0.2);
 }
 
 
@@ -120,7 +120,7 @@
 .cancel-btn:focus-visible,
 .submit-btn:focus-visible,
 .delete-btn:focus-visible {
-  outline: 2px solid #1d4ed8;
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
@@ -129,15 +129,27 @@
 }
 
 .submit-btn {
-  border-color: #1d4ed8;
-  background: linear-gradient(180deg, #0f3a68 0%, #1d4ed8 100%);
+  border-color: #3f7fc3;
+  background: linear-gradient(180deg, #6aa4e2 0%, var(--primary-color) 100%);
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25);
+  box-shadow: 0 10px 20px rgba(74, 143, 217, 0.25);
 }
 
 .submit-btn:hover {
-  border-color: #1e40af;
-  background: linear-gradient(180deg, #0f3460 0%, #1e40af 100%);
+  border-color: #346ea9;
+  background: linear-gradient(180deg, #5a95d7 0%, #3f7fc3 100%);
+}
+
+.cancel-btn {
+  border-color: #3f7fc3;
+  background: linear-gradient(180deg, #6aa4e2 0%, var(--primary-color) 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(74, 143, 217, 0.25);
+}
+
+.cancel-btn:hover {
+  border-color: #346ea9;
+  background: linear-gradient(180deg, #5a95d7 0%, #3f7fc3 100%);
 }
 
 .submit-btn:disabled {

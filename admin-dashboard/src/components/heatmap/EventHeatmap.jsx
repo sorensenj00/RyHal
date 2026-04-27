@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { format, parseISO, differenceInMinutes, startOfDay, addMinutes, isSameDay } from 'date-fns';
 import api from '../../api/axiosConfig';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFutbol, faUsers, faTools, faEllipsisH } from '@fortawesome/free-solid-svg-icons';
 import EventModal from './EventModal'; // Importér den nye modal
@@ -47,43 +48,79 @@ const normalizeEventsForHeatmap = (apiEvents) => {
     const description = rawEvent.description ?? rawEvent.Description ?? '';
     const eventStart = toApiDateTimeString(rawEvent.startTime ?? rawEvent.StartTime);
     const eventEnd = toApiDateTimeString(rawEvent.endTime ?? rawEvent.EndTime);
+    const eventDate = rawEvent.date ?? rawEvent.Date ?? (eventStart ? String(eventStart).slice(0, 10) : null);
+    const isRecurring = Boolean(rawEvent.isRecurring ?? rawEvent.IsRecurring);
+    const recurrenceFrequency = rawEvent.recurrenceFrequency ?? rawEvent.RecurrenceFrequency ?? null;
+    const recurrenceEndDate = toApiDateTimeString(rawEvent.recurrenceEndDate ?? rawEvent.RecurrenceEndDate);
+    const isDraft = Boolean(rawEvent.isDraft ?? rawEvent.IsDraft);
+    const templateId = rawEvent.templateId ?? rawEvent.TemplateId ?? null;
+    const createdBy = rawEvent.createdBy ?? rawEvent.CreatedBy ?? 'system';
 
     const locationBookings =
       rawEvent.eventLocations ?? rawEvent.EventLocations ?? rawEvent.locations ?? rawEvent.Locations ?? [];
 
-    if (!locationBookings.length) {
-      if (eventStart && eventEnd) {
-        flattened.push({
-          id: String(eventId),
-          eventId,
-          locationId: rawEvent.locationId ?? rawEvent.LocationId,
-          name,
-          category,
-          startTime: eventStart,
-          endTime: eventEnd,
-          comment: description,
-          description
-        });
-      }
+    const normalizedLocations = (Array.isArray(locationBookings) ? locationBookings : []).map((booking, index) => ({
+      bookingId: booking.id ?? booking.Id ?? null,
+      bookingIndex: index,
+      locationId: booking.locationId ?? booking.LocationId ?? rawEvent.locationId ?? rawEvent.LocationId,
+      startTime: toApiDateTimeString(booking.startTime ?? booking.StartTime ?? eventStart),
+      endTime: toApiDateTimeString(booking.endTime ?? booking.EndTime ?? eventEnd),
+      date: booking.date ?? booking.Date ?? eventDate
+    })).filter((booking) => booking.startTime && booking.endTime && booking.locationId);
+
+    if (!normalizedLocations.length && eventStart && eventEnd && (rawEvent.locationId ?? rawEvent.LocationId)) {
+      normalizedLocations.push({
+        bookingId: null,
+        bookingIndex: 0,
+        locationId: rawEvent.locationId ?? rawEvent.LocationId,
+        startTime: eventStart,
+        endTime: eventEnd,
+        date: eventDate
+      });
+    }
+
+    if (!normalizedLocations.length) {
       return;
     }
 
-    locationBookings.forEach((booking, index) => {
-      const bookingStart = toApiDateTimeString(booking.startTime ?? booking.StartTime ?? eventStart);
-      const bookingEnd = toApiDateTimeString(booking.endTime ?? booking.EndTime ?? eventEnd);
-
-      if (!bookingStart || !bookingEnd) return;
-
+    normalizedLocations.forEach((booking) => {
       flattened.push({
-        id: `${eventId}-${booking.id ?? booking.Id ?? index}`,
+        id: `${eventId}-${booking.bookingId ?? booking.bookingIndex}`,
         eventId,
-        locationId: booking.locationId ?? booking.LocationId,
+        bookingId: booking.bookingId,
+        bookingIndex: booking.bookingIndex,
+        locationId: Number(booking.locationId),
         name,
         category,
-        startTime: bookingStart,
-        endTime: bookingEnd,
-        comment: booking.comment ?? booking.Comment ?? description,
-        description
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        date: booking.date,
+        comment: description,
+        description,
+        allLocations: normalizedLocations,
+        isRecurring,
+        recurrenceFrequency,
+        recurrenceEndDate,
+        isDraft,
+        templateId,
+        createdBy,
+        sourceEvent: {
+          id: eventId,
+          eventId,
+          name,
+          description,
+          category,
+          startTime: eventStart,
+          endTime: eventEnd,
+          date: eventDate,
+          locations: normalizedLocations,
+          isRecurring,
+          recurrenceFrequency,
+          recurrenceEndDate,
+          isDraft,
+          templateId,
+          createdBy
+        }
       });
     });
   });
@@ -93,6 +130,37 @@ const normalizeEventsForHeatmap = (apiEvents) => {
 
 const buildUpdatePayload = (event) => {
   const eventDate = (event.startTime || '').slice(0, 10) || event.date || null;
+  const preservedLocations = Array.isArray(event.allLocations) && event.allLocations.length
+    ? event.allLocations
+    : [{
+      bookingId: event.bookingId ?? null,
+      locationId: Number(event.locationId) || 0,
+      startTime: event.startTime || null,
+      endTime: event.endTime || null,
+      date: eventDate
+    }];
+
+  const updatedLocations = preservedLocations.map((loc, index) => {
+    const isActiveBooking = event.bookingId != null
+      ? String(loc.bookingId) === String(event.bookingId)
+      : index === (event.bookingIndex || 0);
+
+    if (!isActiveBooking) {
+      return {
+        LocationId: Number(loc.locationId) || 0,
+        StartTime: loc.startTime || null,
+        EndTime: loc.endTime || null,
+        Date: (loc.startTime || '').slice(0, 10) || loc.date || eventDate
+      };
+    }
+
+    return {
+      LocationId: Number(event.locationId) || 0,
+      StartTime: event.startTime || null,
+      EndTime: event.endTime || null,
+      Date: eventDate
+    };
+  });
 
   return {
   Name: event.name,
@@ -101,24 +169,18 @@ const buildUpdatePayload = (event) => {
   EndTime: event.endTime,
   Date: eventDate,
   Category: CATEGORY_TO_ENUM[event.category] ?? CATEGORY_TO_ENUM.ANDET,
-  Locations: [
-    {
-      LocationId: Number(event.locationId),
-      StartTime: event.startTime,
-      EndTime: event.endTime,
-      Date: eventDate
-    }
-  ],
-  TemplateId: null,
-  CreatedBy: 'system',
-  IsRecurring: false,
-  RecurrenceFrequency: null,
-  RecurrenceEndDate: null,
-  IsDraft: false
+  Locations: updatedLocations,
+  TemplateId: event.templateId ?? null,
+  CreatedBy: event.createdBy || 'system',
+  IsRecurring: Boolean(event.isRecurring),
+  RecurrenceFrequency: event.isRecurring ? (event.recurrenceFrequency || 'WEEKLY') : null,
+  RecurrenceEndDate: event.isRecurring ? (event.recurrenceEndDate || null) : null,
+  IsDraft: Boolean(event.isDraft)
   };
 };
 
 const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [], locations = [] }) => {
+  const navigate = useNavigate();
   const [allEvents, setAllEvents] = useState([]);
   const [allLocations, setAllLocations] = useState(Array.isArray(locations) ? locations : []);
   const [resizingEvent, setResizingEvent] = useState(null);
@@ -135,6 +197,40 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
   };
 
   const hasOverlap = (startA, endA, startB, endB) => startA < endB && endA > startB;
+
+  const handleOpenAdvancedEdit = async (event) => {
+    const eventId = Number(event?.eventId || event?.id);
+    if (!eventId) {
+      showFeedback('Kunne ikke åbne redigering, da event-id mangler.');
+      return;
+    }
+
+    const fallbackEvent = event?.sourceEvent
+      ? {
+        ...event.sourceEvent,
+        id: eventId
+      }
+      : { id: eventId };
+
+    let eventForEdit = fallbackEvent;
+
+    try {
+      const response = await api.get(`/events/${eventId}`);
+      if (response?.data) {
+        eventForEdit = response.data;
+      }
+    } catch (error) {
+      console.warn('Kunne ikke hente detaljeret event til avanceret redigering. Bruger cachet data.', error?.response?.data || error);
+    }
+
+    setSelectedEvent(null);
+    navigate('/edit-activity', {
+      state: {
+        draftEvent: eventForEdit,
+        returnTo: '/event-overview'
+      }
+    });
+  };
 
   useEffect(() => {
     if (Array.isArray(locations) && locations.length > 0) {
@@ -348,7 +444,24 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
       ...originalEvent,
       locationId,
       startTime: toLocalDateTimeString(newStart),
-      endTime: toLocalDateTimeString(addMinutes(newStart, duration))
+      endTime: toLocalDateTimeString(addMinutes(newStart, duration)),
+      allLocations: (Array.isArray(originalEvent.allLocations) ? originalEvent.allLocations : []).map((loc, index) => {
+        const isActiveBooking = originalEvent.bookingId != null
+          ? String(loc.bookingId) === String(originalEvent.bookingId)
+          : index === (originalEvent.bookingIndex || 0);
+
+        if (!isActiveBooking) {
+          return loc;
+        }
+
+        return {
+          ...loc,
+          locationId,
+          startTime: toLocalDateTimeString(newStart),
+          endTime: toLocalDateTimeString(addMinutes(newStart, duration)),
+          date: format(newStart, 'yyyy-MM-dd')
+        };
+      })
     };
 
     const updatedStart = parseISO(updatedEvent.startTime);
@@ -475,6 +588,7 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
           locations={allLocations}
           onClose={() => setSelectedEvent(null)}
           onSave={handleUpdateEvent}
+          onOpenAdvancedEdit={handleOpenAdvancedEdit}
           onDelete={handleDeleteEvent}
         />
       )}

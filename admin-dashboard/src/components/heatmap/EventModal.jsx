@@ -2,10 +2,16 @@ import React, { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import './EventModal.css';
 
-const EventModal = ({ event, locations = [], onClose, onSave, onDelete }) => {
+const EventModal = ({ event, locations = [], onClose, onSave, onDelete, onOpenAdvancedEdit }) => {
   // Hjælpefunktion til at formatere ISO til 'YYYY-MM-DDTHH:mm' som input feltet kræver
   const formatForInput = (isoString) => {
-    return format(parseISO(isoString), "yyyy-MM-dd'T'HH:mm");
+    if (!isoString) return '';
+
+    try {
+      return format(parseISO(isoString), "yyyy-MM-dd'T'HH:mm");
+    } catch {
+      return String(isoString).slice(0, 16);
+    }
   };
 
   const toLocalApiDateTime = (value) => {
@@ -37,24 +43,24 @@ const EventModal = ({ event, locations = [], onClose, onSave, onDelete }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content login-card" onClick={e => e.stopPropagation()}>
-        <div className="login-header">
+    <div className="event-edit-modal-overlay" onClick={onClose}>
+      <div className="event-edit-modal" onClick={e => e.stopPropagation()}>
+        <div className="event-edit-modal-header">
           <h2>Administrer Event</h2>
-          <p className="text-muted">Event ID: {event.eventId || event.id}</p>
+          <p className="event-edit-modal-subtitle">Event ID: {event.eventId || event.id}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="event-edit-form">
           {/* NAVN */}
-          <div className="input-group">
-            <label className="font-weight-bold">Aktivitetsnavn</label>
+          <div className="event-edit-field">
+            <label>Aktivitetsnavn</label>
             <input name="name" value={formData.name} onChange={handleChange} required />
           </div>
 
           {/* LOKATION */}
-          <div className="input-group">
-            <label className="font-weight-bold">Lokation / Hal</label>
-            <select name="locationId" value={formData.locationId} onChange={handleChange} className="p-2 border rounded">
+          <div className="event-edit-field">
+            <label>Lokation / Hal</label>
+            <select name="locationId" value={formData.locationId} onChange={handleChange}>
               {locations.map(loc => (
                 <option key={loc.id} value={loc.id}>{loc.name}</option>
               ))}
@@ -62,48 +68,54 @@ const EventModal = ({ event, locations = [], onClose, onSave, onDelete }) => {
           </div>
 
           {/* KATEGORI */}
-          <div className="input-group">
-            <label className="font-weight-bold">Kategori</label>
-            <select name="category" value={formData.category} onChange={handleChange} className="p-2 border rounded">
+          <div className="event-edit-field">
+            <label>Kategori</label>
+            <select name="category" value={formData.category} onChange={handleChange}>
               <option value="SPORT">Sport</option>
-              <option value="MEETING">Møde</option>
-              <option value="MAINTENANCE">Vedligehold</option>
-              <option value="OTHER">Andet</option>
+              <option value="MØDE">Møde</option>
+              <option value="VEDLIGEHOLDELSE">Vedligehold</option>
+              <option value="ANDET">Andet</option>
             </select>
           </div>
 
           {/* TIDER */}
-          <div className="d-flex gap-2">
-            <div className="input-group w-100">
-              <label className="font-weight-bold">Start</label>
+          <div className="event-edit-time-grid">
+            <div className="event-edit-field">
+              <label>Start</label>
               <input type="datetime-local" name="startTime" value={formData.startTime} onChange={handleChange} required />
             </div>
-            <div className="input-group w-100">
-              <label className="font-weight-bold">Slut</label>
+            <div className="event-edit-field">
+              <label>Slut</label>
               <input type="datetime-local" name="endTime" value={formData.endTime} onChange={handleChange} required />
             </div>
           </div>
 
           {/* KOMMENTAR */}
-          <div className="input-group">
-            <label className="font-weight-bold">Kommentar (Instrukser til personalet)</label>
+          <div className="event-edit-field">
+            <label>Kommentar (Instrukser til personalet)</label>
             <textarea
               name="comment"
               rows="3"
-              className="p-2 border rounded"
               value={formData.comment || ""}
               onChange={handleChange}
               placeholder="F.eks. find mål frem, lås dør op..."
             />
           </div>
 
-          <div className="d-flex justify-content-between mt-3">
-            <button type="button" className="btn btn-danger" onClick={() => onDelete(event.eventId || event.id)}>
+          <div className="event-edit-actions">
+            <button type="button" className="event-edit-btn danger" onClick={() => onDelete(event.eventId || event.id)}>
               Slet Event
             </button>
-            <div className="d-flex gap-2">
-              <button type="button" className="btn btn-secondary" onClick={onClose}>Annuller</button>
-              <button type="submit" className="btn btn-primary">Gem ændringer</button>
+            <div className="event-edit-actions-right">
+              <button
+                type="button"
+                className="event-edit-btn info"
+                onClick={() => onOpenAdvancedEdit?.(event)}
+              >
+                Avanceret redigering
+              </button>
+              <button type="button" className="event-edit-btn secondary" onClick={onClose}>Annuller</button>
+              <button type="submit" className="event-edit-btn primary">Gem ændringer</button>
             </div>
           </div>
         </form>
