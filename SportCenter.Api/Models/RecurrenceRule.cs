@@ -2,9 +2,9 @@ namespace SportCenter.Api.Models;
 
 public enum RecurrenceFrequency
 {
-    DAILY,
-    WEEKLY,
-    MONTHLY
+    DAGLIG,
+    UGENTLIG,
+    MÅNEDLIG
 }
 
 public class RecurrenceRule
