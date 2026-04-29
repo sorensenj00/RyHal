@@ -71,7 +71,7 @@ const StaffingShiftOverview = ({
 			</article>
 
 			<article className="staffing-overview-item">
-				<span className="staffing-overview-label">Samlet arbejdstimer</span>
+				<span className="staffing-overview-label">Samlede arbejdstimer</span>
 				<strong className="staffing-overview-value">{loading ? '...' : toHoursLabel(totalWorkHours)}</strong>
 			</article>
 		</section>

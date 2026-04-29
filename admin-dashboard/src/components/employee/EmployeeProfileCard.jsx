@@ -5,7 +5,8 @@ import './EmployeeProfileCard.css';
 
 const EmployeeProfileCard = ({
 	employee,
-	onRoleChange
+	onRoleChange,
+	onContactChange
 }) => {
 	if (!employee) return null;
 
@@ -30,17 +31,36 @@ const EmployeeProfileCard = ({
 
 	const roleColor = getRoleColor(currentRole);
 
-	// Format phone number
-	const formatPhone = (phone) => {
-		if (!phone) return 'N/A';
-		return phone;
+	const calculateAge = (birthday) => {
+		if (!birthday) return null;
+
+		const birthDate = new Date(birthday);
+		if (Number.isNaN(birthDate.getTime())) return null;
+
+		const now = new Date();
+		let age = now.getFullYear() - birthDate.getFullYear();
+		const monthDiff = now.getMonth() - birthDate.getMonth();
+
+		if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+			age -= 1;
+		}
+
+		return age;
 	};
 
-	// Format email
-	const formatEmail = (email) => {
-		if (!email) return 'N/A';
-		// Truncate long emails
-		return email.length > 25 ? email.substring(0, 22) + '...' : email;
+	const age = calculateAge(employee.birthday);
+
+	const formatBirthday = (birthday) => {
+		if (!birthday) return '';
+
+		const parsed = new Date(birthday);
+		if (Number.isNaN(parsed.getTime())) return '';
+
+		return new Intl.DateTimeFormat('da-DK', {
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric'
+		}).format(parsed);
 	};
 
 	return (
@@ -55,9 +75,9 @@ const EmployeeProfileCard = ({
 				{/* Name and Status */}
 				<div className="profile-name-section">
 					<h2 className="profile-name">{employee.firstName} {employee.lastName}</h2>
-					{employee.isOver18 !== null && (
-						<div className={`profile-age-badge ${employee.isOver18 ? 'over18' : 'under18'}`}>
-							{employee.isOver18 ? '18+' : 'Under 18'}
+					{employee.isOver18 === false && (
+						<div className="profile-age-badge under18">
+							ungarbejder
 						</div>
 					)}
 				</div>
@@ -99,17 +119,39 @@ const EmployeeProfileCard = ({
 				{/* Contact Information */}
 				<div className="profile-info">
 					<div className="info-row">
-						<span className="info-label">Email</span>
-						<span className="info-value" title={employee.email}>{formatEmail(employee.email)}</span>
+						<label className="info-label" htmlFor="employee-email">Email</label>
+						<input
+							id="employee-email"
+							name="email"
+							type="email"
+							className="info-input"
+							value={employee.email || ''}
+							onChange={onContactChange}
+							placeholder="Indtast email"
+						/>
 					</div>
 					<div className="info-row">
-						<span className="info-label">Telefon</span>
-						<span className="info-value">{formatPhone(employee.phone)}</span>
+						<label className="info-label" htmlFor="employee-phone">Telefon</label>
+						<input
+							id="employee-phone"
+							name="phone"
+							type="tel"
+							className="info-input"
+							value={employee.phone || ''}
+							onChange={onContactChange}
+							placeholder="Indtast telefonnummer"
+						/>
 					</div>
 					{employee.birthday && (
 						<div className="info-row">
 							<span className="info-label">Født</span>
-							<span className="info-value">{new Date(employee.birthday).toLocaleDateString('da-DK')}</span>
+							<span className="info-value info-value-date">{formatBirthday(employee.birthday)}</span>
+						</div>
+					)}
+					{age !== null && (
+						<div className="info-row">
+							<span className="info-label">Alder</span>
+							<span className="info-value">{age} år</span>
 						</div>
 					)}
 				</div>
