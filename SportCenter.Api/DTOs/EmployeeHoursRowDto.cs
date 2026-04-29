@@ -6,6 +6,7 @@ public class EmployeeHoursRowDto
     public string FullName { get; set; } = string.Empty;
     public int? RoleId { get; set; }
     public string RoleName { get; set; } = "Ingen rolle";
+    public string RoleColor { get; set; } = "--color-andet";
     public int ShiftCount { get; set; }
     public int TotalMinutes { get; set; }
     public double TotalHours => Math.Round(TotalMinutes / 60.0, 2);

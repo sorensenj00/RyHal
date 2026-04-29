@@ -11,4 +11,7 @@ public class Role : BaseModel
 
     [Postgrest.Attributes.Column("name")]
     public string Name { get; set; } = string.Empty;
+
+    [Postgrest.Attributes.Column("color")]
+    public string Color { get; set; } = "--color-andet";
 }

@@ -1,6 +1,8 @@
 .role-search-container {
 	position: relative;
 	width: 100%;
+	overflow: visible;
+	z-index: 60;
 }
 
 .role-search-input-box {
@@ -53,11 +55,10 @@
 	right: 0;
 	background: var(--white);
 	border-radius: var(--border-radius);
-	box-shadow: var(--box-shadow-lg);
 	border: 1px solid var(--gray-200);
 	max-height: 250px;
 	overflow-y: auto;
-	z-index: 1000;
+	z-index: 12000;
 }
 
 .role-dropdown-item {

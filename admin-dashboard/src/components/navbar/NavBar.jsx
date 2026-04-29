@@ -70,7 +70,7 @@ const NavBar = () => {
           >
             <FontAwesomeIcon icon={faBars} />
           </button>
-          {!isCollapsed && <div className="logo-text">Welcome</div>}
+          {!isCollapsed && <div className="logo-text">Velkommen</div>}
         </div>
 
         <ul className="sidenav-nav">

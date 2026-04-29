@@ -1,6 +1,7 @@
 import React from 'react';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
 import RoleSearchBar from '../search/RoleSearchBar';
+import { resolveRoleColorValue } from '../../data/roleColors';
 import './EmployeeProfileCard.css';
 
 const EmployeeProfileCard = ({
@@ -11,25 +12,7 @@ const EmployeeProfileCard = ({
 	if (!employee) return null;
 
 	const currentRole = employee.role || 'Ingen rolle';
-
-	// Get role color from CSS variables
-	const getVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-
-	const roleColorMap = {
-		'Hal Mand': getVar('--color-hal-mand') || '#B8BB0B',
-		'Hal Dreng': getVar('--color-hal-dreng') || '#D4D700',
-		'Cafemedarbejder': getVar('--color-cafemedarbejder') || '#22C55E',
-		'Administration': getVar('--color-administration') || '#F59E0B',
-		'Rengøring': getVar('--color-rengoering') || '#7C3AED',
-		'Opvasker': getVar('--color-opvasker') || '#06B6D4',
-		'Andet': getVar('--color-andet') || '#94A3B8'
-	};
-
-	const getRoleColor = (role) => {
-		return roleColorMap[role] || roleColorMap['Andet'];
-	};
-
-	const roleColor = getRoleColor(currentRole);
+	const roleColor = resolveRoleColorValue(employee.roleColor);
 
 	const calculateAge = (birthday) => {
 		if (!birthday) return null;
@@ -86,9 +69,9 @@ const EmployeeProfileCard = ({
 				<div 
 					className="profile-role-badge"
 					style={{
-						backgroundColor: `${roleColor}1A`,
+						backgroundColor: roleColor,
 						borderColor: roleColor,
-						color: roleColor
+						color: '#fff'
 					}}
 				>
 					<span className="role-dot" style={{ backgroundColor: roleColor }}></span>
@@ -100,7 +83,7 @@ const EmployeeProfileCard = ({
 					<label className="profile-role-label">Rediger rolle</label>
 					<RoleSearchBar
 						initialRole={currentRole === 'Ingen rolle' ? '' : currentRole}
-						onSelect={(role) => onRoleChange?.(role?.name || '')}
+						onSelect={(role) => onRoleChange?.(role || '')}
 					/>
 					<div className="profile-role-actions">
 						<button

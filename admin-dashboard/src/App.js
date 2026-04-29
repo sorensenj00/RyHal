@@ -31,6 +31,7 @@ import ViewAllContacts from "./pages/contacts/ViewAllContacts";
 import ViewContact from "./pages/contacts/ViewContact";
 import EmployeeHoursOverview from "./pages/employee-hours/EmployeeHoursOverview";
 import StaffingOverview from "./pages/shift-management/StaffingOverview";
+import EmployeeRoles from "./pages/employees/employee-roles/EmployeeRoles";
 
 function AppContent() {
   const [session, setSession] = useState(null);
@@ -168,6 +169,7 @@ function AppContent() {
           <Route path="/home" element={isAdminSession ? <Welcome /> : <Navigate to="/login" />} />
           <Route path="/employee-list" element={isAdminSession ? <EmployeeListOverview /> : <Navigate to="/login" />} />
           <Route path="/employee-hours" element={isAdminSession ? <EmployeeHoursOverview /> : <Navigate to="/login" />} />
+          <Route path="/employee-roles" element={isAdminSession ? <EmployeeRoles /> : <Navigate to="/login" />} />
           <Route path="/employee/:id" element={isAdminSession ? <ShowEmployee /> : <Navigate to="/login" />} />
           <Route path="/show-employee" element={isAdminSession ? <ShowEmployee /> : <Navigate to="/login" />} />
           <Route path="/employee-card" element={isAdminSession ? <EmployeeBigCard /> : <Navigate to="/login" />} />

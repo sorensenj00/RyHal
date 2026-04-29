@@ -20,6 +20,7 @@ export const ActivePagesForNavBar  = [
       { to: "/employee-hours", label: "Timeoversigt" },
       { to: "/show-employee", label: "Find Medarbejder" },
       { to: "/create-employee", label: "Opret Medarbejder" },
+      { to: "/employee-roles", label: "Roller" },
     ],
   },
   {

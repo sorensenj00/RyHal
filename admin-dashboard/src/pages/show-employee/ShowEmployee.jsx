@@ -39,11 +39,12 @@ const ShowEmployee = () => {
   };
 
   const normalizeEmployee = (emp) => {
-    const primaryRole = emp.roles?.[0]?.name || 'Ingen rolle';
+    const primaryRole = emp.roles?.[0] || null;
 
     return {
       ...emp,
-      role: primaryRole,
+      role: primaryRole?.name || 'Ingen rolle',
+      roleColor: primaryRole?.color || '--color-andet',
       image: emp.profileImageURL || defaultAvatar,
       qualifications: emp.qualifications || [],
       isOver18: calculateIsOver18(emp.birthday)
@@ -105,8 +106,13 @@ const ShowEmployee = () => {
     if (emp) navigate(`/employee/${emp.employeeId}`);
   };
 
-  const handleRoleChange = (roleName) => {
-    const nextRole = roleName || 'Ingen rolle';
+  const handleRoleChange = (roleSelection) => {
+    const nextRole = typeof roleSelection === 'string'
+      ? (roleSelection || 'Ingen rolle')
+      : (roleSelection?.name || 'Ingen rolle');
+    const nextRoleColor = typeof roleSelection === 'string'
+      ? '--color-andet'
+      : (roleSelection?.color || '--color-andet');
 
     setSelectedEmployee(prev => {
       if (!prev) return prev;
@@ -117,7 +123,8 @@ const ShowEmployee = () => {
 
       return {
         ...prev,
-        role: nextRole
+        role: nextRole,
+        roleColor: nextRoleColor
       };
     });
   };
@@ -144,7 +151,8 @@ const ShowEmployee = () => {
               ...emp,
               email: selectedEmployee.email,
               phone: selectedEmployee.phone,
-              role: selectedEmployee.role || 'Ingen rolle'
+              role: selectedEmployee.role || 'Ingen rolle',
+              roleColor: selectedEmployee.roleColor || '--color-andet'
             }
           : emp
       )));

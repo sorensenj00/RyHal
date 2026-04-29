@@ -1,6 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { toCssColorValue } from '../../data/roleColors';
 
 const formatDateTime = (value) => {
   if (!value) return '—';
@@ -45,7 +46,15 @@ const EmployeeHoursTable = ({ rows, onOpenEmployee }) => {
                 </div>
               </td>
               <td>
-                <span className="hours-role-badge">{row.roleName || 'Ingen rolle'}</span>
+                <span
+                  className="hours-role-badge"
+                  style={{
+                    background: toCssColorValue(row.roleColor),
+                    color: '#fff'
+                  }}
+                >
+                  {row.roleName || 'Ingen rolle'}
+                </span>
               </td>
               <td className="text-right">{row.shiftCount}</td>
               <td className="text-right">{formatHours(row.totalMinutes)}</td>

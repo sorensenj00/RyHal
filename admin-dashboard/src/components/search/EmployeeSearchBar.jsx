@@ -3,21 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import api from '../../api/axiosConfig'; // Bruges kun hvis du ikke sender listen som prop
+import { getPrimaryRole, toCssColorValue } from '../../data/roleColors';
 import './EmployeeSearchBar.css';
 
-const ROLE_CSS_VARS = {
-  'Hal Mand':        '--color-hal-mand',
-  'Hal Dreng':       '--color-hal-dreng',
-  'Cafemedarbejder': '--color-cafemedarbejder',
-  'Administration':  '--color-administration',
-  'Rengøring':       '--color-rengoering',
-  'Opvasker':        '--color-opvasker',
-};
-
-const getRoleStyle = (roleName) => {
-  const varName = ROLE_CSS_VARS[roleName] ?? '--color-andet';
+const getRoleStyle = (roleColor) => {
   return {
-    background: `var(${varName})`,
+    background: toCssColorValue(roleColor),
     color: '#ffffff',
   };
 };
@@ -152,7 +143,9 @@ const EmployeeSearchBar = ({ onSelect, initialEmployeeId }) => {
             </div>
 
             {filteredEmployees.map((emp, index) => {
-              const roleName = emp.roles?.[0]?.name || 'Ingen rolle';
+              const primaryRole = getPrimaryRole(emp.roles);
+              const roleName = primaryRole?.name || 'Ingen rolle';
+              const roleColor = primaryRole?.color || '--color-andet';
               return (
                 <div
                   key={emp.employeeId}
@@ -164,7 +157,7 @@ const EmployeeSearchBar = ({ onSelect, initialEmployeeId }) => {
                     <span className="emp-name">{emp.firstName} {emp.lastName}</span>
                     <span
                       className="emp-role"
-                      style={getRoleStyle(roleName)}
+                      style={getRoleStyle(roleColor)}
                     >
                       {roleName}
                     </span>

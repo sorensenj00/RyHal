@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { supabase } from '../../supabaseClient';
+import { toCssColorValue } from '../../data/roleColors';
 import './RoleSearchBar.css';
 
 const RoleSearchBar = ({ onSelect, initialRole = '' }) => {
@@ -25,7 +26,7 @@ const RoleSearchBar = ({ onSelect, initialRole = '' }) => {
 
 				const { data, error: fetchError } = await supabase
 					.from('roles')
-					.select('role_id, name')
+					.select('role_id, name, color')
 					.order('name', { ascending: true });
 
 				if (fetchError) {
@@ -122,7 +123,17 @@ const RoleSearchBar = ({ onSelect, initialRole = '' }) => {
 								className="role-dropdown-item"
 								onClick={() => handleSelectRole(role)}
 							>
-								<span className="role-name">{role.name}</span>
+								<span
+									className="role-name"
+									style={{
+										background: toCssColorValue(role.color),
+										color: '#fff',
+										padding: '0.2rem 0.5rem',
+										borderRadius: '999px',
+									}}
+								>
+									{role.name}
+								</span>
 							</button>
 						))}
 
