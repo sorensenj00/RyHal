@@ -68,8 +68,10 @@ export function EmployeePortalProvider({ children }) {
   const [authRetryTick, setAuthRetryTick] = useState(0);
   const weekRange = useMemo(() => getWeekRange(), []);
   const isRedirectingRef = useRef(false);
+  const hasBootstrappedAuthRef = useRef(false);
   const retryAuth = () => {
     isRedirectingRef.current = false;
+    hasBootstrappedAuthRef.current = false;
     setError("");
     setStatusMessage("Prøver at gendanne session...");
     setLoading(true);
@@ -150,12 +152,43 @@ export function EmployeePortalProvider({ children }) {
       setError(nextErrors.join(" "));
     };
 
-    const resolveSession = async (nextSession, { hasRetried = false, hasRefreshed = false } = {}) => {
+    const resolveSession = async (
+      nextSession,
+      {
+        hasRetried = false,
+        hasRefreshed = false,
+        allowMissingSessionRedirect = false,
+        hasRecoveredMissingSession = false,
+      } = {}
+    ) => {
       if (isRedirectingRef.current) {
         return;
       }
 
       if (!nextSession?.access_token) {
+        if (!allowMissingSessionRedirect) {
+          if (!active) return;
+          setStatusMessage("Gendanner session...");
+          setLoading(true);
+          return;
+        }
+
+        if (!hasRecoveredMissingSession) {
+          await pause(300);
+          if (!active) return;
+
+          const { data: { session: latestSession } } = await supabase.auth.getSession();
+          if (latestSession?.access_token) {
+            await resolveSession(latestSession, {
+              hasRetried,
+              hasRefreshed,
+              allowMissingSessionRedirect,
+              hasRecoveredMissingSession: true,
+            });
+            return;
+          }
+        }
+
         await redirectToLogin("Ingen aktiv medarbejdersession.", { signOut: false });
         return;
       }
@@ -223,16 +256,23 @@ export function EmployeePortalProvider({ children }) {
         const { data, error } = await supabase.auth.setSession(transferredSession);
 
         if (error) {
+          hasBootstrappedAuthRef.current = true;
           await redirectToLogin("Kunne ikke overtage login-sessionen.", { signOut: false });
           return;
         }
 
-        await resolveSession(data.session);
+        const nextSession = data?.session ?? (await supabase.auth.getSession()).data.session;
+        hasBootstrappedAuthRef.current = true;
+        await resolveSession(nextSession, {
+          allowMissingSessionRedirect: true,
+          hasRecoveredMissingSession: true,
+        });
         return;
       }
 
       const { data: { session } } = await supabase.auth.getSession();
-      await resolveSession(session);
+      hasBootstrappedAuthRef.current = true;
+      await resolveSession(session, { allowMissingSessionRedirect: true });
     };
 
     bootstrapSession();
@@ -242,7 +282,9 @@ export function EmployeePortalProvider({ children }) {
         return;
       }
 
-      resolveSession(nextSession);
+      resolveSession(nextSession, {
+        allowMissingSessionRedirect: hasBootstrappedAuthRef.current,
+      });
     });
 
     return () => {
