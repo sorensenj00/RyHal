@@ -11,21 +11,33 @@
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--gray-200);
+  padding: 1.25rem 1.5rem;
+  background: var(--white);
+  border-radius: 16px;
+  border: 1px solid var(--gray-100);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
+  gap: 1.5rem;
 }
 
 .header-text h1 { margin: 0; font-size: 1.75rem; color: #1e293b; font-weight: 800; }
 .header-text p { margin: 0.25rem 0 0; color: #64748b; font-size: 0.9rem; }
 
-.header-actions {
+.header-search {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.search-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Button Row Footer */
@@ -186,9 +198,8 @@
     gap: 1rem;
   }
 
-  .header-actions {
+  .header-search {
     width: 100%;
-    justify-content: flex-start;
   }
 
   .button-row {

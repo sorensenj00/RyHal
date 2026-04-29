@@ -40,7 +40,7 @@ public class EmployeesController : ControllerBase
                     LastName = e.LastName,
                     Email = e.Email,
                     Phone = e.Phone,
-                    Birthday = e.Birthday,
+                    Birthday = e.Birthday.HasValue ? DateOnly.FromDateTime(e.Birthday.Value) : null,
                     Roles = e.EmployeeRoles?
                         .Where(er => er.Role != null)
                         .Select(er => new RoleDto { Name = er.Role!.Name })

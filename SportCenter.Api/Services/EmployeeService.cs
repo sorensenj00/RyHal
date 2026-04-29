@@ -44,8 +44,7 @@ namespace SportCenter.Api.Services
                 LastName = dto.LastName,
                 Email = dto.Email,
                 Phone = dto.Phone,
-                // Konverterer DateTime fra React til DateOnly som din model kræver
-                Birthday = DateOnly.FromDateTime(dto.Birthday)
+                Birthday = dto.Birthday.Date
             };
 
             // Gemmer i Supabase
@@ -262,7 +261,7 @@ namespace SportCenter.Api.Services
                 throw new ArgumentNullException("Employee birthday is not set");
             }
 
-            return employee.Birthday.Value.AddYears(18) <= DateOnly.FromDateTime(DateTime.Now);
+            return employee.Birthday.Value.Date.AddYears(18) <= DateTime.Now.Date;
         }
 
         public async Task<List<Shift>> GetFutureShiftsForEmployeeAsync(int employeeId)

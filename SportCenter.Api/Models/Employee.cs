@@ -1,5 +1,8 @@
+using Newtonsoft.Json;
 using Postgrest.Attributes;
 using Postgrest.Models;
+using SportCenter.Api.Models.Converters;
+using EfColumn = System.ComponentModel.DataAnnotations.Schema.ColumnAttribute;
 
 namespace SportCenter.Api.Models;
 
@@ -22,7 +25,9 @@ public class Employee : BaseModel
     public string? Phone { get; set; }
 
     [Postgrest.Attributes.Column("birthday")]
-    public DateOnly? Birthday { get; set; }
+    [EfColumn("birthday", TypeName = "date")]
+    [JsonConverter(typeof(LocalDateOnlyJsonConverter))]
+    public DateTime? Birthday { get; set; }
 
     [Reference(typeof(EmployeeRole), ReferenceAttribute.JoinType.Left, true, "employee_id")]
     public List<EmployeeRole> EmployeeRoles { get; set; } = new List<EmployeeRole>();

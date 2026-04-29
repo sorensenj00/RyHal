@@ -209,7 +209,8 @@ const ShowEmployee = () => {
           <h1>Medarbejderprofil</h1>
           <p>Dashboard for {selectedEmployee.firstName} {selectedEmployee.lastName}</p>
         </div>
-        <div className="header-actions">
+        <div className="header-search">
+          <label className="search-label">Skift medarbejder</label>
           <EmployeeSearchBar onSelect={handleEmployeeChange} />
         </div>
       </header>

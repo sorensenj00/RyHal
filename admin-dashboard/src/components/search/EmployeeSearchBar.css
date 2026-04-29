@@ -73,7 +73,8 @@
   transition: background 0.2s;
 }
 
-.dropdown-item:hover {
+.dropdown-item:hover,
+.dropdown-item.active {
   background-color: var(--gray-100);
 }
 
@@ -84,18 +85,34 @@
   font-size: 0.85rem;
 }
 
+.emp-info {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
 .emp-name {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--gray-900);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .emp-role {
   font-size: 0.75rem;
-  color: var(--gray-500);
-  background: var(--gray-100);
+  font-weight: 500;
   padding: 2px 8px;
   border-radius: 12px;
+  width: 130px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 /* Scrollbar styling for dropdown */
