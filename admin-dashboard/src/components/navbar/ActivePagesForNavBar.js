@@ -4,28 +4,31 @@ import {
   faUsers,
   faCalendar,
   faUserCircle,
-  faDumbbell,
+  faBuilding,
+  faAddressBook,
+  faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const ActivePagesForNavBar  = [
-  { to: "/home", icon: faHome, label: "Home" },
+  { to: "/home", icon: faHome, label: "Hjem" },
   {
     to: "/employees",
     icon: faUsers,
     label: "Medarbejdere",
     children: [
-      { to: "/employee-list", label: "Medarbejder oversigt" },
-      { to: "/show-employee", label: "Vis medarbejder" },
-      { to: "/create-employee", label: "Tilføj ny medarbejder" },
+      { to: "/employee-list", label: "Oversigt" },
+      { to: "/employee-hours", label: "Timeoversigt" },
+      { to: "/show-employee", label: "Find Medarbejder" },
+      { to: "/create-employee", label: "Opret Medarbejder" },
     ],
   },
   {
     to: "/work-schedule",
     icon: faCalendar,
-    label: "Arbejdskalender",
+    label: "Kalender",
     children: [
-      { to: "/work-calendar", label: "Kalender" },
-      { to: "/calendar", label: "Vagtkalender" },
+      { to: "/work-calendar", label: "Vagtkalender" },
+      { to: "/event-shift-overview", label: "Aktivitet og Vagt Oversigt" },
     ],
   },
   {
@@ -33,20 +36,37 @@ export const ActivePagesForNavBar  = [
     icon: faUserCircle,
     label: "Vagtstyring",
       children: [
-        { to: "/create-shift", label: "Opret Ny Vagt" },
+        { to: "/staffing-overview", label: "Bemandingsoversigt" },
       ]
   },
   {
-    to: "/activities",
-    icon: faDumbbell,
-    label: "Aktiviteter",
+    to: "/Events",
+    icon: faCalendarAlt,
+    label: "Events",
     children: [
-      { to: "/activities/recurring", label: "Oversigt: Faste aktiviteter" },
-      { to: "/activities/single", label: "Oversigt: Selvst. aktiviteter" },
-      { to: "/create-activity", label: "Opret aktivitet" },
+      { to: "/create-activity", label: "Opret Event" },
       { to: "/event-overview", label: "Event Oversigt" },
-      { to: "/activities/drafts", label: "Oversigt: Kladdeaktiviter" },
-      { to: "/create-activity", label: "Opret aktivitet" },
+      { to: "/activities/drafts", label: "Kladder" },
+    ],
+  },
+  {
+    to: "/associations",
+    icon: faBuilding,
+    label: "Foreninger",
+    children: [
+      { to: "/associations", label: "Alle Foreninger" },
+      { to: "/view-association", label: "Find Forening" },
+      { to: "/association", label: "Opret Forening" },
+    ],
+  },
+  {
+    to: "/contacts",
+    icon: faAddressBook,
+    label: "Kontakter",
+    children: [
+      { to: "/view-contacts", label: "Alle Kontakter" },
+      { to: "/view-contact", label: "Find Kontakt" },
+      { to: "/create-contact", label: "Opret Kontakt" },
     ],
   },
 ];

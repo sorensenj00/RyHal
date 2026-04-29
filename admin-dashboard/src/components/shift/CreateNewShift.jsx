@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import api from '../../api/axiosConfig';
 import EmployeeSearchBar from '../../components/search/EmployeeSearchBar';
 import './CreateNewShift.css';
@@ -17,7 +17,9 @@ const CreateNewShift = ({ initialDate, onRefresh }) => {
     date: '',
     startTime: '08:00',
     endTime: '16:00',
-    employeeId: null
+    employeeId: null,
+    isRecurring: false,
+    endDate: ''
   });
 
   useEffect(() => {
@@ -53,24 +55,40 @@ const CreateNewShift = ({ initialDate, onRefresh }) => {
     e.preventDefault();
     setIsSaving(true);
     try {
+      if (!formData.date || !formData.categoryId) {
+        throw new Error('Vælg dato og kategori før du opretter vagten.');
+      }
+
       // FIX: Send som lokal streng
       const startLocal = `${formData.date}T${formData.startTime}:00`;
       const endLocal = `${formData.date}T${formData.endTime}:00`;
 
+      if (new Date(endLocal) <= new Date(startLocal)) {
+        throw new Error('Sluttid skal være efter starttid.');
+      }
+
       const newShift = {
-        CategoryId: Number(formData.categoryId),
-        EmployeeId: formData.employeeId ? Number(formData.employeeId) : null,
-        StartTime: startLocal,
-        EndTime: endLocal
+        categoryId: Number(formData.categoryId),
+        employeeId: formData.employeeId ? Number(formData.employeeId) : null,
+        startTime: startLocal,
+        endTime: endLocal,
+        isRecurring: formData.isRecurring,
+        endDate: formData.isRecurring ? formData.endDate : null
       };
 
       await api.post('/shifts', newShift);
       if (onRefresh) onRefresh();
       setIsOpen(false);
-      setFormData({ categoryId: '', date: '', startTime: '08:00', endTime: '16:00', employeeId: null });
+      setFormData({ categoryId: '', date: '', startTime: '08:00', endTime: '16:00', employeeId: null, isRecurring: false, endDate: '' });
     } catch (err) {
-      console.error("Fejl:", err.response?.data);
-      alert("Kunne ikke oprette vagt");
+      const apiMessage = err?.response?.data;
+      const message =
+        typeof apiMessage === 'string'
+          ? apiMessage
+          : apiMessage?.message || err.message || 'Kunne ikke oprette vagt';
+
+      console.error('Fejl ved oprettelse af vagt:', err?.response?.data || err);
+      alert(message);
     } finally {
       setIsSaving(false);
     }
@@ -78,8 +96,8 @@ const CreateNewShift = ({ initialDate, onRefresh }) => {
 
   return (
     <>
-      <button className="create-shift-btn" onClick={() => setIsOpen(true)}>
-        <FontAwesomeIcon icon={faPlus} /> Opret ny vagt
+      <button type="button" className="btn btn-primary" onClick={() => setIsOpen(true)}>
+        Opret ny vagt
       </button>
       <AnimatePresence>
         {isOpen && (
@@ -115,9 +133,23 @@ const CreateNewShift = ({ initialDate, onRefresh }) => {
                   <label>Medarbejder:</label>
                   <EmployeeSearchBar onSelect={handleEmployeeSelect} initialEmployeeId={formData.employeeId} />
                 </div>
+                <div className="form-group">
+                  <label className="checkbox-label">
+                    <input type="checkbox" name="isRecurring" checked={formData.isRecurring} onChange={(e) => setFormData(prev => ({ ...prev, isRecurring: e.target.checked }))} />
+                    Gentag ugentlig
+                  </label>
+                </div>
+                {formData.isRecurring && (
+                  <>
+                    <div className="form-group">
+                      <label>Slutdato:</label>
+                      <input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required />
+                    </div>
+                  </>
+                )}
                 <div className="form-actions">
-                  <button type="button" onClick={() => setIsOpen(false)} className="cancel-btn">Annuller</button>
-                  <button type="submit" className="submit-btn" disabled={isSaving}>{isSaving ? 'Opretter...' : 'Opret Vagt'}</button>
+                  <button type="button" onClick={() => setIsOpen(false)} className="btn btn-secondary cancel-btn">Annuller</button>
+                  <button type="submit" className="btn btn-primary submit-btn" disabled={isSaving}>{isSaving ? 'Opretter...' : 'Opret Vagt'}</button>
                 </div>
               </form>
             </motion.div>

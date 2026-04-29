@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { format, addDays, subDays, addMonths, subMonths } from 'date-fns';
 import { da } from 'date-fns/locale'; // Korrekt import af dansk sprog
+import { useLocation } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import BaseDayCalendar from '../../components/calendar/BaseDayCalendar';
 import BaseMonthCalendar from '../../components/calendar/BaseMonthCalendar';
@@ -8,8 +9,9 @@ import CreateNewShift from '../../components/shift/CreateNewShift';
 import './WorkCalendar.css';
 
 const WorkCalendar = () => {
-  const [view, setView] = useState('month');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const location = useLocation();
+  const [view, setView] = useState(location.state?.view || 'month');
+  const [selectedDate, setSelectedDate] = useState(location.state?.selectedDate || new Date());
   
   const [employees, setEmployees] = useState([]);
   const [shifts, setShifts] = useState([]);

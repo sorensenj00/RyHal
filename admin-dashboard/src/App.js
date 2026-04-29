@@ -5,20 +5,28 @@ import './App.css';
 
 // Komponenter
 import NavBar from "./components/navbar/NavBar";
-import Login from "./pages/login/Login"; 
+import Login from "./pages/login/Login";
 
 // Sider
 import EmployeeBigCard from './components/employee/EmployeeBigCard';
 import EmployeeListOverview from './pages/employee-list/EmployeeListOverview';
-import CreateNewShift from './components/shift/CreateNewShift';
-import ActivitiesList from './components/activities/ActivitiesList';
-import CreateActivity from './components/activities/CreateActivity';
-import DraftActivitiesList from './components/activities/DraftActivitiesList';
 import WorkCalendar from "./pages/work-calendar/WorkCalendar";
+import EventShiftOverview from "./pages/event-shift-overview/EventShiftOverview";
 import CreateNewEmployee from "./pages/create-new-employee/CreateNewEmployee";
 import Welcome from "./pages/home/Welcome";
 import ShowEmployee from "./pages/show-employee/ShowEmployee";
-import EventOverview from "./pages/event-overview/EventOverview";
+import EventOverview from "./pages/activities/event-overview/EventOverview";
+import CreateNewEvent from "./pages/activities/create-new-event/CreateNewEvent";
+import EditEvent from "./pages/activities/edit-event/EditEvent";
+import Drafts from "./pages/activities/drafts/Drafts";
+import Association from "./pages/association/Association";
+import AllAssociations from "./pages/association/AllAssociations";
+import ViewAssociation from "./pages/association/ViewAssociation";
+import CreateNewContact from "./pages/contacts/CreateNewContact";
+import ViewAllContacts from "./pages/contacts/ViewAllContacts";
+import ViewContact from "./pages/contacts/ViewContact";
+import EmployeeHoursOverview from "./pages/employee-hours/EmployeeHoursOverview";
+import StaffingOverview from "./pages/shift-management/StaffingOverview";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -31,7 +39,7 @@ function App() {
       setLoading(false);
     });
 
-    // 2. Lyt efter ændringer i auth (login, logud, session refresh)
+    // 2. Lyt efter ændringer i auth (login, logud, seContactInformationCardssion refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -48,8 +56,8 @@ function App() {
     <Router>
       <div className="app-container">
         {/* Vis kun NavBar, hvis brugeren er logget ind */}
-        {session && <NavBar />} 
-        
+        {session && <NavBar />}
+
         <main className={session ? "app-content" : "auth-content"}>
           <Routes>
             {/* Login rute - Hvis man er logget ind, sendes man væk fra login */}
@@ -57,21 +65,31 @@ function App() {
 
             {/* Automatisk redirect ved rod-URL */}
             <Route path="/" element={<Navigate to={session ? "/home" : "/login"} />} />
-            
+
             {/* Beskyttede ruter */}
             <Route path="/home" element={session ? <Welcome /> : <Navigate to="/login" />} />
             <Route path="/employee-list" element={session ? <EmployeeListOverview /> : <Navigate to="/login" />} />
+            <Route path="/employee-hours" element={session ? <EmployeeHoursOverview /> : <Navigate to="/login" />} />
             <Route path="/employee/:id" element={session ? <ShowEmployee /> : <Navigate to="/login" />} />
             <Route path="/show-employee" element={session ? <ShowEmployee /> : <Navigate to="/login" />} />
             <Route path="/employee-card" element={session ? <EmployeeBigCard /> : <Navigate to="/login" />} />
-            <Route path="/create-shift" element={session ? <CreateNewShift /> : <Navigate to="/login" />} />
-            <Route path="/activities/recurring" element={session ? <ActivitiesList type="recurring" /> : <Navigate to="/login" />} />
-            <Route path="/activities/single" element={session ? <ActivitiesList type="single" /> : <Navigate to="/login" />} />
-            <Route path="/activities/drafts" element={session ? <DraftActivitiesList /> : <Navigate to="/login" />} />
-            <Route path="/create-activity" element={session ? <CreateActivity /> : <Navigate to="/login" />} />
+            <Route path="/staffing-overview" element={session ? <StaffingOverview /> : <Navigate to="/login" />} />
+            <Route path="/activities/drafts" element={session ? <Drafts /> : <Navigate to="/login" />} />
+            <Route path="/create-activity" element={session ? <CreateNewEvent /> : <Navigate to="/login" />} />
+            <Route path="/edit-activity" element={session ? <EditEvent /> : <Navigate to="/login" />} />
             <Route path="/work-calendar" element={session ? <WorkCalendar /> : <Navigate to="/login" />} />
+
+  		      <Route path="/event-shift-overview" element={session ? <EventShiftOverview /> : <Navigate to="/login" />} />
+            
             <Route path="/create-employee" element={session ? <CreateNewEmployee /> : <Navigate to="/login" />} />
             <Route path="/event-overview" element={session ? <EventOverview /> : <Navigate to="/login" />} />
+            <Route path="/association" element={session ? <Association /> : <Navigate to="/login" />} />
+            <Route path="/associations" element={session ? <AllAssociations /> : <Navigate to="/login" />} />
+            <Route path="/view-association" element={session ? <ViewAssociation /> : <Navigate to="/login" />} />
+            <Route path="/create-contact" element={session ? <CreateNewContact /> : <Navigate to="/login" />} />
+            <Route path="/view-contacts" element={session ? <ViewAllContacts /> : <Navigate to="/login" />} />
+            <Route path="/view-contact" element={session ? <ViewContact /> : <Navigate to="/login" />} />
+            <Route path="/view-contact/:id" element={session ? <ViewContact /> : <Navigate to="/login" />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to={session ? "/home" : "/login"} />} />

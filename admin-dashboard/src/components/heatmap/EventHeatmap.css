@@ -11,9 +11,19 @@
   overflow: hidden;
 }
 
+.heatmap-feedback-msg {
+  margin: 0 0 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #991b1b;
+  font-weight: 600;
+}
+
 .heatmap-scroll-container {
   flex: 1;
-  overflow: auto; /* Aktiverer både horisontal og vertikal scroll */
+  overflow: auto;
   background: white;
   position: relative;
 }
@@ -31,7 +41,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  width: 100%;
+  width: fit-content;
 }
 
 .location-corner {
@@ -51,8 +61,8 @@
 .row-content-area {
   display: flex;
   flex: 1;
+  min-width: calc(24 * 120px);
   position: relative;
-  /* Tegner de lodrette streger præcis for hver 120px */
   background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px);
   background-size: 120px 100%;
 }
@@ -60,7 +70,6 @@
 .time-label {
   width: 120px;
   min-width: 120px;
-  flex-shrink: 0;
   text-align: center;
   font-size: 0.75rem;
   color: #64748b;
@@ -68,14 +77,14 @@
 }
 
 /* RÆKKE STYLING */
-.location-row {
+.heatmap-location-row {
   display: flex;
   border-bottom: 1px solid #f1f5f9;
   height: 85px;
-  width: 100%;
+  width: fit-content;
 }
 
-.location-name-cell {
+.heatmap-location-name-cell {
   width: 200px;
   min-width: 200px;
   padding: 0 15px;
@@ -178,8 +187,8 @@
 
 /* KATEGORI FARVER */
 .cat-sport { background-color: var(--color-hal-mand, #B8BB0B); }
-.cat-meeting { background-color: var(--color-administration, #F59E0B); }
-.cat-maintenance { background-color: var(--color-rengoering, #7C3AED); }
-.cat-other { background-color: var(--color-andet, #94A3B8); }
+.cat-mode { background-color: var(--color-administration, #F59E0B); }
+.cat-vedligeholdelse { background-color: var(--color-rengoering, #7C3AED); }
+.cat-andet { background-color: var(--color-andet, #94A3B8); }
 
 .resizing { opacity: 0.8; z-index: 1000; cursor: col-resize; }

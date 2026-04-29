@@ -112,7 +112,10 @@ const EmployeeListOverview = () => {
         </div>
 
         <div className="div3">
-          <RoleDistributionGraph employees={employees} />
+          <RoleDistributionGraph
+            employees={employees}
+            distributionSource="employee-roles"
+          />
         </div>
 
         <div className="div4">

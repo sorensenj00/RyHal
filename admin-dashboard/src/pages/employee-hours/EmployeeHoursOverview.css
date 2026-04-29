@@ -1,0 +1,282 @@
+.employee-hours-page {
+  padding: var(--spacer);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.hours-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.hours-page-eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--primary-color);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hours-page-header h1 {
+  margin: 0;
+  color: var(--gray-900);
+  font-size: 2rem;
+}
+
+.hours-page-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--gray-600);
+}
+
+.hours-filters-card,
+.hours-table-card,
+.hours-summary-card,
+.hours-empty-state,
+.hours-inline-error {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.hours-filters-card {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hours-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem 1rem;
+}
+
+.hours-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hours-field span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gray-700);
+}
+
+.hours-field input,
+.hours-field select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--gray-300);
+  background: #fff;
+  color: var(--gray-900);
+  box-sizing: border-box;
+}
+
+.hours-field input:focus,
+.hours-field select:focus {
+  outline: 2px solid rgba(0, 123, 255, 0.15);
+  border-color: var(--primary-color);
+}
+
+.hours-field-wide {
+  grid-column: span 1;
+}
+
+.hours-filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.9rem;
+}
+
+.hours-btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hours-btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-800);
+}
+
+.hours-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hours-summary-card {
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hours-summary-label {
+  color: var(--gray-600);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hours-summary-value {
+  font-size: 1.7rem;
+  color: var(--gray-900);
+}
+
+.hours-summary-hint {
+  color: var(--gray-600);
+  font-size: 0.9rem;
+}
+
+.hours-table-card {
+  padding: 1rem;
+}
+
+.hours-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.hours-table-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.hours-table-header p {
+  margin: 0.25rem 0 0;
+  color: var(--gray-600);
+}
+
+.hours-table-meta {
+  color: var(--gray-600);
+  font-weight: 700;
+}
+
+.hours-table-scroll {
+  overflow-x: auto;
+}
+
+.hours-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.hours-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0.85rem 0.9rem;
+  z-index: 1;
+}
+
+.hours-table tbody td {
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0.95rem 0.9rem;
+  color: var(--gray-800);
+  vertical-align: middle;
+}
+
+.hours-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.hours-employee-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hours-employee-id {
+  color: var(--gray-500);
+  font-size: 0.78rem;
+}
+
+.hours-role-badge {
+  display: inline-flex;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(0, 123, 255, 0.08);
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.hours-link-btn {
+  border: 0;
+  background: transparent;
+  color: var(--primary-color);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hours-empty-state,
+.hours-table-loading,
+.employee-hours-loading,
+.employee-hours-error,
+.hours-inline-error {
+  padding: 1.4rem;
+  text-align: center;
+  color: var(--gray-700);
+}
+
+.hours-empty-state h3 {
+  margin-top: 0;
+}
+
+.hours-inline-error {
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--danger-color);
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+@media (max-width: 1100px) {
+  .hours-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hours-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .hours-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hours-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hours-table-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

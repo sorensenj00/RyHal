@@ -1,5 +1,6 @@
 using SportCenter.Api.DTOs;
 using SportCenter.Api.Models;
+using System;
 
 namespace SportCenter.Api.Services
 {
@@ -35,7 +36,7 @@ namespace SportCenter.Api.Services
                 LastName = dto.LastName,
                 Email = dto.Email,
                 Phone = dto.Phone,
-                Birthday = DateOnly.FromDateTime(dto.Birthday)
+                Birthday = dto.Birthday.Date
             };
 
             return await _employeeRepository.InsertEmployeeAsync(newEmployee);
@@ -194,7 +195,7 @@ namespace SportCenter.Api.Services
                 throw new ArgumentNullException("Employee birthday is not set");
             }
 
-            return employee.Birthday.Value.AddYears(18) <= DateOnly.FromDateTime(DateTime.Now);
+            return employee.Birthday.Value.Date.AddYears(18) <= DateTime.Now.Date;
         }
 
         public async Task<List<Qualification>> GetAllQualificationsAsync(string? accessToken = null)
@@ -455,7 +456,8 @@ namespace SportCenter.Api.Services
                 .Where(s => s.StartTime.Month == month && s.StartTime.Year == year)
                 .ToList();
 
-            return shiftsInMonth.Sum(s => (s.EndTime - s.StartTime).TotalHours);
+            return EmployeeHoursCalculator
+                .CalculateTotalMinutesForEmployee(result.Models, monthStart, monthEnd) / 60.0;
         }
     }
 }

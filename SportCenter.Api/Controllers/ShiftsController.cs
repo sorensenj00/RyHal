@@ -113,33 +113,31 @@ public class ShiftsController : ControllerBase
 
     // POST: api/shifts
     [HttpPost]
-    public async Task<IActionResult> CreateShift([FromBody] ShiftDto shiftDto)
+    public async Task<IActionResult> CreateShift([FromBody] ShiftCreateDto shiftDto)
     {
         try
         {
             var authHeader = Request.Headers["Authorization"].ToString();
             string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
 
-            var shift = await _shiftService.CreateShiftAsync(
-                shiftDto.StartTime,
-                shiftDto.EndTime,
-                shiftDto.CategoryId,
-                shiftDto.EmployeeId,
-                token
-            );
+            var shifts = await _shiftService.CreateShiftAsync(shiftDto, token);
 
-            if (shift == null) return StatusCode(500, "Kunne ikke oprette vagt");
+            if (shifts == null || !shifts.Any()) return StatusCode(500, "Kunne ikke oprette vagt");
 
-            var resultDto = new ShiftDto
+            var resultDtos = shifts.Select(shift => new ShiftDto
             {
                 ShiftId = shift.ShiftId,
                 StartTime = shift.StartTime,
                 EndTime = shift.EndTime,
                 EmployeeId = shift.EmployeeId,
                 CategoryId = shift.ShiftCategoryId,
-            };
+            }).ToList();
 
-            return Ok(resultDto);
+            return Ok(resultDtos);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {

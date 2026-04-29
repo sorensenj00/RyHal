@@ -34,6 +34,10 @@
   background-color: rgba(124, 58, 237, 0.1);
 }
 
+.employee-card-calendar.role-opvasker {
+  background-color: rgba(6, 182, 212, 0.1);
+}
+
 .employee-avatar {
   width: 32px;
   height: 32px;

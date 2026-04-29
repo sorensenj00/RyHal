@@ -27,26 +27,73 @@ namespace SportCenter.Api.Services
 
 
 
-        public async Task<Shift?> CreateShiftAsync(DateTime startTime, DateTime endTime, long categoryId, long? employeeId = null, string? accessToken = null)
+        public async Task<List<Shift>> CreateShiftAsync(ShiftCreateDto dto, string? accessToken = null)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
                 await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
             }
 
-            var start = DateTime.SpecifyKind(startTime, DateTimeKind.Unspecified);
-            var end = DateTime.SpecifyKind(endTime, DateTimeKind.Unspecified);
-
-            var newShift = new Shift
+            if (dto.CategoryId <= 0)
             {
-                StartTime = startTime,
-                EndTime = endTime,
-                ShiftCategoryId = categoryId,
-                EmployeeId = (employeeId == 0) ? null : employeeId
-            };
+                throw new ArgumentException("Ugyldig kategori for vagt.");
+            }
 
-            var result = await _supabase.From<Shift>().Insert(newShift);
-            return result.Models.FirstOrDefault();
+            if (dto.EndTime <= dto.StartTime)
+            {
+                throw new ArgumentException("Sluttid skal vaere efter starttid.");
+            }
+
+            var start = DateTime.SpecifyKind(dto.StartTime, DateTimeKind.Unspecified);
+            var end = DateTime.SpecifyKind(dto.EndTime, DateTimeKind.Unspecified);
+
+            var shifts = new List<Shift>();
+
+            if (dto.IsRecurring && dto.EndDate.HasValue)
+            {
+                // Generer gentagne vagter hver uge på samme ugedag
+                var currentDate = dto.StartTime.Date;
+                while (currentDate <= dto.EndDate.Value.Date)
+                {
+                    var shiftStart = currentDate.Add(dto.StartTime.TimeOfDay);
+                    var shiftEnd = currentDate.Add(dto.EndTime.TimeOfDay);
+
+                    var newShift = new Shift
+                    {
+                        StartTime = shiftStart,
+                        EndTime = shiftEnd,
+                        ShiftCategoryId = dto.CategoryId,
+                        EmployeeId = (dto.EmployeeId == 0) ? null : dto.EmployeeId
+                    };
+
+                    var result = await _supabase.From<Shift>().Insert(newShift);
+                    if (result.Models.Any())
+                    {
+                        shifts.Add(result.Models.First());
+                    }
+
+                    currentDate = currentDate.AddDays(7);
+                }
+            }
+            else
+            {
+                // Opret en enkelt vagt
+                var newShift = new Shift
+                {
+                    StartTime = start,
+                    EndTime = end,
+                    ShiftCategoryId = dto.CategoryId,
+                    EmployeeId = (dto.EmployeeId == 0) ? null : dto.EmployeeId
+                };
+
+                var result = await _supabase.From<Shift>().Insert(newShift);
+                if (result.Models.Any())
+                {
+                    shifts.Add(result.Models.First());
+                }
+            }
+
+            return shifts;
         }
 
 
@@ -96,7 +143,7 @@ namespace SportCenter.Api.Services
 
             var update = await _supabase.From<Shift>()
                 .Where(x => x.ShiftId == shiftId)
-                .Set(x => x.EmployeeId, dbEmployeeId)
+                .Set(x => (object)x.EmployeeId!, dbEmployeeId)
                 .Update();
 
             return update.Models.Any();

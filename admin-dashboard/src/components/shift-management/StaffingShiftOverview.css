@@ -1,0 +1,115 @@
+.staffing-shift-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: min(760px, 100%);
+}
+
+.staffing-date-nav {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.staffing-nav-btn {
+  width: 36px;
+  height: 36px;
+  border: var(--border-width) solid var(--gray-300);
+  border-radius: 0.75rem;
+  background-color: var(--white);
+  color: var(--gray-800);
+  cursor: pointer;
+  font-weight: 700;
+  transition: var(--transition-base);
+}
+
+.staffing-nav-btn:hover {
+  background-color: var(--gray-100);
+}
+
+.staffing-date-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  padding: 0.35rem 0.55rem;
+  background: #fff;
+}
+
+.staffing-date-label {
+  color: var(--gray-700);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.staffing-date-input {
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  padding: 0.35rem 0.5rem;
+  color: var(--gray-800);
+}
+
+.staffing-overview-item {
+  background: #ffffff;
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.staffing-overview-item-critical {
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.staffing-overview-item-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.staffing-overview-item-critical .staffing-overview-label,
+.staffing-overview-item-critical .staffing-overview-value {
+  color: #b91c1c;
+}
+
+.staffing-overview-item-success .staffing-overview-label,
+.staffing-overview-item-success .staffing-overview-value {
+  color: #166534;
+}
+
+.staffing-overview-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-600);
+  font-weight: 700;
+}
+
+.staffing-overview-value {
+  font-size: 1.5rem;
+  color: var(--gray-900);
+  line-height: 1.1;
+}
+
+.staffing-overview-meta {
+  color: var(--gray-600);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1120px) {
+  .staffing-shift-overview {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .staffing-date-nav {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
