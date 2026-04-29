@@ -4,9 +4,9 @@ import {
   faUsers,
   faCalendar,
   faUserCircle,
-  faDumbbell,
   faBuilding,
   faAddressBook,
+  faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const ActivePagesForNavBar  = [
@@ -16,10 +16,10 @@ export const ActivePagesForNavBar  = [
     icon: faUsers,
     label: "Medarbejdere",
     children: [
-      { to: "/employee-list", label: "Medarbejder oversigt" },
+      { to: "/employee-list", label: "Oversigt" },
       { to: "/employee-hours", label: "Timeoversigt" },
-      { to: "/show-employee", label: "Vis medarbejder" },
-      { to: "/create-employee", label: "Tilføj ny medarbejder" },
+      { to: "/show-employee", label: "Find Medarbejder" },
+      { to: "/create-employee", label: "Opret Medarbejder" },
     ],
   },
   {
@@ -27,8 +27,7 @@ export const ActivePagesForNavBar  = [
     icon: faCalendar,
     label: "Kalender",
     children: [
-      { to: "/work-calendar", label: "Kalender" },
-      { to: "/calendar", label: "Vagtkalender" },
+      { to: "/work-calendar", label: "Vagtkalender" },
       { to: "/event-shift-overview", label: "Aktivitet og Vagt Oversigt" },
     ],
   },
@@ -37,20 +36,17 @@ export const ActivePagesForNavBar  = [
     icon: faUserCircle,
     label: "Vagtstyring",
       children: [
-        { to: "/create-shift", label: "Opret Ny Vagt" },
         { to: "/staffing-overview", label: "Bemandingsoversigt" },
       ]
   },
   {
-    to: "/activities",
-    icon: faDumbbell,
-    label: "Aktiviteter",
+    to: "/Events",
+    icon: faCalendarAlt,
+    label: "Events",
     children: [
-      { to: "/activities/recurring", label: "Oversigt: Faste aktiviteter" },
-      { to: "/activities/single", label: "Oversigt: Selvst. aktiviteter" },
-      { to: "/create-activity", label: "Opret aktivitet" },
+      { to: "/create-activity", label: "Opret Event" },
       { to: "/event-overview", label: "Event Oversigt" },
-      { to: "/activities/drafts", label: "Oversigt: Kladdeaktiviter" },
+      { to: "/activities/drafts", label: "Kladder" },
     ],
   },
   {
@@ -59,7 +55,7 @@ export const ActivePagesForNavBar  = [
     label: "Foreninger",
     children: [
       { to: "/associations", label: "Alle Foreninger" },
-      { to: "/view-association", label: "Se Forening" },
+      { to: "/view-association", label: "Find Forening" },
       { to: "/association", label: "Opret Forening" },
     ],
   },
@@ -69,7 +65,7 @@ export const ActivePagesForNavBar  = [
     label: "Kontakter",
     children: [
       { to: "/view-contacts", label: "Alle Kontakter" },
-      { to: "/view-contact", label: "Find Kontakt Person" },
+      { to: "/view-contact", label: "Find Kontakt" },
       { to: "/create-contact", label: "Opret Kontakt" },
     ],
   },

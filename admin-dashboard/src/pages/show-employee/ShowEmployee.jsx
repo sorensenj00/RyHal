@@ -211,9 +211,6 @@ const ShowEmployee = () => {
         </div>
         <div className="header-actions">
           <EmployeeSearchBar onSelect={handleEmployeeChange} />
-          <button type="button" className="hours-overview-btn" onClick={handleOpenHoursOverview}>
-            Se timeoversigt
-          </button>
         </div>
       </header>
 
@@ -224,47 +221,6 @@ const ShowEmployee = () => {
             employee={selectedEmployee}
             onRoleChange={handleRoleChange}
           />
-
-          <div className="contact-info-card">
-            <h3>Kontaktinformation</h3>
-            <div className="info-item">
-              <label>Email</label>
-              <input 
-                type="email" 
-                name="email" 
-                className="edit-input" 
-                value={selectedEmployee.email || ''} 
-                onChange={handleInputChange} 
-              />
-            </div>
-            <div className="info-item">
-              <label>Telefon</label>
-              <input 
-                type="text" 
-                name="phone" 
-                className="edit-input" 
-                value={selectedEmployee.phone || ''} 
-                onChange={handleInputChange} 
-                placeholder="Indtast telefon..." 
-              />
-            </div>
-            <div className="info-item">
-              <label>Status</label>
-              {selectedEmployee.isOver18 === null ? (
-                <div className="status-indicator">Ukendt</div>
-              ) : (
-                <div className={`status-indicator ${selectedEmployee.isOver18 ? 'over18' : 'under18'}`}>
-                  {selectedEmployee.isOver18 ? 'Over 18 år' : 'Under 18 år'}
-                </div>
-              )}
-            </div>
-            <button className="save-profile-btn" onClick={handleSaveChanges} disabled={isSaving}>
-              {isSaving ? 'Gemmer...' : 'Gem ændringer'}
-            </button>
-            {saveMessage && (
-              <p className={`save-status ${saveMessage.type}`}>{saveMessage.text}</p>
-            )}
-          </div>
         </aside>
 
         {/* MIDTER KOLONNE: Kompetencer */}
@@ -282,6 +238,30 @@ const ShowEmployee = () => {
           </div>
         </aside>
       </div>
+
+      {/* BUTTON ROW */}
+      <footer className="employee-actions-footer">
+        <div className="button-row">
+          <button 
+            type="button" 
+            className="btn btn-primary" 
+            onClick={handleSaveChanges} 
+            disabled={isSaving}
+          >
+            {isSaving ? 'Gemmer...' : 'Gem ændringer'}
+          </button>
+          <button 
+            type="button" 
+            className="btn btn-secondary" 
+            onClick={handleOpenHoursOverview}
+          >
+            Se timeoversigt
+          </button>
+        </div>
+        {saveMessage && (
+          <p className={`save-status ${saveMessage.type}`}>{saveMessage.text}</p>
+        )}
+      </footer>
     </div>
   );
 };

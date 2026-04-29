@@ -31,12 +31,6 @@
   line-height: 1.1;
 }
 
-.staffing-page-subtitle {
-  margin: 0.45rem 0 0;
-  color: var(--gray-600);
-  max-width: 62ch;
-}
-
 .staffing-filters-card,
 .staffing-summary-card,
 .staffing-table-card,

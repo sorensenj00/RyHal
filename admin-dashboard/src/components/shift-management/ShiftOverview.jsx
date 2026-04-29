@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import CreateNewShift from '../shift/CreateNewShift';
 import EditShift from '../shift/EditShift';
 import './ShiftOverview.css';
@@ -55,6 +56,7 @@ const ShiftOverview = ({
   const [editingShift, setEditingShift] = useState(null);
   const [selectedRole, setSelectedRole] = useState('all');
   const [sortMode, setSortMode] = useState('open-first');
+  const navigate = useNavigate();
 
   const availableRoles = useMemo(() => {
     const roles = shifts
@@ -105,7 +107,13 @@ const ShiftOverview = ({
       <div className="shift-overview-header">
         <h2>Vagter (behov og status)</h2>
         <div className="shift-overview-header-actions">
-          <span>{loading ? '...' : `${sortedShifts.length} vagter`}</span>
+          <button
+            type="button"
+            className="btn btn-primary view-calendar-btn"
+            onClick={() => navigate('/work-calendar', { state: { view: 'day', selectedDate } })}
+          >
+            Se i kalenderen
+          </button>
           <CreateNewShift initialDate={selectedDateObject} onRefresh={onRefresh} />
         </div>
       </div>
@@ -185,7 +193,7 @@ const ShiftOverview = ({
 
                   <button
                     type="button"
-                    className="shift-overview-edit-btn"
+                    className="btn btn-secondary shift-overview-edit-btn"
                     onClick={() => setEditingShift(shift)}
                   >
                     Rediger

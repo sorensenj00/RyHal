@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { isSameDay, parseISO, getHours, getMinutes } from 'date-fns';
+import { isSameDay, parseISO, getHours, getMinutes, format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import EmployeeCardForCalendar from '../employee/EmployeeCardForCalendar';
 import EditShift from '../shift/EditShift';
 import './BaseDayCalendar.css';
 
 const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [], onRefresh }) => {
   const [selectedShift, setSelectedShift] = useState(null);
+  const navigate = useNavigate();
 
   const START_HOUR = 5;
   const TOTAL_HOURS = 24;
@@ -60,10 +62,28 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [], onRef
     return groups;
   }, {});
 
+  // Sortér shifts indenfor hver kategori efter starttid
+  Object.keys(shiftsByCategory).forEach(catId => {
+    shiftsByCategory[catId].sort((a, b) => {
+      const aTime = typeof a.startTime === 'string' ? parseISO(a.startTime) : new Date(a.startTime);
+      const bTime = typeof b.startTime === 'string' ? parseISO(b.startTime) : new Date(b.startTime);
+      return aTime - bTime;
+    });
+  });
+
   const activeCategoryIds = Object.keys(shiftsByCategory).sort((a, b) => a - b);
 
   return (
     <div className="day-calendar-container">
+      <div className="day-calendar-header">
+        <button
+          type="button"
+          className="staffing-overview-btn"
+          onClick={() => navigate('/staffing-overview', { state: { selectedDate: format(date, 'yyyy-MM-dd') } })}
+        >
+          Se Bemandingsoversigt
+        </button>
+      </div>
       <div className="day-calendar">
         {/* Header - flugter med sidebaren */}
         <div className="calendar-grid-row timeline-header">

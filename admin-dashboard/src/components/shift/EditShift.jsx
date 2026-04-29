@@ -122,12 +122,12 @@ const EditShift = ({ shift, onClose, onRefresh }) => {
           </div>
 
           <div className="form-actions edit-actions">
-            <button type="button" onClick={handleDelete} className="delete-btn" title="Slet vagt">
+            <button type="button" onClick={handleDelete} className="btn btn-danger delete-btn" title="Slet vagt">
               <FontAwesomeIcon icon={faTrash} /> Slet
             </button>
             <div className="right-actions">
-              <button type="button" onClick={onClose} className="cancel-btn">Annuller</button>
-              <button type="submit" className="submit-btn" disabled={isSaving}>
+              <button type="button" onClick={onClose} className="btn btn-secondary cancel-btn">Annuller</button>
+              <button type="submit" className="btn btn-primary submit-btn" disabled={isSaving}>
                 <FontAwesomeIcon icon={faSave} /> {isSaving ? 'Gemmer...' : 'Gem ændringer'}
               </button>
             </div>

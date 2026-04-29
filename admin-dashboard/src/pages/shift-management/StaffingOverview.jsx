@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { addDays, format } from 'date-fns';
+import { useLocation } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import StaffingShiftOverview from '../../components/shift-management/StaffingShiftOverview';
 import EventLocation from '../../components/shift-management/EventLocation';
@@ -47,7 +48,8 @@ const getShiftDurationHours = (shift) => {
 };
 
 const StaffingOverview = () => {
-	const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+	const location = useLocation();
+	const [selectedDate, setSelectedDate] = useState(location.state?.selectedDate || format(new Date(), 'yyyy-MM-dd'));
 	const [shifts, setShifts] = useState([]);
 	const [employees, setEmployees] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -128,9 +130,6 @@ const StaffingOverview = () => {
 				<div>
 					<p className="staffing-page-eyebrow">Vagtstyring</p>
 					<h1>Bemandingsoversigt</h1>
-					<p className="staffing-page-subtitle">
-						Hurtigt overblik over ledige vagter, dækning og arbejdstimer for valgt dag.
-					</p>
 				</div>
 
 				<StaffingShiftOverview

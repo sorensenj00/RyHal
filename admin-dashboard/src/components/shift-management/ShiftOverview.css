@@ -23,16 +23,19 @@
 
 .shift-overview-header-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-end;
   gap: 0.45rem;
 }
 
-.shift-overview-header-actions .create-shift-btn {
-  margin-top: -0.2rem;
-  padding: 0.52rem 0.82rem;
-  font-size: 0.82rem;
-  border-radius: 9px;
+.shift-overview-edit-btn {
+  padding: 0.38rem 0.68rem;
+  font-weight: 700;
+}
+
+.shift-overview-edit-btn:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
 }
 
 .shift-overview-header h2 {

@@ -10,8 +10,6 @@ import Login from "./pages/login/Login";
 // Sider
 import EmployeeBigCard from './components/employee/EmployeeBigCard';
 import EmployeeListOverview from './pages/employee-list/EmployeeListOverview';
-import CreateNewShift from './components/shift/CreateNewShift';
-import ActivitiesList from './components/activities/ActivitiesList';
 import WorkCalendar from "./pages/work-calendar/WorkCalendar";
 import EventShiftOverview from "./pages/event-shift-overview/EventShiftOverview";
 import CreateNewEmployee from "./pages/create-new-employee/CreateNewEmployee";
@@ -49,8 +47,6 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-    console.log("Session:", session);
-
   // Vis ingenting (eller en spinner) mens vi tjekker om brugeren er logget ind
   if (loading) {
     return <div className="loading-screen">Henter session...</div>;
@@ -77,10 +73,7 @@ function App() {
             <Route path="/employee/:id" element={session ? <ShowEmployee /> : <Navigate to="/login" />} />
             <Route path="/show-employee" element={session ? <ShowEmployee /> : <Navigate to="/login" />} />
             <Route path="/employee-card" element={session ? <EmployeeBigCard /> : <Navigate to="/login" />} />
-            <Route path="/create-shift" element={session ? <CreateNewShift /> : <Navigate to="/login" />} />
             <Route path="/staffing-overview" element={session ? <StaffingOverview /> : <Navigate to="/login" />} />
-            <Route path="/activities/recurring" element={session ? <ActivitiesList type="recurring" /> : <Navigate to="/login" />} />
-            <Route path="/activities/single" element={session ? <ActivitiesList type="single" /> : <Navigate to="/login" />} />
             <Route path="/activities/drafts" element={session ? <Drafts /> : <Navigate to="/login" />} />
             <Route path="/create-activity" element={session ? <CreateNewEvent /> : <Navigate to="/login" />} />
             <Route path="/edit-activity" element={session ? <EditEvent /> : <Navigate to="/login" />} />

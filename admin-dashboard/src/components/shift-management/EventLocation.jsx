@@ -255,7 +255,6 @@ const EventLocation = ({ selectedDate }) => {
             <article key={group.locationId} className="event-location-group">
               <div className="event-location-group-head">
                 <h3>{group.locationName}</h3>
-                <span>{group.events.length} events</span>
               </div>
 
               <ul className="event-location-events">

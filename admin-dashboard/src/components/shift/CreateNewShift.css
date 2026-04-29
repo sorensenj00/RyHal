@@ -1,38 +1,4 @@
 /* Create New Shift Component Styles */
-.create-shift-btn {
-  appearance: none;
-  border: 1px solid #3f7fc3;
-  background: linear-gradient(180deg, #6aa4e2 0%, var(--primary-color) 100%);
-  color: #ffffff;
-  padding: 0.58rem 0.92rem;
-  border-radius: 10px;
-  font-size: 0.84rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  line-height: 1;
-  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
-  box-shadow: 0 10px 20px rgba(74, 143, 217, 0.25);
-}
-
-.create-shift-btn:hover {
-  border-color: #346ea9;
-  background: linear-gradient(180deg, #5a95d7 0%, #3f7fc3 100%);
-  box-shadow: 0 14px 22px rgba(74, 143, 217, 0.3);
-  transform: translateY(-1px);
-}
-
-.create-shift-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.1);
-}
-
-.create-shift-btn:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
-}
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -108,66 +74,28 @@
   outline: none; border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(74, 143, 217, 0.2);
 }
+
+/* Checkbox styling */
+.form-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+  accent-color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 0;
+}
+
 /* Form Actions */
 .form-actions {
   display: flex; justify-content: flex-end; gap: 0.75rem;
   margin-top: 1.5rem; padding-top: 1.25rem;
   border-top: var(--border-width) solid var(--gray-200);
-}
-
-.cancel-btn,
-.submit-btn {
-  appearance: none;
-  border: 1px solid #3f7fc3;
-  background: linear-gradient(180deg, #6aa4e2 0%, var(--primary-color) 100%);
-  color: #ffffff;
-  padding: 0.62rem 1rem;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
-  box-shadow: 0 10px 20px rgba(74, 143, 217, 0.25);
-}
-
-.cancel-btn:hover,
-.submit-btn:hover {
-  border-color: #346ea9;
-  background: linear-gradient(180deg, #5a95d7 0%, #3f7fc3 100%);
-  box-shadow: 0 14px 22px rgba(74, 143, 217, 0.3);
-  transform: translateY(-1px);
-}
-
-.cancel-btn:active,
-.submit-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.1);
-}
-
-.cancel-btn:focus-visible,
-.submit-btn:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
-}
-
-.cancel-btn {
-  color: #ffffff;
-}
-
-.submit-btn {
-  border-color: #3f7fc3;
-  background: linear-gradient(180deg, #6aa4e2 0%, var(--primary-color) 100%);
-  color: #ffffff;
-  box-shadow: 0 10px 20px rgba(74, 143, 217, 0.25);
-}
-
-.submit-btn:hover {
-  border-color: #346ea9;
-  background: linear-gradient(180deg, #5a95d7 0%, #3f7fc3 100%);
 }
 
 .submit-btn:disabled {

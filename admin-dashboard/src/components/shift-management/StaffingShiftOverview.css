@@ -16,16 +16,17 @@
 .staffing-nav-btn {
   width: 36px;
   height: 36px;
-  border: 1px solid var(--gray-300);
-  border-radius: 10px;
-  background: #fff;
+  border: var(--border-width) solid var(--gray-300);
+  border-radius: 0.75rem;
+  background-color: var(--white);
   color: var(--gray-800);
   cursor: pointer;
   font-weight: 700;
+  transition: var(--transition-base);
 }
 
 .staffing-nav-btn:hover {
-  background: var(--gray-100);
+  background-color: var(--gray-100);
 }
 
 .staffing-date-picker-wrap {
