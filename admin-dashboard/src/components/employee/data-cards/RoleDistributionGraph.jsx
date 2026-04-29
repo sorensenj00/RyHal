@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 import { isSameDay, parseISO, format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import api from '../../../api/axiosConfig';
+import { resolveRoleColorValue } from '../../../data/roleColors';
 import './RoleDistributionGraph.css';
 
 const RoleDistributionGraph = ({
@@ -83,8 +84,9 @@ const RoleDistributionGraph = ({
   const roleCounts = useMemo(() => {
     if (distributionSource === 'employee-roles') {
       return resolvedEmployees.reduce((acc, employee) => {
-        const roleName = employee.roles?.[0]?.name || 'Andet';
-        const roleColor = roleColorMap[roleName] || getVar('--color-andet');
+        const primaryRole = employee.roles?.[0];
+        const roleName = primaryRole?.name || 'Andet';
+        const roleColor = resolveRoleColorValue(primaryRole?.color);
 
         if (!acc[roleName]) {
           acc[roleName] = { count: 0, color: roleColor };

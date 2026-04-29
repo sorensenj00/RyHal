@@ -2,28 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './EmployeeTable.css';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
+import { getPrimaryRole, resolveRoleColorValue } from '../../data/roleColors';
 
 const EmployeeTable = ({ employees = [] }) => {
   const navigate = useNavigate();
-  
-  const getVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-
-  const roleColorMap = {
-    'Hal Mand': getVar('--color-hal-mand') || '#B8BB0B',
-    'Hal Dreng': getVar('--color-hal-dreng') || '#D4D700',
-    'Cafemedarbejder': getVar('--color-cafemedarbejder') || '#22C55E',
-    'Administration': getVar('--color-administration') || '#F59E0B',
-    'Rengøring': getVar('--color-rengoering') || '#7C3AED',
-    'Opvasker': getVar('--color-opvasker') || '#06B6D4',
-    'Andet': getVar('--color-andet') || '#94A3B8'
-  };
-
-  // Hjælpefunktion til at håndtere List<Role> fra C#
-  const getPrimaryRole = (roles) => {
-    if (!roles || roles.length === 0) return 'Ingen rolle';
-    // Vi tager den første rolle i listen (eller du kan lave logik for 'vigtigste' rolle)
-    return roles[0].name; 
-  };
 
   return (
     <div className="employee-table-card">
@@ -41,8 +23,9 @@ const EmployeeTable = ({ employees = [] }) => {
             {employees.map(employee => {
               // Bemærk: JSON fra C# bruger små bogstaver (camelCase) som standard
               const id = employee.employeeId;
-              const roleName = getPrimaryRole(employee.roles);
-              const roleColor = roleColorMap[roleName] || roleColorMap['Andet'];
+              const primaryRole = getPrimaryRole(employee.roles);
+              const roleName = primaryRole?.name || 'Ingen rolle';
+              const roleColor = resolveRoleColorValue(primaryRole?.color);
               
               return (
                 <tr key={id}>
@@ -70,8 +53,8 @@ const EmployeeTable = ({ employees = [] }) => {
                     <span 
                       className="role-badge" 
                       style={{ 
-                        backgroundColor: `${roleColor}26`, 
-                        color: roleColor 
+                        backgroundColor: roleColor,
+                        color: '#fff'
                       }}
                     >
                       {roleName}

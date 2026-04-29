@@ -1,7 +1,7 @@
 namespace SportCenter.Api.DTOs;
 
-public class RoleDto
+public class CreateRoleDto
 {
     public string Name { get; set; } = string.Empty;
-    public string Color { get; set; } = "--color-andet";
+    public string? Color { get; set; }
 }

@@ -43,6 +43,22 @@ function buildApiUrl(path, params = {}) {
   return url.toString();
 }
 
+function toCssColorValue(value) {
+  const token = typeof value === "string" ? value.trim() : "";
+  const normalized = token || "--color-andet";
+
+  if (!normalized.startsWith("--")) {
+    return normalized;
+  }
+
+  if (typeof window === "undefined") {
+    return "#94A3B8";
+  }
+
+  const resolved = getComputedStyle(document.documentElement).getPropertyValue(normalized).trim();
+  return resolved || "#94A3B8";
+}
+
 function App() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
@@ -275,7 +291,17 @@ function App() {
                     </div>
                     <div>
                       <span>Rolle</span>
-                      <strong>{firstRow.roleName}</strong>
+                      <strong
+                        style={{
+                          display: "inline-flex",
+                          padding: "0.2rem 0.5rem",
+                          borderRadius: "999px",
+                          background: toCssColorValue(firstRow.roleColor),
+                          color: "#fff",
+                        }}
+                      >
+                        {firstRow.roleName}
+                      </strong>
                     </div>
                     <div>
                       <span>Seneste vagt</span>
@@ -335,7 +361,19 @@ function App() {
                   {rows.map((row) => (
                     <tr key={row.employeeId}>
                       <td>{row.fullName}</td>
-                      <td>{row.roleName}</td>
+                      <td>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            padding: "0.2rem 0.5rem",
+                            borderRadius: "999px",
+                            background: toCssColorValue(row.roleColor),
+                            color: "#fff",
+                          }}
+                        >
+                          {row.roleName}
+                        </span>
+                      </td>
                       <td>{row.shiftCount}</td>
                       <td>{row.totalHours}</td>
                       <td>{formatDate(row.firstShiftStart)}</td>

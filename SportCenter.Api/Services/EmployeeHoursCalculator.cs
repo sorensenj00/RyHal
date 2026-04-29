@@ -86,6 +86,7 @@ public static class EmployeeHoursCalculator
             FullName = $"{employee.FirstName} {employee.LastName}".Trim(),
             RoleId = primaryRole?.RoleId,
             RoleName = primaryRole?.Name ?? "Ingen rolle",
+            RoleColor = string.IsNullOrWhiteSpace(primaryRole?.Color) ? "--color-andet" : primaryRole!.Color,
             ShiftCount = employeeShifts.Count,
             TotalMinutes = totalMinutes,
             FirstShiftStart = employeeShifts.FirstOrDefault()?.StartTime,

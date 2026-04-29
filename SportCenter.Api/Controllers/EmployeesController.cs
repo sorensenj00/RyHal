@@ -46,7 +46,11 @@ public class EmployeesController : ControllerBase
                     AppAccess = e.AppAccess,
                     Roles = e.EmployeeRoles?
                         .Where(er => er.Role != null)
-                        .Select(er => new RoleDto { Name = er.Role!.Name })
+                        .Select(er => new RoleDto
+                        {
+                            Name = er.Role!.Name,
+                            Color = string.IsNullOrWhiteSpace(er.Role.Color) ? "--color-andet" : er.Role.Color
+                        })
                         .ToList() ?? new List<RoleDto>()
                 });
             }

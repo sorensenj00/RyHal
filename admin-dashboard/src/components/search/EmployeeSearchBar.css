@@ -2,6 +2,8 @@
 .searchable-select-container {
   position: relative;
   width: 100%;
+  overflow: visible;
+  z-index: 300;
 }
 
 .search-input-box {
@@ -57,11 +59,11 @@
   right: 0;
   background: var(--white);
   border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow-lg);
+  box-shadow: none;
   border: 1px solid var(--gray-200);
   max-height: 250px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 10000;
 }
 
 .dropdown-item {
