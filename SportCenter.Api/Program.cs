@@ -38,6 +38,7 @@ builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<AssociationService>();
 builder.Services.AddScoped<ContactService>();
 builder.Services.AddScoped<EmployeeHoursService>();
+builder.Services.AddScoped<SwapRequestService>();
 
 
 // 4. Registrér controllers

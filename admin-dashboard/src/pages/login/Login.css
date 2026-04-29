@@ -66,6 +66,15 @@
   font-size: var(--font-size-sm);
 }
 
+.session-alert {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  padding: var(--spacer-sm);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+}
+
 .forgot-link {
   text-align: right;
   font-size: var(--font-size-sm);

@@ -7,17 +7,38 @@ export const APP_ACCESS = {
   EMPLOYEE: "employee",
 };
 
+export class AuthRequestError extends Error {
+  constructor(message, { status = null, retryable = false } = {}) {
+    super(message);
+    this.name = "AuthRequestError";
+    this.status = status;
+    this.retryable = retryable;
+  }
+}
+
 export async function fetchAuthMe(accessToken) {
-  const response = await fetch(`${apiBaseUrl}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  let response;
+
+  try {
+    response = await fetch(`${apiBaseUrl}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  } catch {
+    throw new AuthRequestError("Kunne ikke kontakte serveren for at bekræfte login.", {
+      retryable: true,
+    });
+  }
 
   const payload = await safeReadJson(response);
 
   if (!response.ok) {
-    throw new Error(payload?.message || "Kunne ikke hente login-oplysninger.");
+    const message = payload?.message || payload?.Message || "Kunne ikke hente login-oplysninger.";
+    throw new AuthRequestError(message, {
+      status: response.status,
+      retryable: response.status >= 500,
+    });
   }
 
   return payload;
@@ -33,6 +54,14 @@ export function getAdminAppHomeUrl() {
 
 export function getLoginUrl() {
   return loginUrl;
+}
+
+export function shouldSignOutOnAuthError(error) {
+  return error?.status === 401 || error?.status === 403;
+}
+
+export function isRetryableAuthError(error) {
+  return Boolean(error?.retryable);
 }
 
 async function safeReadJson(response) {
