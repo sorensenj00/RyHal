@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using SportCenter.Api.DTOs;
 using SportCenter.Api.Models;
 using SportCenter.Api.Services;
-using SportCenter.Api.DTOs;
 
 namespace SportCenter.Api.Controllers;
 
@@ -142,7 +143,7 @@ public class EmployeesController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("employee/{id}/delete")]
     public async Task<IActionResult> DeleteEmployee(int id)
     {
         var authHeader = Request.Headers["Authorization"].ToString();
@@ -170,7 +171,7 @@ public class EmployeesController : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("getemployee/{id}")]
     public async Task<IActionResult> GetEmployee(int id)
     {
         try
@@ -217,5 +218,140 @@ public class EmployeesController : ControllerBase
         {
             return StatusCode(500, ex.ToString());
         }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetQualifications()
+    {
+        try
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+            var qualifications = await _employeeService.GetAllQualificationsAsync(token);
+
+            if (qualifications == null)
+                return StatusCode(500, "qualifications er null");
+
+            var qualificationDtos = new List<QualificationDto>();
+
+            foreach (var q in qualifications)
+            {
+                qualificationDtos.Add(new QualificationDto
+                {
+                    QualificationId = q.QualificationID,
+                    Name = q.Name,
+                    Description = q.Description
+                });
+            }
+
+            return Ok(qualificationDtos);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.ToString());
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateQualification([FromBody] CreateQualificationDto qualificationDto)
+    {
+        try
+        {
+            if (qualificationDto == null) return BadRequest("Qualification data mangler.");
+
+            var authHeader = Request.Headers["Authorization"].ToString();
+            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+            var createdQualification = await _employeeService.CreateQualificationAsync(qualificationDto, token);
+
+            return Ok(new
+            {
+                Message = "Qualification oprettet korrekt",
+                Name = createdQualification.Name,
+                Description = createdQualification.Description
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Intern serverfejl: {ex.Message}");
+        }
+    }
+
+    [HttpDelete("deleteQualification/{id}")]
+    public async Task<IActionResult> DeleteQualification(int id)
+    {
+        try
+        {
+            var success = await _employeeService.RemoveQualificationAsync(id);
+
+            if (!success) return NotFound();
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new
+            {
+                Message = ex.Message,
+                Details = ex.InnerException?.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Intern serverfejl: {ex.Message}");
+        }
+    }
+
+    [HttpGet("getQualification/{id}")]
+    public async Task<IActionResult> GetQualification(int id)
+    {
+        try
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+            var qualification = await _employeeService.GetQualificationAsync(id, token);
+
+            if (qualification == null)
+                return StatusCode(500, "qualification er null");
+
+            var toReturn = new QualificationDto
+            {
+                QualificationId = qualification.QualificationID,
+                Name = qualification.Name,
+                Description = qualification.Description
+            };
+
+
+            return Ok(toReturn);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new
+            {
+                Message = ex.Message,
+                Details = ex.InnerException?.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.ToString());
+        }
+    }
+
+    [HttpPut("addQualificationEmployee/{employeeId}/{qualificationId}")]
+    public async Task<IActionResult> AddQualificationToEmployee(int employeeId, int qualificaitonId)
+    {
+        //TODO
+        return null;
+    }
+
+    [HttpDelete("deleteQualificationEmployee{employeeId}/{qualificationId}")]
+    public async Task<IActionResult> DeleteQualificationFromEmployee(int employeeId, int qualificationId)
+    {
+        //TODO
+        return null;
+
     }
 }
