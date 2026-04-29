@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { APP_ACCESS, fetchAuthMe, getAdminAppHomeUrl, getApiBaseUrl, getLoginUrl } from "../auth/session";
+import { APP_ACCESS, fetchAuthMe, getAdminAppHomeUrl, getApiBaseUrl, getLoginUrl, isRetryableAuthError, shouldSignOutOnAuthError } from "../auth/session";
 
 const DEFAULT_WEEK_DAYS = 7;
 const EmployeePortalContext = createContext(null);
@@ -65,11 +65,20 @@ export function EmployeePortalProvider({ children }) {
   const [swapRequests, setSwapRequests] = useState([]);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState("Henter medarbejderportal...");
+  const [authRetryTick, setAuthRetryTick] = useState(0);
   const weekRange = useMemo(() => getWeekRange(), []);
   const isRedirectingRef = useRef(false);
+  const retryAuth = () => {
+    isRedirectingRef.current = false;
+    setError("");
+    setStatusMessage("Prøver at gendanne session...");
+    setLoading(true);
+    setAuthRetryTick((value) => value + 1);
+  };
 
   useEffect(() => {
     let active = true;
+    const pause = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
     const fetchJson = async (url, token) => {
       const response = await fetch(url, {
@@ -141,7 +150,7 @@ export function EmployeePortalProvider({ children }) {
       setError(nextErrors.join(" "));
     };
 
-    const resolveSession = async (nextSession) => {
+    const resolveSession = async (nextSession, { hasRetried = false, hasRefreshed = false } = {}) => {
       if (isRedirectingRef.current) {
         return;
       }
@@ -164,12 +173,39 @@ export function EmployeePortalProvider({ children }) {
         }
 
         setProfile(authMe);
+        setError("");
         await loadEmployeeData(nextSession.access_token);
 
         if (!active) return;
         setLoading(false);
       } catch (err) {
-        await redirectToLogin(err.message || "Kunne ikke bekræfte adgang.");
+        if (!hasRefreshed && shouldSignOutOnAuthError(err) && nextSession?.refresh_token) {
+          const { data, error: refreshError } = await supabase.auth.refreshSession();
+          if (!active) return;
+
+          if (!refreshError && data?.session?.access_token) {
+            await resolveSession(data.session, { hasRetried, hasRefreshed: true });
+            return;
+          }
+        }
+
+        if (!hasRetried && isRetryableAuthError(err)) {
+          await pause(1000);
+          if (!active) return;
+
+          const { data: { session: latestSession } } = await supabase.auth.getSession();
+          await resolveSession(latestSession ?? nextSession, { hasRetried: true, hasRefreshed });
+          return;
+        }
+
+        if (shouldSignOutOnAuthError(err)) {
+          await redirectToLogin(err.message || "Kunne ikke bekræfte adgang.");
+          return;
+        }
+
+        setError(err.message || "Kunne ikke bekræfte adgang lige nu.");
+        setStatusMessage(err.message || "Kunne ikke bekræfte adgang lige nu.");
+        setLoading(false);
       }
     };
 
@@ -213,7 +249,7 @@ export function EmployeePortalProvider({ children }) {
       active = false;
       subscription.unsubscribe();
     };
-  }, [weekRange.end, weekRange.start]);
+  }, [authRetryTick, weekRange.end, weekRange.start]);
 
   const handleLogout = async () => {
     await supabase?.auth.signOut();
@@ -228,6 +264,8 @@ export function EmployeePortalProvider({ children }) {
         hoursOverview,
         loading,
         profile,
+        retryAuth,
+        canRetryAuth: !loading && !profile && !isRedirectingRef.current,
         statusMessage,
         swapRequests,
         weekRange,

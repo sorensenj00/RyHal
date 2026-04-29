@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import './App.css';
-import { fetchAuthMe, getEmployeeAppTransferUrl, APP_ACCESS } from "./auth/session";
+import { fetchAuthMe, getEmployeeAppTransferUrl, APP_ACCESS, isRetryableAuthError, shouldSignOutOnAuthError } from "./auth/session";
 
 // Komponenter
 import NavBar from "./components/navbar/NavBar";
@@ -35,7 +35,9 @@ import StaffingOverview from "./pages/shift-management/StaffingOverview";
 function AppContent() {
   const [session, setSession] = useState(null);
   const [authProfile, setAuthProfile] = useState(null);
-  const [loading, setLoading] = useState(true); // Tilføjet for at undgå "flicker" ved reload
+  const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState("");
+  const [retryTick, setRetryTick] = useState(0);
   const { pathname } = useLocation();
   const currentPath = pathname.replace(/\/+$/, "") || "/";
   const isLoginRoute = currentPath === "/login";
@@ -46,11 +48,14 @@ function AppContent() {
   useEffect(() => {
     let active = true;
 
-    const resolveSession = async (nextSession) => {
+    const pause = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+    const resolveSession = async (nextSession, { hasRetried = false, hasRefreshed = false } = {}) => {
       if (!nextSession?.access_token) {
         if (!active) return;
         setSession(null);
         setAuthProfile(null);
+        setAuthError("");
         setLoading(false);
         return;
       }
@@ -61,6 +66,7 @@ function AppContent() {
 
         setSession(nextSession);
         setAuthProfile(profile);
+        setAuthError("");
         setLoading(false);
 
         if (profile.appAccess !== APP_ACCESS.ADMIN && !isResetPasswordRoute && !isLoginRoute) {
@@ -68,10 +74,38 @@ function AppContent() {
         }
       } catch (error) {
         if (!active) return;
-        setSession(null);
-        setAuthProfile(null);
+
+        if (!hasRefreshed && shouldSignOutOnAuthError(error) && nextSession?.refresh_token) {
+          const { data, error: refreshError } = await supabase.auth.refreshSession();
+          if (!active) return;
+
+          if (!refreshError && data?.session?.access_token) {
+            await resolveSession(data.session, { hasRetried, hasRefreshed: true });
+            return;
+          }
+        }
+
+        if (!hasRetried && isRetryableAuthError(error)) {
+          await pause(1000);
+          if (!active) return;
+
+          const { data: { session: latestSession } } = await supabase.auth.getSession();
+          await resolveSession(latestSession ?? nextSession, { hasRetried: true, hasRefreshed });
+          return;
+        }
+
+        if (shouldSignOutOnAuthError(error)) {
+          setSession(null);
+          setAuthProfile(null);
+          setAuthError("");
+          setLoading(false);
+          await supabase.auth.signOut();
+          return;
+        }
+
+        setSession(nextSession);
+        setAuthError(error.message || "Kunne ikke bekræfte login lige nu.");
         setLoading(false);
-        await supabase.auth.signOut();
       }
     };
 
@@ -87,11 +121,25 @@ function AppContent() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [isLoginRoute, isResetPasswordRoute]);
+  }, [isLoginRoute, isResetPasswordRoute, retryTick]);
 
-  // Vis ingenting (eller en spinner) mens vi tjekker om brugeren er logget ind
   if (loading) {
     return <div className="loading-screen">Henter session...</div>;
+  }
+
+  if (session && !authProfile && authError) {
+    return (
+      <div className="loading-screen">
+        <p>{authError}</p>
+        <button type="button" className="btn btn-primary" onClick={() => {
+          setAuthError("");
+          setLoading(true);
+          setRetryTick((value) => value + 1);
+        }}>
+          Prøv igen
+        </button>
+      </div>
+    );
   }
 
   if (session && authProfile && authProfile.appAccess !== APP_ACCESS.ADMIN && !isResetPasswordRoute && !isLoginRoute) {

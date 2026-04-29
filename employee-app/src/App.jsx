@@ -9,7 +9,7 @@ import SwapsPage from "./pages/SwapsPage";
 import ProfilePage from "./pages/ProfilePage";
 
 function AppRoutes() {
-  const { loading, profile, statusMessage } = useEmployeePortal();
+  const { loading, profile, statusMessage, retryAuth, canRetryAuth } = useEmployeePortal();
 
   if (loading) {
     return (
@@ -28,6 +28,11 @@ function AppRoutes() {
         <div className="employee-loading">
           <p className="eyebrow">Medarbejderportal</p>
           <h1>{statusMessage}</h1>
+          {canRetryAuth ? (
+            <button type="button" className="quick-link-card" onClick={retryAuth}>
+              Prøv igen
+            </button>
+          ) : null}
         </div>
       </div>
     );
