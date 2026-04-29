@@ -10,10 +10,12 @@ namespace SportCenter.Api.Controllers;
 public class EmployeesController : ControllerBase
 {
     private readonly EmployeeService _employeeService;
+    private readonly AuthContextService _authContextService;
 
-    public EmployeesController(EmployeeService employeeService)
+    public EmployeesController(EmployeeService employeeService, AuthContextService authContextService)
     {
         _employeeService = employeeService;
+        _authContextService = authContextService;
     }
 
     [HttpGet]
@@ -21,8 +23,8 @@ public class EmployeesController : ControllerBase
     {
         try
         {
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            var token = GetToken();
+            await _authContextService.RequireAdminAsync(token);
 
             var employees = await _employeeService.GetAllEmployeesAsync(token);
 
@@ -41,6 +43,7 @@ public class EmployeesController : ControllerBase
                     Email = e.Email,
                     Phone = e.Phone,
                     Birthday = e.Birthday.HasValue ? DateOnly.FromDateTime(e.Birthday.Value) : null,
+                    AppAccess = e.AppAccess,
                     Roles = e.EmployeeRoles?
                         .Where(er => er.Role != null)
                         .Select(er => new RoleDto { Name = er.Role!.Name })
@@ -49,6 +52,10 @@ public class EmployeesController : ControllerBase
             }
 
             return Ok(employeeDtos);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -63,17 +70,32 @@ public class EmployeesController : ControllerBase
         {
             if (employeeDto == null) return BadRequest("Medarbejder data mangler.");
 
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            var token = GetToken();
+            await _authContextService.RequireAdminAsync(token);
 
             var createdEmployee = await _employeeService.CreateEmployeeAsync(employeeDto, token);
 
             return Ok(new { 
                 Message = "Medarbejder oprettet korrekt", 
                 EmployeeId = createdEmployee.EmployeeId,
+                SupabaseUserId = createdEmployee.SupabaseUserId,
+                AppAccess = createdEmployee.AppAccess,
                 FirstName = createdEmployee.FirstName,
                 LastName = createdEmployee.LastName
             });
+        }
+        catch (InvalidOperationException ex)
+        {
+            if (ex.Message.Contains("allerede", StringComparison.OrdinalIgnoreCase))
+            {
+                return Conflict(new { Message = ex.Message });
+            }
+
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -88,8 +110,8 @@ public class EmployeesController : ControllerBase
         {
             if (dto == null) return BadRequest("Opdateringsdata mangler.");
 
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            var token = GetToken();
+            await _authContextService.RequireAdminAsync(token);
 
             var success = await _employeeService.UpdateEmployeeContactAsync(id, dto, token);
             if (!success) return NotFound();
@@ -101,6 +123,10 @@ public class EmployeesController : ControllerBase
                 Email = dto.Email,
                 Phone = dto.Phone
             });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -115,8 +141,8 @@ public class EmployeesController : ControllerBase
         {
             if (dto == null) return BadRequest("Rolledata mangler.");
 
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            var token = GetToken();
+            await _authContextService.RequireAdminAsync(token);
 
             var success = await _employeeService.UpdateEmployeeRoleAsync(id, dto, token);
             if (!success) return NotFound();
@@ -132,6 +158,10 @@ public class EmployeesController : ControllerBase
         {
             return BadRequest(new { Message = ex.Message });
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
         catch (Exception ex)
         {
             return StatusCode(500, $"Intern serverfejl: {ex.Message}");
@@ -141,11 +171,11 @@ public class EmployeesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteEmployee(int id)
     {
-        var authHeader = Request.Headers["Authorization"].ToString();
-        string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+        var token = GetToken();
 
         try
         {
+            await _authContextService.RequireAdminAsync(token);
             var success = await _employeeService.RemoveEmployeeAsync(id, token);
 
             if (!success) return NotFound();
@@ -160,9 +190,21 @@ public class EmployeesController : ControllerBase
                 Details = ex.InnerException?.Message
             });
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
         catch (Exception ex)
         {
             return StatusCode(500, $"Intern serverfejl: {ex.Message}");
         }
+    }
+
+    private string? GetToken()
+    {
+        var authHeader = Request.Headers["Authorization"].ToString();
+        return authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? authHeader[7..]
+            : null;
     }
 }

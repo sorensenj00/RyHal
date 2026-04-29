@@ -1,0 +1,56 @@
+.recovery-helper-text {
+  margin-top: -0.25rem;
+  margin-bottom: 0.75rem;
+  color: #5f6368;
+  line-height: 1.5;
+}
+
+.recovery-message {
+  margin-bottom: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.recovery-message.success {
+  background: #eef9ef;
+  color: #1e6b2d;
+  border: 1px solid #b9e4c2;
+}
+
+.recovery-message.info {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.recovery-message.error {
+  background: #fff5f5;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.recovery-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+  margin-top: -0.25rem;
+}
+
+.recovery-actions a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.recovery-actions a:hover {
+  text-decoration: underline;
+}
+
+.recovery-hint {
+  margin-top: 0.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}

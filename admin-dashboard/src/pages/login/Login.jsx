@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useNavigate, Link } from "react-router-dom";
 import './Login.css'; 
+import { fetchAuthMe, getAppUrlForRedirectTarget } from "../../auth/session";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -21,7 +22,30 @@ function Login() {
       setErrorMessage("Forkert email eller adgangskode.");
       setLoading(false);
     } else {
-      navigate("/home");
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session;
+
+      if (!session?.access_token) {
+        setErrorMessage("Kunne ikke hente login-sessionen.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const authMe = await fetchAuthMe(session.access_token);
+        const targetUrl = getAppUrlForRedirectTarget(authMe.redirectTarget);
+
+        if (authMe.appAccess === "employee") {
+          window.location.assign(targetUrl);
+          return;
+        }
+
+        navigate("/home", { replace: true });
+      } catch (authError) {
+        await supabase.auth.signOut();
+        setErrorMessage(authError.message || "Du har ikke adgang til en app endnu.");
+        setLoading(false);
+      }
     }
   };
 

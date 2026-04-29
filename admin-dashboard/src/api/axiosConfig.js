@@ -2,7 +2,7 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient'; // Importér din eksisterende supabase instans
 
 const api = axios.create({
-  baseURL: 'http://localhost:5172/api', // Erstat med din C# API URL
+  baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5172/api',
 });
 
 // En "Interceptor" der kører før hvert eneste kald

@@ -12,6 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./NavBar.css";
 import { ActivePagesForNavBar } from "./ActivePagesForNavBar";
+import { getLoginUrl } from "../../auth/session";
 
 const NavBar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -24,6 +25,7 @@ const NavBar = () => {
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) console.error("Fejl ved logud:", error.message);
+    window.location.assign(getLoginUrl());
   };
 
   // ... (din eksisterende useEffect og toggleSubmenu logik forbliver uændret)

@@ -6,11 +6,17 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Konfigurér CORS så din React frontend (port 3000) må kalde din API
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowReact", policy => {
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:4173",
+                "http://localhost:4174")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
+
+builder.Services.AddHttpClient();
 
 // 2. Registrér Supabase Klienten
 // Sørg for at "Supabase:Url" og "Supabase:Key" findes i din appsettings.json
@@ -23,7 +29,9 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
 );
 
 // 3. Registrér dine business logic services (Dependency Injection)
+builder.Services.AddScoped<SupabaseAuthProvisioningService>();
 builder.Services.AddScoped<EmployeeService>();
+builder.Services.AddScoped<AuthContextService>();
 builder.Services.AddScoped<ShiftService>(); // Vigtigt: Denne manglede for at fjerne build-fejl
 builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<EventService>();

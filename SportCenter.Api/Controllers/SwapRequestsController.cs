@@ -9,10 +9,12 @@ namespace SportCenter.Api.Controllers
     public class SwapRequestsController : ControllerBase
     {
         private readonly SwapRequestService _swapService;
+        private readonly AuthContextService _authContextService;
 
-        public SwapRequestsController(SwapRequestService swapService)
+        public SwapRequestsController(SwapRequestService swapService, AuthContextService authContextService)
         {
             _swapService = swapService;
+            _authContextService = authContextService;
         }
 
         private string? GetToken()
@@ -28,9 +30,21 @@ namespace SportCenter.Api.Controllers
             try
             {
                 var token = GetToken();
+                var authMe = await _authContextService.GetAuthMeAsync(token);
                 var swaps = await _swapService.GetAllSwapRequestsAsync(token);
 
+                if (!string.Equals(authMe.AppAccess, "admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    swaps = swaps
+                        .Where(s => s.RequesterId == authMe.EmployeeId || s.TargetEmployeeId == authMe.EmployeeId)
+                        .ToList();
+                }
+
                 return Ok(swaps);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -45,14 +59,19 @@ namespace SportCenter.Api.Controllers
             try
             {
                 var token = GetToken();
+                var authMe = await _authContextService.GetAuthMeAsync(token);
 
                 var result = await _swapService.CreateSwapRequestAsync(
-                    dto.RequesterId,
+                    authMe.EmployeeId,
                     dto.OfferedShiftId,
                     dto.RequestedShiftId,
                     token);
 
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -67,10 +86,15 @@ namespace SportCenter.Api.Controllers
             try
             {
                 var token = GetToken();
+                var authMe = await _authContextService.GetAuthMeAsync(token);
 
-                var result = await _swapService.AcceptSwapRequestAsync(id, dto.EmployeeId, token);
+                var result = await _swapService.AcceptSwapRequestAsync(id, authMe.EmployeeId, token);
 
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -85,10 +109,15 @@ namespace SportCenter.Api.Controllers
             try
             {
                 var token = GetToken();
+                var authMe = await _authContextService.GetAuthMeAsync(token);
 
-                var result = await _swapService.RejectSwapRequestAsync(id, dto.EmployeeId, token);
+                var result = await _swapService.RejectSwapRequestAsync(id, authMe.EmployeeId, token);
 
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -103,10 +132,15 @@ namespace SportCenter.Api.Controllers
             try
             {
                 var token = GetToken();
+                var authMe = await _authContextService.RequireAdminAsync(token);
 
-                var result = await _swapService.ApproveSwapRequestAsync(id, dto.EmployeeId, token);
+                var result = await _swapService.ApproveSwapRequestAsync(id, authMe.EmployeeId, token);
 
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
             }
             catch (Exception ex)
             {

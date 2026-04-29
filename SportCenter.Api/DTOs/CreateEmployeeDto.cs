@@ -11,5 +11,8 @@ namespace SportCenter.Api.DTOs
 
         [JsonPropertyName("birthDate")]
         public DateTime Birthday { get; set; }
+
+        public string? SupabaseUserId { get; set; }
+        public string? AppAccess { get; set; }
     }
 }

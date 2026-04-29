@@ -13,6 +13,7 @@ const CreateNewEmployee = () => {
     phone: '',
     email: '',
     birthDate: '', // Vi omdøber 'age' til birthDate for klarhed
+    appAccess: 'employee',
   });
 
   const handleChange = (e) => {
@@ -32,7 +33,8 @@ const CreateNewEmployee = () => {
         lastName: formData.lastName,
         phone: formData.phone,
         email: formData.email,
-        birthDate: formData.birthDate // Din C# service håndterer typisk konvertering til DateTime
+        birthDate: formData.birthDate,
+        appAccess: formData.appAccess
       };
 
       // POST kald til din Controller: [HttpPost] i EmployeesController
@@ -45,7 +47,12 @@ const CreateNewEmployee = () => {
 
     } catch (err) {
       console.error("Fejl ved oprettelse:", err);
-      setError(err.response?.data || "Der skete en fejl ved gem af medarbejder.");
+      setError(
+        err.response?.data?.message
+        || err.response?.data?.Message
+        || err.response?.data
+        || "Der skete en fejl ved gem af medarbejder."
+      );
     } finally {
       setLoading(false);
     }
@@ -105,6 +112,19 @@ const CreateNewEmployee = () => {
             required 
             style={{ width: '100%', padding: '8px' }} 
           />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', marginBottom: '5px' }}>App-adgang:</label>
+          <select
+            name="appAccess"
+            value={formData.appAccess}
+            onChange={handleChange}
+            style={{ width: '100%', padding: '8px' }}
+          >
+            <option value="employee">Medarbejder</option>
+            <option value="admin">Admin</option>
+          </select>
         </div>
 
         <button 

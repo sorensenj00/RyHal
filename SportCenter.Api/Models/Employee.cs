@@ -29,6 +29,12 @@ public class Employee : BaseModel
     [JsonConverter(typeof(LocalDateOnlyJsonConverter))]
     public DateTime? Birthday { get; set; }
 
+    [Postgrest.Attributes.Column("supabase_user_id")]
+    public string? SupabaseUserId { get; set; }
+
+    [Postgrest.Attributes.Column("app_access")]
+    public string? AppAccess { get; set; }
+
     [Reference(typeof(EmployeeRole), ReferenceAttribute.JoinType.Left, true, "employee_id")]
     public List<EmployeeRole> EmployeeRoles { get; set; } = new List<EmployeeRole>();
 }

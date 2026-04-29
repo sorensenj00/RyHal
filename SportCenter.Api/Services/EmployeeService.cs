@@ -7,10 +7,12 @@ namespace SportCenter.Api.Services
     public class EmployeeService
     {
         private readonly Supabase.Client _supabase;
+        private readonly SupabaseAuthProvisioningService _supabaseAuthProvisioningService;
 
-        public EmployeeService(Supabase.Client supabase)
+        public EmployeeService(Supabase.Client supabase, SupabaseAuthProvisioningService supabaseAuthProvisioningService)
         {
             _supabase = supabase;
+            _supabaseAuthProvisioningService = supabaseAuthProvisioningService;
         }
 
         public async Task<List<Employee>> GetAllEmployeesAsync(string? accessToken = null)
@@ -38,19 +40,57 @@ namespace SportCenter.Api.Services
                 await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
             }
 
+            var normalizedEmail = NormalizeEmail(dto.Email);
+            var existingEmployeeResponse = await _supabase.From<Employee>()
+                .Where(x => x.Email == normalizedEmail)
+                .Get();
+
+            if (existingEmployeeResponse.Models.Any())
+            {
+                throw new InvalidOperationException($"Der findes allerede en medarbejder med emailen {normalizedEmail}.");
+            }
+
+            var normalizedAppAccess = NormalizeAppAccess(dto.AppAccess);
+            var authProvisionedUser = await _supabaseAuthProvisioningService.ProvisionEmployeeAsync(
+                normalizedEmail,
+                dto.FirstName,
+                dto.LastName,
+                dto.Phone,
+                normalizedAppAccess);
+
             var newEmployee = new Employee
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
-                Email = dto.Email,
+                Email = normalizedEmail,
                 Phone = dto.Phone,
-                Birthday = dto.Birthday.Date
+                // Gemmes som dato uden tidspunkt, så det matcher databasekolonnen
+                Birthday = dto.Birthday.Date,
+                SupabaseUserId = authProvisionedUser.UserId,
+                AppAccess = normalizedAppAccess
             };
 
-            // Gemmer i Supabase
-            var result = await _supabase.From<Employee>().Insert(newEmployee);
+            try
+            {
+                // Gemmer i Supabase
+                var result = await _supabase.From<Employee>().Insert(newEmployee);
 
-            return result.Models.First();
+                return result.Models.First();
+            }
+            catch
+            {
+                try
+                {
+                    await _supabaseAuthProvisioningService.DeleteUserAsync(authProvisionedUser.UserId);
+                }
+                catch (Exception cleanupEx)
+                {
+                    throw new InvalidOperationException(
+                        $"Medarbejderen kunne ikke gemmes, og oprydning af Supabase-login mislykkedes: {cleanupEx.Message}");
+                }
+
+                throw;
+            }
         }
 
         public async Task<bool> UpdateEmployeeContactAsync(int employeeId, UpdateEmployeeContactDto dto, string? accessToken = null)
@@ -262,6 +302,33 @@ namespace SportCenter.Api.Services
             }
 
             return employee.Birthday.Value.Date.AddYears(18) <= DateTime.Now.Date;
+        }
+
+        private static string NormalizeAppAccess(string? appAccess)
+        {
+            var normalized = appAccess?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return "employee";
+            }
+
+            if (normalized is not ("admin" or "employee"))
+            {
+                throw new InvalidOperationException($"Ukendt app-adgang: {appAccess}");
+            }
+
+            return normalized;
+        }
+
+        private static string NormalizeEmail(string email)
+        {
+            var normalized = email?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                throw new InvalidOperationException("Email mangler.");
+            }
+
+            return normalized;
         }
 
         public async Task<List<Shift>> GetFutureShiftsForEmployeeAsync(int employeeId)
