@@ -16,7 +16,10 @@ const ShowEmployee = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isShiftPanelOpen, setIsShiftPanelOpen] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const calculateIsOver18 = (birthday) => {
     if (!birthday) return null;
@@ -108,57 +111,15 @@ const ShowEmployee = () => {
     setSelectedEmployee(prev => {
       if (!prev) return prev;
 
-      const previousRole = prev.role || 'Ingen rolle';
-      if (previousRole === nextRole) {
+      if ((prev.role || 'Ingen rolle') === nextRole) {
         return prev;
       }
-
-      // Gem rolle med det samme ved ændring.
-      void saveEmployeeRole(prev, nextRole, previousRole);
 
       return {
         ...prev,
         role: nextRole
       };
     });
-  };
-
-  const saveEmployeeRole = async (employee, nextRole, previousRole) => {
-    if (!employee?.employeeId) return;
-
-    try {
-      setIsSaving(true);
-      setSaveMessage(null);
-
-      await api.put(`/employees/${employee.employeeId}/role`, {
-        roleName: nextRole !== 'Ingen rolle' ? nextRole : ''
-      });
-
-      setEmployees(prevEmployees => prevEmployees.map(emp => (
-        emp.employeeId === employee.employeeId
-          ? {
-              ...emp,
-              role: nextRole
-            }
-          : emp
-      )));
-
-      setSaveMessage({ type: 'success', text: 'Rolle gemt automatisk.' });
-    } catch (err) {
-      console.error('Fejl ved auto-gem af rolle:', err?.response?.data || err);
-
-      setSelectedEmployee(prev => {
-        if (!prev || prev.employeeId !== employee.employeeId) return prev;
-        return {
-          ...prev,
-          role: previousRole
-        };
-      });
-
-      setSaveMessage({ type: 'error', text: 'Kunne ikke gemme rolle automatisk.' });
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   const handleSaveChanges = async () => {
@@ -173,6 +134,10 @@ const ShowEmployee = () => {
         phone: selectedEmployee.phone
       });
 
+      await api.put(`/employees/${selectedEmployee.employeeId}/role`, {
+        roleName: selectedEmployee.role !== 'Ingen rolle' ? selectedEmployee.role : ''
+      });
+
       setEmployees(prevEmployees => prevEmployees.map(emp => (
         emp.employeeId === selectedEmployee.employeeId
           ? {
@@ -184,10 +149,10 @@ const ShowEmployee = () => {
           : emp
       )));
 
-      setSaveMessage({ type: 'success', text: 'Kontaktoplysninger gemt.' });
+      setSaveMessage({ type: 'success', text: 'Ændringer gemt.' });
     } catch (err) {
       console.error('Fejl ved gem af medarbejder:', err?.response?.data || err);
-      setSaveMessage({ type: 'error', text: 'Kunne ikke gemme kontaktoplysninger.' });
+      setSaveMessage({ type: 'error', text: 'Kunne ikke gemme ændringer.' });
     } finally {
       setIsSaving(false);
     }
@@ -196,6 +161,42 @@ const ShowEmployee = () => {
   const handleOpenHoursOverview = () => {
     if (!selectedEmployee?.employeeId) return;
     navigate(`/employee-hours?employeeId=${selectedEmployee.employeeId}`);
+  };
+
+  const handleToggleShiftPanel = () => {
+    setIsShiftPanelOpen(prev => !prev);
+  };
+
+  const handleCloseShiftPanel = () => {
+    setIsShiftPanelOpen(false);
+  };
+
+  const openDeleteConfirm = () => {
+    if (!selectedEmployee) return;
+    setPendingDelete(selectedEmployee);
+    setSaveMessage(null);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (isDeleting) return;
+    setPendingDelete(null);
+  };
+
+  const handleDeleteEmployee = async () => {
+    if (!pendingDelete?.employeeId) return;
+
+    try {
+      setIsDeleting(true);
+      await api.delete(`/employees/${pendingDelete.employeeId}`);
+      setPendingDelete(null);
+      setSaveMessage({ type: 'success', text: 'Medarbejder blev slettet.' });
+      navigate('/employees');
+    } catch (err) {
+      console.error('Fejl ved sletning af medarbejder:', err?.response?.data || err);
+      setSaveMessage({ type: 'error', text: 'Kunne ikke slette medarbejderen.' });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (loading) return <div className="show-employee-page">Henter medarbejderprofil...</div>;
@@ -221,6 +222,7 @@ const ShowEmployee = () => {
           <EmployeeProfileCard
             employee={selectedEmployee}
             onRoleChange={handleRoleChange}
+            onContactChange={handleInputChange}
           />
         </aside>
 
@@ -232,37 +234,116 @@ const ShowEmployee = () => {
           </div>
         </main>
 
-        {/* HØJRE KOLONNE: Vagter */}
-        <aside className="profile-shifts-aside">
-          <div className="details-section">
-            <EmployeeShiftList employeeId={selectedEmployee.employeeId} />
-          </div>
-        </aside>
       </div>
 
       {/* BUTTON ROW */}
       <footer className="employee-actions-footer">
         <div className="button-row">
-          <button 
-            type="button" 
-            className="btn btn-primary" 
-            onClick={handleSaveChanges} 
-            disabled={isSaving}
-          >
-            {isSaving ? 'Gemmer...' : 'Gem ændringer'}
-          </button>
-          <button 
-            type="button" 
-            className="btn btn-secondary" 
-            onClick={handleOpenHoursOverview}
-          >
-            Se timeoversigt
-          </button>
+          <div className="button-row-left">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={isDeleting}
+              onClick={handleToggleShiftPanel}
+            >
+              Se vagter i periode
+            </button>
+            <button 
+              type="button" 
+              className="btn btn-secondary" 
+              disabled={isDeleting}
+              onClick={handleOpenHoursOverview}
+            >
+              Se timeoversigt
+            </button>
+          </div>
+          <div className="button-row-right">
+            <button 
+              type="button" 
+              className="btn btn-primary" 
+              onClick={handleSaveChanges} 
+              disabled={isSaving || isDeleting}
+            >
+              {isSaving ? 'Gemmer...' : 'Gem ændringer'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={openDeleteConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Sletter...' : 'Slet medarbejder'}
+            </button>
+          </div>
         </div>
         {saveMessage && (
           <p className={`save-status ${saveMessage.type}`}>{saveMessage.text}</p>
         )}
       </footer>
+
+      {pendingDelete && (
+        <div className="delete-modal-overlay" onClick={closeDeleteConfirm}>
+          <div
+            className="delete-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="delete-modal-title">Slet medarbejder?</h3>
+            <p>
+              Er du sikker på, at du vil slette <strong>{pendingDelete.firstName} {pendingDelete.lastName}</strong>?<br />
+              Denne handling kan ikke fortrydes.
+            </p>
+
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={closeDeleteConfirm}
+                disabled={isDeleting}
+              >
+                Annuller
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={handleDeleteEmployee}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Sletter...' : 'Ja, slet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isShiftPanelOpen && (
+        <div className="shift-panel-overlay" onClick={handleCloseShiftPanel}>
+          <aside
+            className="shift-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="shift-panel-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="shift-panel-header">
+              <h3 id="shift-panel-title">Vagter i periode</h3>
+              <button
+                type="button"
+                className="shift-panel-close"
+                onClick={handleCloseShiftPanel}
+                aria-label="Luk vagtpanel"
+              >
+                Luk
+              </button>
+            </div>
+            <div className="shift-panel-body">
+              <EmployeeShiftList employeeId={selectedEmployee.employeeId} />
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   );
 };
