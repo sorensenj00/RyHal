@@ -1,0 +1,10 @@
+{
+  "name": "ryhal-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "./scripts/dev-all.sh",
+    "dev:api": "cd SportCenter.Api && dotnet run",
+    "dev:admin": "cd admin-dashboard && npm start",
+    "dev:employee": "cd employee-app && npm run dev"
+  }
+}

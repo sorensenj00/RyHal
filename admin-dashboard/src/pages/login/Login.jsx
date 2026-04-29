@@ -1,18 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import './Login.css'; 
-import { fetchAuthMe, getAppUrlForRedirectTarget } from "../../auth/session";
+import { fetchAuthMe, getAdminAppUrl, getEmployeeAppTransferUrl } from "../../auth/session";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resettingSession, setResettingSession] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+
+    const clearExistingSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session;
+
+      if (session) {
+        await supabase.auth.signOut();
+      }
+
+      if (!active) {
+        return;
+      }
+
+      setResettingSession(false);
+    };
+
+    clearExistingSession();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (resettingSession) return;
     setLoading(true);
     setErrorMessage("");
 
@@ -33,14 +59,12 @@ function Login() {
 
       try {
         const authMe = await fetchAuthMe(session.access_token);
-        const targetUrl = getAppUrlForRedirectTarget(authMe.redirectTarget);
-
         if (authMe.appAccess === "employee") {
-          window.location.assign(targetUrl);
+          window.location.assign(getEmployeeAppTransferUrl(session));
           return;
         }
 
-        navigate("/home", { replace: true });
+        window.location.assign(`${getAdminAppUrl().replace(/\/$/, "")}/home`);
       } catch (authError) {
         await supabase.auth.signOut();
         setErrorMessage(authError.message || "Du har ikke adgang til en app endnu.");
@@ -58,6 +82,7 @@ function Login() {
         </div>
 
         <form className="login-form" onSubmit={handleLogin}>
+          {resettingSession && <div className="session-alert text-center">Forbereder login...</div>}
           {errorMessage && <div className="error-alert text-center">{errorMessage}</div>}
 
           <div className="input-group">
@@ -68,6 +93,7 @@ function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoFocus
+              disabled={resettingSession}
             />
             <input
               type="password"
@@ -75,6 +101,7 @@ function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={resettingSession}
             />
           </div>
 
@@ -85,9 +112,9 @@ function Login() {
           <button 
             className="btn btn-primary w-100 font-weight-bold" 
             type="submit" 
-            disabled={loading}
+            disabled={loading || resettingSession}
           >
-            {loading ? "Logger ind..." : "Log ind"}
+            {resettingSession ? "Forbereder..." : loading ? "Logger ind..." : "Log ind"}
           </button>
         </form>
       </div>

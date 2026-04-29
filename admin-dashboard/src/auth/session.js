@@ -26,6 +26,19 @@ export function getEmployeeAppUrl() {
   return employeeAppUrl;
 }
 
+export function getEmployeeAppTransferUrl(session) {
+  const baseUrl = employeeAppUrl.replace(/\/$/, "");
+
+  if (!session?.access_token || !session?.refresh_token) {
+    return baseUrl;
+  }
+
+  const url = new URL(baseUrl);
+  url.searchParams.set("access_token", session.access_token);
+  url.searchParams.set("refresh_token", session.refresh_token);
+  return url.toString();
+}
+
 export function getLoginUrl() {
   return loginUrl;
 }
