@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import api from '../../api/axiosConfig';
 import EmployeeSearchBar from '../../components/search/EmployeeSearchBar';
+import { notifyError, notifySuccess } from '../toast/toastBus';
 import './CreateNewShift.css';
 
 const CreateNewShift = ({ initialDate, onRefresh }) => {
@@ -76,10 +77,11 @@ const CreateNewShift = ({ initialDate, onRefresh }) => {
         endDate: formData.isRecurring ? formData.endDate : null
       };
 
-      await api.post('/shifts', newShift);
+      await api.post('/shifts', newShift, { skipCrudToast: true });
       if (onRefresh) onRefresh();
       setIsOpen(false);
       setFormData({ categoryId: '', date: '', startTime: '08:00', endTime: '16:00', employeeId: null, isRecurring: false, endDate: '' });
+      notifySuccess('Vagten blev oprettet.');
     } catch (err) {
       const apiMessage = err?.response?.data;
       const message =
@@ -88,7 +90,7 @@ const CreateNewShift = ({ initialDate, onRefresh }) => {
           : apiMessage?.message || err.message || 'Kunne ikke oprette vagt';
 
       console.error('Fejl ved oprettelse af vagt:', err?.response?.data || err);
-      alert(message);
+      notifyError(message);
     } finally {
       setIsSaving(false);
     }

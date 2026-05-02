@@ -58,11 +58,6 @@
 	font-size: 1.9rem;
 }
 
-.all-associations-header p {
-	margin: 0.45rem 0 0;
-	color: #64748b;
-}
-
 @media (max-width: 900px) {
 	.all-associations-page {
 		padding: 1rem;

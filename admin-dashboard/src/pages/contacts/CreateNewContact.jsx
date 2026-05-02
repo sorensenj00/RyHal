@@ -1,5 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { getAllAssociations } from '../../api/associationService';
 import CreateNewContactTemplate from '../../components/contacts/CreateNewContactTemplate';
+import ContactInformationCard from '../../components/contacts/ContactInformationCard';
 import './CreateNewContact.css';
 
 const pickValue = (obj, ...keys) => {
@@ -13,43 +15,89 @@ const pickValue = (obj, ...keys) => {
 };
 
 const CreateNewContact = () => {
+	const [previewContact, setPreviewContact] = useState(null);
 	const [latestContact, setLatestContact] = useState(null);
+	const [associations, setAssociations] = useState([]);
+	const [associationSearchTerm, setAssociationSearchTerm] = useState('');
+	const [selectedAssociationId, setSelectedAssociationId] = useState(0);
+	const [loadingAssociations, setLoadingAssociations] = useState(false);
+	const [associationLoadError, setAssociationLoadError] = useState('');
 
-	const latestContactName = useMemo(
-		() => pickValue(latestContact, 'name', 'Name') || 'Ingen oprettet endnu',
-		[latestContact]
-	);
+	useEffect(() => {
+		const loadAssociations = async () => {
+			try {
+				setLoadingAssociations(true);
+				setAssociationLoadError('');
+				const data = await getAllAssociations();
+				setAssociations(Array.isArray(data) ? data : []);
+			} catch (error) {
+				console.error('Fejl ved indlæsning af foreninger:', error);
+				setAssociationLoadError('Kunne ikke hente foreninger. Du kan stadig oprette kontaktpersonen.');
+			} finally {
+				setLoadingAssociations(false);
+			}
+		};
 
-	const handleContactCreated = (createdContact) => {
+		loadAssociations();
+	}, []);
+
+	const associationOptions = useMemo(() => {
+		const normalizedSearch = associationSearchTerm.trim().toLowerCase();
+
+		return associations
+			.map((association) => {
+				const id = Number(pickValue(association, 'associationId', 'AssociationId', 'id')) || 0;
+				const name = (pickValue(association, 'name', 'Name') || 'Ukendt forening').toString();
+				const websiteUrl = (pickValue(association, 'websiteUrl', 'WebsiteUrl') || '').toString();
+
+				return { id, name, websiteUrl };
+			})
+			.filter((association) => association.id > 0)
+			.filter((association) => {
+				if (!normalizedSearch) {
+					return true;
+				}
+
+				const lowerName = association.name.toLowerCase();
+				const lowerWebsite = association.websiteUrl.toLowerCase();
+				return lowerName.includes(normalizedSearch) || lowerWebsite.includes(normalizedSearch);
+			});
+	}, [associations, associationSearchTerm]);
+
+	const handleContactCreated = useCallback((createdContact) => {
 		setLatestContact(createdContact);
-	};
+		setPreviewContact(createdContact);
+	}, []);
+
+	const handlePreviewChange = useCallback((contactDraft) => {
+		setPreviewContact(contactDraft);
+	}, []);
 
 	return (
 		<div className="create-contact-page">
 			<header className="create-contact-page-header">
-				<div>
-					<h1>Kontakter</h1>
-					<p>Opret en ny kontaktperson til foreninger og events.</p>
-				</div>
-
-				<div className="create-contact-page-highlight">
-					<span>Senest oprettet</span>
-					<strong>{latestContactName}</strong>
-				</div>
+				<h1>Opret kontakt</h1>
+				<p>Udfyld formularen og se et live preview af kontaktpersonen til højre.</p>
 			</header>
 
 			<div className="create-contact-layout">
 				<div className="create-contact-main-column">
-					<CreateNewContactTemplate onCreated={handleContactCreated} />
+					<CreateNewContactTemplate
+						onCreated={handleContactCreated}
+						onPreviewChange={handlePreviewChange}
+						associationOptions={associationOptions}
+						selectedAssociationId={selectedAssociationId}
+						onSelectedAssociationIdChange={setSelectedAssociationId}
+						associationSearchTerm={associationSearchTerm}
+						onAssociationSearchTermChange={setAssociationSearchTerm}
+						loadingAssociations={loadingAssociations}
+						associationLoadError={associationLoadError}
+					/>
 				</div>
 
-				<aside className="create-contact-info-panel">
-					<h2>Næste trin</h2>
-					<ul>
-						<li>Kobl kontaktpersonen på en eller flere foreninger.</li>
-						<li>Kobl kontaktpersonen direkte på relevante events.</li>
-						<li>Hold kontaktinfo opdateret til planlægning og koordinering.</li>
-					</ul>
+				<aside className="create-contact-preview-panel">
+					<h2>Preview</h2>
+					<ContactInformationCard contact={previewContact || latestContact} />
 				</aside>
 			</div>
 		</div>

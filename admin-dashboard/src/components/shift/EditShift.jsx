@@ -5,6 +5,7 @@ import { faTimes, faSave, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { format, parseISO } from 'date-fns';
 import api from '../../api/axiosConfig';
 import EmployeeSearchBar from '../../components/search/EmployeeSearchBar';
+import { notifyError, notifySuccess } from '../toast/toastBus';
 import './EditShift.css';
 
 const EditShift = ({ shift, onClose, onRefresh }) => {
@@ -46,12 +47,13 @@ const EditShift = ({ shift, onClose, onRefresh }) => {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/shifts/${shift.shiftId}`);
+      await api.delete(`/shifts/${shift.shiftId}`, { skipCrudToast: true });
       if (onRefresh) onRefresh();
+      notifySuccess('Vagten blev slettet.');
       onClose();
     } catch (err) {
       console.error("Fejl ved sletning:", err);
-      alert("Kunne ikke slette vagt");
+      notifyError('Kunne ikke slette vagt.');
     }
   };
 
@@ -71,12 +73,13 @@ const EditShift = ({ shift, onClose, onRefresh }) => {
         EndTime: endLocal
       };
 
-      await api.put(`/shifts/UpdateShift/${formData.shiftId}`, updatedShift);
+      await api.put(`/shifts/UpdateShift/${formData.shiftId}`, updatedShift, { skipCrudToast: true });
       if (onRefresh) onRefresh(); 
+      notifySuccess('Vagten blev opdateret.');
       onClose();
     } catch (err) {
       console.error("Fejl ved gem:", err.response?.data);
-      alert("Fejl ved gem: " + JSON.stringify(err.response?.data?.errors || "Kunne ikke gemme"));
+      notifyError('Kunne ikke gemme vagten.');
     } finally {
       setIsSaving(false);
     }

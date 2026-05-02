@@ -21,6 +21,12 @@ public class AssociationService
 
         [Column("website_url")]
         public string? WebsiteUrl { get; set; }
+
+        [Column("color")]
+        public string? Color { get; set; }
+
+        [Column("logo")]
+        public string? Logo { get; set; }
     }
 
     private readonly Client _supabase;
@@ -53,6 +59,8 @@ public class AssociationService
                 a.AssociationId,
                 a.Name,
                 a.WebsiteUrl,
+                a.Color,
+                a.Logo,
                 links
                     .Where(l => l.AssociationId == a.AssociationId)
                     .Select(l => contactsById.TryGetValue(l.ContactId, out var contact)
@@ -111,6 +119,8 @@ public class AssociationService
             association.AssociationId,
             association.Name,
             association.WebsiteUrl,
+            association.Color,
+            association.Logo,
             dtoContacts);
     }
 
@@ -126,11 +136,15 @@ public class AssociationService
         var newAssociation = new Association
         {
             Name = dto.Name.Trim(),
-            WebsiteUrl = string.IsNullOrWhiteSpace(dto.WebsiteUrl) ? null : dto.WebsiteUrl.Trim()
+            WebsiteUrl = string.IsNullOrWhiteSpace(dto.WebsiteUrl) ? null : dto.WebsiteUrl.Trim(),
+            Color = string.IsNullOrWhiteSpace(dto.Color) ? null : dto.Color.Trim(),
+            Logo = string.IsNullOrWhiteSpace(dto.Logo) ? null : dto.Logo.Trim()
         };
 
         var normalizedName = newAssociation.Name;
         var normalizedWebsiteUrl = newAssociation.WebsiteUrl;
+        var normalizedColor = newAssociation.Color;
+        var normalizedLogo = newAssociation.Logo;
 
         Association created;
 
@@ -145,12 +159,14 @@ public class AssociationService
                     .Where(a => a.AssociationId == created.AssociationId)
                     .Delete();
 
-                var recreated = await CreateAssociationWithExplicitPositiveIdAsync(normalizedName, normalizedWebsiteUrl);
+                var recreated = await CreateAssociationWithExplicitPositiveIdAsync(normalizedName, normalizedWebsiteUrl, normalizedColor, normalizedLogo);
 
                 return new AssociationDto(
                     recreated.AssociationId,
                     recreated.Name,
                     recreated.WebsiteUrl,
+                    recreated.Color,
+                    recreated.Logo,
                     new List<ContactSummaryDto>());
             }
         }
@@ -158,12 +174,14 @@ public class AssociationService
         {
             try
             {
-                var fallbackCreated = await CreateAssociationWithExplicitPositiveIdAsync(normalizedName, normalizedWebsiteUrl);
+                var fallbackCreated = await CreateAssociationWithExplicitPositiveIdAsync(normalizedName, normalizedWebsiteUrl, normalizedColor, normalizedLogo);
 
                 return new AssociationDto(
                     fallbackCreated.AssociationId,
                     fallbackCreated.Name,
                     fallbackCreated.WebsiteUrl,
+                    fallbackCreated.Color,
+                    fallbackCreated.Logo,
                     new List<ContactSummaryDto>());
             }
             catch (PostgrestException fallbackEx) when (IsAssociationPrimaryKeyConflict(fallbackEx))
@@ -174,13 +192,13 @@ public class AssociationService
             }
         }
 
-        return new AssociationDto(created.AssociationId, created.Name, created.WebsiteUrl, new List<ContactSummaryDto>());
+        return new AssociationDto(created.AssociationId, created.Name, created.WebsiteUrl, created.Color, created.Logo, new List<ContactSummaryDto>());
     }
 
     private static bool IsAssociationPrimaryKeyConflict(PostgrestException exception)
         => exception.Message.Contains("association_pkey") || exception.Message.Contains("\"code\":\"23505\"");
 
-    private async Task<AssociationInsertWithId> CreateAssociationWithExplicitPositiveIdAsync(string name, string? websiteUrl)
+    private async Task<AssociationInsertWithId> CreateAssociationWithExplicitPositiveIdAsync(string name, string? websiteUrl, string? color, string? logo)
     {
         var existingAssociations = (await _supabase
             .From<Association>()
@@ -197,7 +215,9 @@ public class AssociationService
         {
             AssociationId = nextAssociationId,
             Name = name,
-            WebsiteUrl = websiteUrl
+            WebsiteUrl = websiteUrl,
+            Color = color,
+            Logo = logo
         };
 
         return (await _supabase
@@ -240,6 +260,18 @@ public class AssociationService
         if (dto.WebsiteUrl != null)
         {
             query = query.Set(a => a.WebsiteUrl, string.IsNullOrWhiteSpace(dto.WebsiteUrl) ? null : dto.WebsiteUrl.Trim());
+            hasChanges = true;
+        }
+
+        if (dto.Color != null)
+        {
+            query = query.Set(a => a.Color, string.IsNullOrWhiteSpace(dto.Color) ? null : dto.Color.Trim());
+            hasChanges = true;
+        }
+
+        if (dto.Logo != null)
+        {
+            query = query.Set(a => a.Logo, string.IsNullOrWhiteSpace(dto.Logo) ? null : dto.Logo.Trim());
             hasChanges = true;
         }
 

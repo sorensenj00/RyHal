@@ -5,6 +5,7 @@ import EmployeeSearchBar from '../../components/search/EmployeeSearchBar';
 import EmployeeProfileCard from '../../components/employee/EmployeeProfileCard';
 import QualificationBox from '../../components/employee/qualifications/QualificationBox';
 import EmployeeShiftList from '../../components/employee/EmployeeShiftList';
+import { notifyError, notifySuccess } from '../../components/toast/toastBus';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
 import './ShowEmployee.css';
 
@@ -18,7 +19,6 @@ const ShowEmployee = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isShiftPanelOpen, setIsShiftPanelOpen] = useState(false);
-  const [saveMessage, setSaveMessage] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
 
   const calculateIsOver18 = (birthday) => {
@@ -134,15 +134,18 @@ const ShowEmployee = () => {
 
     try {
       setIsSaving(true);
-      setSaveMessage(null);
 
       await api.put(`/employees/${selectedEmployee.employeeId}`, {
         email: selectedEmployee.email,
         phone: selectedEmployee.phone
+      }, {
+        skipCrudToast: true
       });
 
       await api.put(`/employees/${selectedEmployee.employeeId}/role`, {
         roleName: selectedEmployee.role !== 'Ingen rolle' ? selectedEmployee.role : ''
+      }, {
+        skipCrudToast: true
       });
 
       setEmployees(prevEmployees => prevEmployees.map(emp => (
@@ -157,10 +160,10 @@ const ShowEmployee = () => {
           : emp
       )));
 
-      setSaveMessage({ type: 'success', text: 'Ændringer gemt.' });
+      notifySuccess('Medarbejderen blev opdateret.');
     } catch (err) {
       console.error('Fejl ved gem af medarbejder:', err?.response?.data || err);
-      setSaveMessage({ type: 'error', text: 'Kunne ikke gemme ændringer.' });
+      notifyError('Kunne ikke gemme ændringer.');
     } finally {
       setIsSaving(false);
     }
@@ -182,7 +185,6 @@ const ShowEmployee = () => {
   const openDeleteConfirm = () => {
     if (!selectedEmployee) return;
     setPendingDelete(selectedEmployee);
-    setSaveMessage(null);
   };
 
   const closeDeleteConfirm = () => {
@@ -195,13 +197,13 @@ const ShowEmployee = () => {
 
     try {
       setIsDeleting(true);
-      await api.delete(`/employees/${pendingDelete.employeeId}`);
+      await api.delete(`/employees/${pendingDelete.employeeId}`, { skipCrudToast: true });
       setPendingDelete(null);
-      setSaveMessage({ type: 'success', text: 'Medarbejder blev slettet.' });
+      notifySuccess('Medarbejderen blev slettet.');
       navigate('/employees');
     } catch (err) {
       console.error('Fejl ved sletning af medarbejder:', err?.response?.data || err);
-      setSaveMessage({ type: 'error', text: 'Kunne ikke slette medarbejderen.' });
+      notifyError('Kunne ikke slette medarbejderen.');
     } finally {
       setIsDeleting(false);
     }
@@ -284,9 +286,6 @@ const ShowEmployee = () => {
             </button>
           </div>
         </div>
-        {saveMessage && (
-          <p className={`save-status ${saveMessage.type}`}>{saveMessage.text}</p>
-        )}
       </footer>
 
       {pendingDelete && (

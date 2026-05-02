@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { normalizeRoleColorToken, resolveRoleColorValue, toCssColorValue } from '../../../data/roleColors';
+import { getRoleTextColor, normalizeRoleColorToken, resolveRoleColorValue, toCssColorValue } from '../../../data/roleColors';
 import api from '../../../api/axiosConfig';
 import './EmployeeRoles.css';
 
@@ -7,7 +7,7 @@ const getRoleStyle = (roleColor) => {
 	const cssColor = toCssColorValue(roleColor);
   return {
 		backgroundColor: cssColor,
-    color: '#fff',
+	    color: getRoleTextColor(roleColor),
   };
 };
 
@@ -265,11 +265,7 @@ const EmployeeRoles = () => {
 		<div className="employee-roles-page">
 			<header className="employee-roles-header">
 				<div>
-					<p className="employee-roles-eyebrow">Systemopsætning</p>
 					<h1>Roller</h1>
-					<p className="employee-roles-subtitle">
-						Se alle roller med globale farver, og opret eller slet roller i systemet.
-					</p>
 				</div>
 			</header>
 

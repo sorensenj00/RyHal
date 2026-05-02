@@ -12,7 +12,13 @@ const pickValue = (obj, ...keys) => {
   return null;
 };
 
-const AllContactsTable = ({ contacts = [], loading = false, error = '', onDeleteContact = async () => {} }) => {
+const AllContactsTable = ({
+  contacts = [],
+  contactAssociationNamesById = {},
+  loading = false,
+  error = '',
+  onDeleteContact = async () => {}
+}) => {
   const [deletingId, setDeletingId] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
 
@@ -56,6 +62,7 @@ const AllContactsTable = ({ contacts = [], loading = false, error = '', onDelete
           <thead>
             <tr>
               <th>Navn</th>
+              <th>Forening</th>
               <th>Titel</th>
               <th>Telefon</th>
               <th>Email</th>
@@ -70,6 +77,8 @@ const AllContactsTable = ({ contacts = [], loading = false, error = '', onDelete
               const phone = pickValue(contact, 'phone', 'Phone');
               const email = pickValue(contact, 'email', 'Email');
               const profileImageUrl = pickValue(contact, 'profileImageUrl', 'ProfileImageUrl');
+              const associationNames = contactAssociationNamesById[contactId] || [];
+              const associationNameText = associationNames.join(', ');
 
               return (
                 <tr key={contactId}>
@@ -82,6 +91,10 @@ const AllContactsTable = ({ contacts = [], loading = false, error = '', onDelete
                     <div className="user-info">
                       <span className="user-name">{name}</span>
                     </div>
+                  </td>
+
+                  <td>
+                    <span className="contact-association">{associationNameText}</span>
                   </td>
 
                   <td>

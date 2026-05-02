@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import AssociationSearchBar from '../search/AssociationSearchBar';
 import './AssociationList.css';
 
@@ -20,38 +20,8 @@ const AssociationList = ({
 	onSearchTermChange,
 	hasContactsFilter,
 	onHasContactsFilterChange,
-	onAssociationOpen,
-	onAssociationDelete
+	onAssociationOpen
 }) => {
-	const [pendingDelete, setPendingDelete] = useState(null);
-	const [deletingId, setDeletingId] = useState(null);
-
-	const openDeleteConfirm = (id, name) => {
-		setPendingDelete({ id: Number(id) || 0, name });
-	};
-
-	const closeDeleteConfirm = () => {
-		if (deletingId !== null) {
-			return;
-		}
-
-		setPendingDelete(null);
-	};
-
-	const confirmDelete = async () => {
-		if (!pendingDelete || typeof onAssociationDelete !== 'function') {
-			return;
-		}
-
-		try {
-			setDeletingId(pendingDelete.id);
-			await onAssociationDelete(pendingDelete.id, pendingDelete.name);
-			setPendingDelete(null);
-		} finally {
-			setDeletingId(null);
-		}
-	};
-
 	return (
 		<section className="association-list-card">
 			<div className="association-list-header">
@@ -59,7 +29,6 @@ const AssociationList = ({
 					<h2>Foreningsliste</h2>
 					<p>Få overblik over oprettede foreninger og deres kontaktpersoner.</p>
 				</div>
-				<div className="association-list-count">{associations.length} stk.</div>
 			</div>
 
 			<AssociationSearchBar
@@ -81,6 +50,7 @@ const AssociationList = ({
 					{associations.map((association) => {
 						const associationId = pickValue(association, 'associationId', 'AssociationId');
 						const associationName = pickValue(association, 'name', 'Name') || 'Ukendt forening';
+						const associationLogo = pickValue(association, 'logo', 'Logo');
 						const websiteUrl = pickValue(association, 'websiteUrl', 'WebsiteUrl');
 						const contacts = Array.isArray(association?.contacts) ? association.contacts : [];
 
@@ -88,7 +58,19 @@ const AssociationList = ({
 							<li key={associationId || associationName} className="association-list-item">
 								<div className="association-list-main">
 									<div className="association-list-item-header">
-										<h3>{associationName}</h3>
+										<div className="association-list-title-group">
+											{associationLogo ? (
+												<img
+													src={associationLogo}
+													alt={`Logo for ${associationName}`}
+													className="association-list-logo"
+													onError={(event) => {
+														event.currentTarget.style.display = 'none';
+													}}
+												/>
+											) : null}
+											<h3>{associationName}</h3>
+										</div>
 										<span>{contacts.length} kontakter</span>
 									</div>
 
@@ -104,23 +86,13 @@ const AssociationList = ({
 										{typeof onAssociationOpen === 'function' && associationId ? (
 											<button
 												type="button"
-												className="association-list-open-button"
+												className="btn btn-secondary association-list-open-button"
 												onClick={() => onAssociationOpen(associationId)}
 											>
 												Se forening
 											</button>
 										) : null}
 
-										{typeof onAssociationDelete === 'function' && associationId ? (
-											<button
-												type="button"
-												className="association-list-delete-button"
-												onClick={() => openDeleteConfirm(associationId, associationName)}
-												disabled={deletingId === Number(associationId)}
-											>
-												{deletingId === Number(associationId) ? 'Sletter...' : 'Slet'}
-											</button>
-										) : null}
 									</div>
 								</div>
 
@@ -146,44 +118,6 @@ const AssociationList = ({
 						);
 					})}
 				</ul>
-			)}
-
-			{pendingDelete && (
-				<div className="delete-modal-overlay" onClick={closeDeleteConfirm}>
-					<div
-						className="delete-modal"
-						role="dialog"
-						aria-modal="true"
-						aria-labelledby="delete-association-modal-title"
-						onClick={(e) => e.stopPropagation()}
-					>
-						<h3 id="delete-association-modal-title">Slet forening?</h3>
-						<p>
-							Er du sikker på, at du vil slette <strong>{pendingDelete.name}</strong>?
-							<br />
-							Denne handling kan ikke fortrydes.
-						</p>
-
-						<div className="delete-modal-actions">
-							<button
-								type="button"
-								className="association-btn-action"
-								onClick={closeDeleteConfirm}
-								disabled={deletingId !== null}
-							>
-								Annuller
-							</button>
-							<button
-								type="button"
-								className="association-btn-action delete"
-								onClick={confirmDelete}
-								disabled={deletingId !== null}
-							>
-								{deletingId !== null ? 'Sletter...' : 'Ja, slet'}
-							</button>
-						</div>
-					</div>
-				</div>
 			)}
 		</section>
 	);

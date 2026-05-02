@@ -1,0 +1,123 @@
+.website-preview-card {
+	border-radius: 14px;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+	padding: 0.9rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.65rem;
+}
+
+.website-preview-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 0.6rem;
+}
+
+.website-preview-header h3 {
+	margin: 0;
+	font-size: 0.95rem;
+	color: #0f172a;
+}
+
+.website-preview-hostname {
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: #64748b;
+}
+
+.website-preview-frame-wrap {
+	border-radius: 10px;
+	overflow: hidden;
+	border: 1px solid #dbe2ea;
+	background: #f8fafc;
+	height: 260px;
+}
+
+.website-preview-frame {
+	border: none;
+	width: 100%;
+	height: 100%;
+	background: #ffffff;
+}
+
+.website-preview-probe-frame {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+	left: -9999px;
+	border: 0;
+}
+
+/* Blocked state — standalone element */
+.website-preview-card--blocked {
+	border-style: dashed;
+}
+
+.website-preview-blocked-body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+	padding: 2rem 1rem;
+	border-radius: 10px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	text-decoration: none;
+	color: #334155;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.website-preview-blocked-body:hover {
+	background: #eff6ff;
+	border-color: #93c5fd;
+}
+
+.website-preview-blocked-logo {
+	max-width: 180px;
+	max-height: 100px;
+	object-fit: contain;
+}
+
+.website-preview-blocked-label {
+	font-size: 0.84rem;
+	font-weight: 700;
+	color: #0f5bbd;
+}
+
+.website-preview-logo-fallback {
+	width: 84px;
+	height: 84px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.8rem;
+	font-weight: 800;
+	color: #0f172a;
+	background: radial-gradient(circle at 30% 30%, #ffffff 0%, #dbeafe 75%);
+	border: 1px solid #bfdbfe;
+}
+
+.website-preview-link {
+	align-self: flex-start;
+	text-decoration: none;
+	font-size: 0.84rem;
+	font-weight: 700;
+	color: #0f5bbd;
+}
+
+.website-preview-link:hover {
+	text-decoration: underline;
+}
+
+.website-preview-empty {
+	margin: 0;
+	font-size: 0.9rem;
+	color: #64748b;
+}

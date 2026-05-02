@@ -1,19 +1,19 @@
-export const ROLE_COLOR_FALLBACK = '--color-andet';
+export const ASSOCIATION_COLOR_FALLBACK = '--color-andet';
 
 const toTrimmedString = (value) => (typeof value === 'string' ? value.trim() : '');
 
-export const normalizeRoleColorToken = (value) => {
+export const normalizeAssociationColorToken = (value) => {
   const trimmed = toTrimmedString(value);
-  return trimmed || ROLE_COLOR_FALLBACK;
+  return trimmed || ASSOCIATION_COLOR_FALLBACK;
 };
 
-export const toCssColorValue = (value) => {
-  const token = normalizeRoleColorToken(value);
+export const toAssociationCssColorValue = (value) => {
+  const token = normalizeAssociationColorToken(value);
   return token.startsWith('--') ? `var(${token})` : token;
 };
 
-export const resolveRoleColorValue = (value) => {
-  const token = normalizeRoleColorToken(value);
+export const resolveAssociationColorValue = (value) => {
+  const token = normalizeAssociationColorToken(value);
 
   if (!token.startsWith('--')) {
     return token;
@@ -30,7 +30,7 @@ export const resolveRoleColorValue = (value) => {
   }
 
   const fallbackResolved = getComputedStyle(document.documentElement)
-    .getPropertyValue(ROLE_COLOR_FALLBACK)
+    .getPropertyValue(ASSOCIATION_COLOR_FALLBACK)
     .trim();
 
   return fallbackResolved || '#94A3B8';
@@ -81,8 +81,8 @@ const getRelativeLuminance = ({ r, g, b }) => {
   return (0.2126 * channels[0]) + (0.7152 * channels[1]) + (0.0722 * channels[2]);
 };
 
-export const getRoleTextColor = (value) => {
-  const resolved = resolveRoleColorValue(value);
+export const getAssociationTextColor = (value) => {
+  const resolved = resolveAssociationColorValue(value);
   const rgb = parseHexToRgb(resolved) || parseRgbToRgb(resolved);
 
   if (!rgb) {
@@ -90,12 +90,4 @@ export const getRoleTextColor = (value) => {
   }
 
   return getRelativeLuminance(rgb) > 0.5 ? '#0f172a' : '#ffffff';
-};
-
-export const getPrimaryRole = (roles) => {
-  if (!Array.isArray(roles) || roles.length === 0) {
-    return null;
-  }
-
-  return roles[0] || null;
 };

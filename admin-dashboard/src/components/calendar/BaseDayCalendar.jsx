@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { isSameDay, parseISO, getHours, getMinutes, format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { isSameDay, parseISO, getHours, getMinutes } from 'date-fns';
 import EmployeeCardForCalendar from '../employee/EmployeeCardForCalendar';
 import EditShift from '../shift/EditShift';
 import './BaseDayCalendar.css';
 
 const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [], onRefresh }) => {
   const [selectedShift, setSelectedShift] = useState(null);
-  const navigate = useNavigate();
 
   const START_HOUR = 5;
   const TOTAL_HOURS = 24;
@@ -75,15 +73,6 @@ const BaseDayCalendar = ({ date = new Date(), employees = [], shifts = [], onRef
 
   return (
     <div className="day-calendar-container">
-      <div className="day-calendar-header">
-        <button
-          type="button"
-          className="staffing-overview-btn"
-          onClick={() => navigate('/staffing-overview', { state: { selectedDate: format(date, 'yyyy-MM-dd') } })}
-        >
-          Se Bemandingsoversigt
-        </button>
-      </div>
       <div className="day-calendar">
         {/* Header - flugter med sidebaren */}
         <div className="calendar-grid-row timeline-header">

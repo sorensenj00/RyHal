@@ -13,15 +13,21 @@ public record AssociationDto(
     int AssociationId,
     string Name,
     string? WebsiteUrl,
+    string? Color,
+    string? Logo,
     List<ContactSummaryDto> Contacts
 );
 
 public record CreateAssociationDto(
     string Name,
-    string? WebsiteUrl
+    string? WebsiteUrl,
+    string? Color,
+    string? Logo
 );
 
 public record UpdateAssociationDto(
     string? Name,
-    string? WebsiteUrl
+    string? WebsiteUrl,
+    string? Color,
+    string? Logo
 );

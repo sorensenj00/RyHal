@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
+import { linkContactToAssociation } from '../../api/associationService';
+import AssociationSearchBar from '../search/AssociationSearchBar';
 import './CreateNewContactTemplate.css';
 
 const normalizeUrl = (value) => {
@@ -15,12 +17,35 @@ const normalizeUrl = (value) => {
 	return `https://${trimmed}`;
 };
 
-const CreateNewContactTemplate = ({ onCreated }) => {
+const normalizeText = (value) => value.trim().normalize('NFC');
+
+const pickValue = (obj, ...keys) => {
+	for (const key of keys) {
+		if (obj && obj[key] !== undefined && obj[key] !== null) {
+			return obj[key];
+		}
+	}
+
+	return null;
+};
+
+const CreateNewContactTemplate = ({
+	onCreated,
+	onPreviewChange,
+	associationOptions = [],
+	selectedAssociationId = 0,
+	onSelectedAssociationIdChange,
+	associationSearchTerm = '',
+	onAssociationSearchTermChange,
+	loadingAssociations = false,
+	associationLoadError = ''
+}) => {
 	const [name, setName] = useState('');
 	const [title, setTitle] = useState('');
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState('');
 	const [profileImageUrl, setProfileImageUrl] = useState('');
+	const [showAssociationSelector, setShowAssociationSelector] = useState(Boolean(selectedAssociationId));
 	const [loading, setLoading] = useState(false);
 	const [successMsg, setSuccessMsg] = useState('');
 	const [errorMsg, setErrorMsg] = useState('');
@@ -30,6 +55,33 @@ const CreateNewContactTemplate = ({ onCreated }) => {
 		setErrorMsg('');
 	};
 
+	useEffect(() => {
+		if (!onPreviewChange) {
+			return;
+		}
+
+		const draft = {
+			name: normalizeText(name),
+			title: normalizeText(title) || null,
+			email: normalizeText(email) || null,
+			phone: normalizeText(phone) || null,
+			profileImageUrl: normalizeUrl(profileImageUrl) || null
+		};
+
+		if (!draft.name && !draft.title && !draft.email && !draft.phone && !draft.profileImageUrl) {
+			onPreviewChange(null);
+			return;
+		}
+
+		onPreviewChange(draft);
+	}, [name, title, email, phone, profileImageUrl, onPreviewChange]);
+
+	useEffect(() => {
+		if ((Number(selectedAssociationId) || 0) > 0) {
+			setShowAssociationSelector(true);
+		}
+	}, [selectedAssociationId]);
+
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		resetMessages();
@@ -37,17 +89,25 @@ const CreateNewContactTemplate = ({ onCreated }) => {
 
 		try {
 			const payload = {
-				name: name.trim(),
-				title: title.trim() || null,
+				name: normalizeText(name),
+				title: normalizeText(title) || null,
 				profileImageUrl: normalizeUrl(profileImageUrl) || null,
-				phone: phone.trim() || null,
-				email: email.trim() || null
+				phone: normalizeText(phone) || null,
+				email: normalizeText(email) || null
 			};
 
 			const response = await api.post('/contacts', payload);
 			const createdContact = response?.data || null;
+			const createdContactId = Number(pickValue(createdContact, 'contactId', 'ContactId', 'id', 'Id')) || 0;
+			const selectedAssociation = Number(selectedAssociationId) || 0;
 
-			setSuccessMsg('Kontaktpersonen er oprettet. Du kan nu koble personen på en forening eller et event.');
+			if (selectedAssociation > 0 && createdContactId > 0) {
+				await linkContactToAssociation(selectedAssociation, createdContactId);
+				setSuccessMsg('Kontaktpersonen er oprettet og tilknyttet den valgte forening.');
+			} else {
+				setSuccessMsg('Kontaktpersonen er oprettet. Du kan nu koble personen på en forening eller et event.');
+			}
+
 			setName('');
 			setTitle('');
 			setEmail('');
@@ -67,6 +127,13 @@ const CreateNewContactTemplate = ({ onCreated }) => {
 				(typeof apiError === 'string' ? apiError : validationErrors || apiError?.message || apiError?.title)
 				|| 'Kunne ikke oprette kontaktpersonen.'
 			);
+
+			if (error?.response?.status !== 400) {
+				const fallbackText = (typeof apiError === 'string' ? apiError : apiError?.message || apiError?.title || '').toString().toLowerCase();
+				if (fallbackText.includes('forening') || fallbackText.includes('association')) {
+					setErrorMsg('Kontaktpersonen blev oprettet, men kunne ikke tilknyttes den valgte forening.');
+				}
+			}
 		} finally {
 			setLoading(false);
 		}
@@ -119,7 +186,8 @@ const CreateNewContactTemplate = ({ onCreated }) => {
 				<label>
 					Email
 					<input
-						type="email"
+						type="text"
+						inputMode="email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						placeholder="navn@mail.dk"
@@ -137,7 +205,38 @@ const CreateNewContactTemplate = ({ onCreated }) => {
 				</label>
 
 				<div className="create-contact-form-note">
-					<strong>Bemærk:</strong> Tilknytning til forening/event håndteres efter oprettelse.
+					<strong>Bemærk:</strong> Vælger du en forening nedenfor, bliver kontaktpersonen tilknyttet automatisk ved oprettelse.
+				</div>
+
+				<div className="create-contact-association-linker">
+					{!showAssociationSelector && (
+						<button
+							type="button"
+							className="create-contact-add-association-btn"
+							onClick={() => setShowAssociationSelector(true)}
+						>
+							Tilføj forening
+						</button>
+					)}
+
+					{showAssociationSelector && (
+						<>
+							<AssociationSearchBar
+								associationOptions={associationOptions}
+								selectedAssociationId={selectedAssociationId}
+								onSelectedAssociationIdChange={onSelectedAssociationIdChange}
+								searchTerm={associationSearchTerm}
+								onSearchTermChange={onAssociationSearchTermChange}
+								showContactsFilter={false}
+								associationLabel="Forening (valgfrit)"
+								searchPlaceholder="Søg efter foreningens navn"
+								resetLabel="Ryd valg"
+							/>
+
+							{loadingAssociations && <p className="create-contact-association-status">Indlæser foreninger...</p>}
+							{associationLoadError && <p className="create-contact-association-status error">{associationLoadError}</p>}
+						</>
+					)}
 				</div>
 
 				<div className="create-contact-form-actions">

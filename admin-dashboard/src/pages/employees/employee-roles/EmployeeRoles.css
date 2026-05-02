@@ -34,11 +34,6 @@
     font-size: 2rem;
 }
 
-.employee-roles-subtitle {
-    margin: 0.35rem 0 0;
-    color: var(--gray-600);
-}
-
 .employee-roles-filters,
 .employee-roles-create-card,
 .employee-roles-table-card,

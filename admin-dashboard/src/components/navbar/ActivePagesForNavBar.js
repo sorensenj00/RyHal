@@ -48,6 +48,7 @@ export const ActivePagesForNavBar  = [
       { to: "/create-activity", label: "Opret Event" },
       { to: "/event-overview", label: "Event Oversigt" },
       { to: "/activities/drafts", label: "Kladder" },
+      { to: "/locations", label: "Lokationer" },
     ],
   },
   {
@@ -57,7 +58,7 @@ export const ActivePagesForNavBar  = [
     children: [
       { to: "/associations", label: "Alle Foreninger" },
       { to: "/view-association", label: "Find Forening" },
-      { to: "/association", label: "Opret Forening" },
+      { to: "/create-association", label: "Opret Forening" },
     ],
   },
   {

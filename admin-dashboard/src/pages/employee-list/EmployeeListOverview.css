@@ -135,6 +135,18 @@
 .div3 { grid-area: 1 / 2 / 3 / 3; }
 .div4 { grid-area: 1 / 3 / 3 / 6; } /* Fylder kolonne 3, 4 og 5 */
 
+/* Layout for graf + fødselsdage side om side */
+.div4-inner {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 20px;
+  height: 100%;
+  width: 100%;
+}
+
+.div4-inner > :first-child { flex: 2; min-width: 0; }
+.div4-inner > :last-child  { flex: 1; min-width: 0; }
+
 /* Tvinger ALLE børn i grid-områderne til at have præcis samme højde/bredde og fjerner indbyggede marginer */
 .stats-parent-grid > div > * {
   height: 100% !important;

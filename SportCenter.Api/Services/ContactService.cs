@@ -4,6 +4,7 @@ using SportCenter.Api.Models;
 using Postgrest.Exceptions;
 using Postgrest.Attributes;
 using Postgrest.Models;
+using System.Text;
 
 namespace SportCenter.Api.Services;
 
@@ -70,7 +71,9 @@ public class ContactService
 
     public async Task<ContactDto> CreateAsync(CreateContactDto dto, string? accessToken = null)
     {
-        if (string.IsNullOrWhiteSpace(dto.Name))
+        var normalizedName = NormalizeText(dto.Name);
+
+        if (string.IsNullOrWhiteSpace(normalizedName))
         {
             throw new ArgumentException("Navn er påkrævet.");
         }
@@ -79,14 +82,13 @@ public class ContactService
 
         var newContact = new Contact
         {
-            Name = dto.Name.Trim(),
-            Title = string.IsNullOrWhiteSpace(dto.Title) ? null : dto.Title.Trim(),
-            ProfileImageUrl = string.IsNullOrWhiteSpace(dto.ProfileImageUrl) ? null : dto.ProfileImageUrl.Trim(),
-            Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim(),
-            Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim()
+            Name = normalizedName,
+            Title = NormalizeNullableText(dto.Title),
+            ProfileImageUrl = NormalizeNullableText(dto.ProfileImageUrl),
+            Phone = NormalizeNullableText(dto.Phone),
+            Email = NormalizeNullableText(dto.Email)
         };
 
-        var normalizedName = newContact.Name;
         var normalizedTitle = newContact.Title;
         var normalizedProfileImageUrl = newContact.ProfileImageUrl;
         var normalizedPhone = newContact.Phone;
@@ -202,7 +204,7 @@ public class ContactService
 
         if (dto.Name != null)
         {
-            var trimmed = dto.Name.Trim();
+            var trimmed = NormalizeText(dto.Name);
             if (string.IsNullOrWhiteSpace(trimmed))
             {
                 throw new ArgumentException("Navn må ikke være tomt.");
@@ -214,25 +216,25 @@ public class ContactService
 
         if (dto.Title != null)
         {
-            query = query.Set(c => c.Title, string.IsNullOrWhiteSpace(dto.Title) ? null : dto.Title.Trim());
+            query = query.Set(c => c.Title, NormalizeNullableText(dto.Title));
             hasChanges = true;
         }
 
         if (dto.ProfileImageUrl != null)
         {
-            query = query.Set(c => c.ProfileImageUrl, string.IsNullOrWhiteSpace(dto.ProfileImageUrl) ? null : dto.ProfileImageUrl.Trim());
+            query = query.Set(c => c.ProfileImageUrl, NormalizeNullableText(dto.ProfileImageUrl));
             hasChanges = true;
         }
 
         if (dto.Phone != null)
         {
-            query = query.Set(c => c.Phone, string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim());
+            query = query.Set(c => c.Phone, NormalizeNullableText(dto.Phone));
             hasChanges = true;
         }
 
         if (dto.Email != null)
         {
-            query = query.Set(c => c.Email, string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim());
+            query = query.Set(c => c.Email, NormalizeNullableText(dto.Email));
             hasChanges = true;
         }
 
@@ -392,6 +394,12 @@ public class ContactService
             contact.Phone,
             contact.Email
         );
+
+    private static string NormalizeText(string value)
+        => value.Trim().Normalize(NormalizationForm.FormC);
+
+    private static string? NormalizeNullableText(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : NormalizeText(value);
 
     private static ContactEventDto ToContactEventDto(Event evt)
         => new(

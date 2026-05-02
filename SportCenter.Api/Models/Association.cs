@@ -16,4 +16,10 @@ public class Association : BaseModel
 
     [Postgrest.Attributes.Column("website_url")]
     public string? WebsiteUrl { get; set; }
+
+    [Postgrest.Attributes.Column("color")]
+    public string? Color { get; set; }
+
+    [Postgrest.Attributes.Column("logo")]
+    public string? Logo { get; set; }
 }

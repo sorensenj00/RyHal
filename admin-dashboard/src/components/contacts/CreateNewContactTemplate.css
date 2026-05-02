@@ -43,6 +43,37 @@
 	gap: 1rem;
 }
 
+.create-contact-association-linker {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.create-contact-add-association-btn {
+	align-self: flex-start;
+	border: 1px solid #cbd5e1;
+	border-radius: 12px;
+	background: #f8fafc;
+	color: #0f172a;
+	padding: 0.65rem 0.9rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.create-contact-add-association-btn:hover {
+	background: #eff6ff;
+}
+
+.create-contact-association-status {
+	margin: 0;
+	font-size: 0.86rem;
+	color: #475569;
+}
+
+.create-contact-association-status.error {
+	color: #991b1b;
+}
+
 .create-contact-form label {
 	display: flex;
 	flex-direction: column;

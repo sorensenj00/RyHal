@@ -23,7 +23,7 @@ import EventOverview from "./pages/activities/event-overview/EventOverview";
 import CreateNewEvent from "./pages/activities/create-new-event/CreateNewEvent";
 import EditEvent from "./pages/activities/edit-event/EditEvent";
 import Drafts from "./pages/activities/drafts/Drafts";
-import Association from "./pages/association/Association";
+import CreateAssociation from "./pages/association/CreateAssociation";
 import AllAssociations from "./pages/association/AllAssociations";
 import ViewAssociation from "./pages/association/ViewAssociation";
 import CreateNewContact from "./pages/contacts/CreateNewContact";
@@ -32,6 +32,8 @@ import ViewContact from "./pages/contacts/ViewContact";
 import EmployeeHoursOverview from "./pages/employee-hours/EmployeeHoursOverview";
 import StaffingOverview from "./pages/shift-management/StaffingOverview";
 import EmployeeRoles from "./pages/employees/employee-roles/EmployeeRoles";
+import Locations from "./pages/activities/locations/Locations";
+import ToastProvider from "./components/toast/ToastProvider";
 
 function AppContent() {
   const [session, setSession] = useState(null);
@@ -182,13 +184,14 @@ function AppContent() {
           <Route path="/event-shift-overview" element={isAdminSession ? <EventShiftOverview /> : <Navigate to="/login" />} />
           <Route path="/create-employee" element={isAdminSession ? <CreateNewEmployee /> : <Navigate to="/login" />} />
           <Route path="/event-overview" element={isAdminSession ? <EventOverview /> : <Navigate to="/login" />} />
-          <Route path="/association" element={isAdminSession ? <Association /> : <Navigate to="/login" />} />
+          <Route path="/create-association" element={isAdminSession ? <CreateAssociation /> : <Navigate to="/login" />} />
           <Route path="/associations" element={isAdminSession ? <AllAssociations /> : <Navigate to="/login" />} />
           <Route path="/view-association" element={isAdminSession ? <ViewAssociation /> : <Navigate to="/login" />} />
           <Route path="/create-contact" element={isAdminSession ? <CreateNewContact /> : <Navigate to="/login" />} />
           <Route path="/view-contacts" element={isAdminSession ? <ViewAllContacts /> : <Navigate to="/login" />} />
           <Route path="/view-contact" element={isAdminSession ? <ViewContact /> : <Navigate to="/login" />} />
           <Route path="/view-contact/:id" element={isAdminSession ? <ViewContact /> : <Navigate to="/login" />} />
+          <Route path="/locations" element={isAdminSession ? <Locations /> : <Navigate to="/login" />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to={isAdminSession ? "/home" : "/login"} replace />} />
@@ -201,7 +204,9 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </Router>
   );
 }

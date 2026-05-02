@@ -29,26 +29,6 @@ const AllAssociations = () => {
 		});
 	};
 
-	const handleDeleteAssociation = async (associationId, associationName) => {
-		try {
-			await api.delete(`/associations/${associationId}`);
-			setAssociations((previous) => previous.filter(
-				(association) => Number(pickValue(association, 'associationId', 'AssociationId')) !== Number(associationId)
-			));
-			setAssociationsError('');
-		} catch (error) {
-			console.error('Kunne ikke slette forening:', error);
-			const apiMessage = error?.response?.data?.message;
-			const apiDetails = error?.response?.data?.details;
-			setAssociationsError(
-				apiMessage
-				|| apiDetails
-				|| `Kunne ikke slette foreningen ${associationName}. Prøv igen.`
-			);
-			throw error;
-		}
-	};
-
 	useEffect(() => {
 		const fetchAssociations = async () => {
 			try {
@@ -104,7 +84,6 @@ const AllAssociations = () => {
 		<div className="all-associations-page">
 			<header className="all-associations-header">
 				<h1>Alle Foreninger</h1>
-				<p>Se alle foreninger og filtrer på kontakter og søgetekst.</p>
 			</header>
 
 			<div className="all-associations-layout">
@@ -118,7 +97,6 @@ const AllAssociations = () => {
 						hasContactsFilter={hasContactsFilter}
 						onHasContactsFilterChange={setHasContactsFilter}
 						onAssociationOpen={handleOpenAssociation}
-						onAssociationDelete={handleDeleteAssociation}
 					/>
 				</div>
 

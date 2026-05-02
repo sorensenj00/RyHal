@@ -128,7 +128,6 @@ const StaffingOverview = () => {
 		<div className="staffing-page">
 			<header className="staffing-page-header">
 				<div>
-					<p className="staffing-page-eyebrow">Vagtstyring</p>
 					<h1>Bemandingsoversigt</h1>
 				</div>
 

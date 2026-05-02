@@ -137,6 +137,7 @@ const ViewAllContacts = () => {
       <div className="view-contacts-content">
         <AllContactsTable
           contacts={filteredContacts}
+          contactAssociationNamesById={contactAssociationNamesById}
           loading={loadingContacts}
           error={contactsError}
           onDeleteContact={handleDeleteContact}
