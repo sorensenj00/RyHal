@@ -20,6 +20,8 @@ public sealed class SupabaseAuthProvisioningService
         _configuration = configuration;
     }
 
+    public bool IsConfigured => !string.IsNullOrWhiteSpace(GetServiceRoleKey());
+
     public async Task<ProvisionedSupabaseUser> ProvisionEmployeeAsync(
         string email,
         string firstName,
@@ -27,8 +29,13 @@ public sealed class SupabaseAuthProvisioningService
         string phone,
         string appAccess)
     {
+        if (!IsConfigured)
+        {
+            return new ProvisionedSupabaseUser(string.Empty, NormalizeEmail(email), false, true);
+        }
+
         var supabaseUrl = GetSupabaseUrl();
-        var serviceRoleKey = GetServiceRoleKey();
+        var serviceRoleKey = GetServiceRoleKey()!;
         var normalizedEmail = NormalizeEmail(email);
         var recoveryRedirectUrl = GetRecoveryRedirectUrl();
         var userId = Guid.NewGuid().ToString();
@@ -182,16 +189,19 @@ public sealed class SupabaseAuthProvisioningService
         return supabaseUrl;
     }
 
-    private string GetServiceRoleKey()
+    private string? GetServiceRoleKey()
     {
         var serviceRoleKey =
             _configuration["Supabase:ServiceRoleKey"]?.Trim()
+            ?? _configuration["Supabase:SecretKey"]?.Trim()
             ?? Environment.GetEnvironmentVariable("Supabase__ServiceRoleKey")?.Trim()
-            ?? Environment.GetEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY")?.Trim();
+            ?? Environment.GetEnvironmentVariable("Supabase__SecretKey")?.Trim()
+            ?? Environment.GetEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY")?.Trim()
+            ?? Environment.GetEnvironmentVariable("SUPABASE_SECRET_KEY")?.Trim();
 
-        if (string.IsNullOrWhiteSpace(serviceRoleKey))
+        if (IsPlaceholderSecret(serviceRoleKey))
         {
-            throw new InvalidOperationException("Supabase service role key mangler. Sæt Supabase:ServiceRoleKey i konfigurationen.");
+            return null;
         }
 
         return serviceRoleKey;
@@ -206,6 +216,12 @@ public sealed class SupabaseAuthProvisioningService
             ?? "http://localhost:3000/reset-password";
 
         return recoveryRedirectUrl;
+    }
+
+    private static bool IsPlaceholderSecret(string? value)
+    {
+        return string.Equals(value, "DIN_SUPABASE_SERVICE_ROLE_KEY_HER", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "DIN_SUPABASE_SECRET_KEY_HER", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string NormalizeEmail(string email)
@@ -269,5 +285,5 @@ public sealed class SupabaseAuthProvisioningService
         return child.GetString();
     }
 
-    public sealed record ProvisionedSupabaseUser(string UserId, string Email, bool InvitationSent);
+    public sealed record ProvisionedSupabaseUser(string UserId, string Email, bool InvitationSent, bool ProvisioningSkipped = false);
 }

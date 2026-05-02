@@ -64,9 +64,8 @@ namespace SportCenter.Api.Services
                 LastName = dto.LastName,
                 Email = normalizedEmail,
                 Phone = dto.Phone,
-                // Gemmes som dato uden tidspunkt, så det matcher databasekolonnen
                 Birthday = dto.Birthday.Date,
-                SupabaseUserId = authProvisionedUser.UserId,
+                SupabaseUserId = authProvisionedUser.ProvisioningSkipped ? null : authProvisionedUser.UserId,
                 AppAccess = normalizedAppAccess
             };
 
