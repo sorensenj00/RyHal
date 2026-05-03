@@ -78,6 +78,10 @@ export function EmployeePortalProvider({ children }) {
     const pause = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
     const fetchJson = async (url, token) => {
+      if (typeof token !== "string" || token.trim().length === 0) {
+        throw new Error("Manglende adgangstoken.");
+      }
+
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,

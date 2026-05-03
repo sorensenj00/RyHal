@@ -42,14 +42,19 @@ function Login() {
     setLoading(true);
     setErrorMessage("");
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!supabase?.auth) {
+      setErrorMessage("Supabase er ikke konfigureret.");
+      setLoading(false);
+      return;
+    }
+
+    const { data: loginData, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setErrorMessage("Forkert email eller adgangskode.");
       setLoading(false);
     } else {
-      const { data } = await supabase.auth.getSession();
-      const session = data?.session;
+      const session = loginData?.session ?? (await supabase.auth.getSession()).data?.session;
 
       if (!session?.access_token) {
         setErrorMessage("Kunne ikke hente login-sessionen.");

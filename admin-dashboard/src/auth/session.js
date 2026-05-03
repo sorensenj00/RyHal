@@ -29,7 +29,7 @@ export function getEmployeeAppUrl() {
 export async function createEmployeeAppTransferUrl(session) {
   const baseUrl = employeeAppUrl.replace(/\/$/, "");
 
-  if (!session?.access_token || !session?.refresh_token) {
+  if (!hasToken(session?.access_token) || !hasToken(session?.refresh_token)) {
     return baseUrl;
   }
 
@@ -80,6 +80,12 @@ export class AuthRequestError extends Error {
 }
 
 export async function fetchAuthMe(accessToken) {
+  if (!hasToken(accessToken)) {
+    throw new AuthRequestError("Manglende adgangstoken.", {
+      status: 401,
+    });
+  }
+
   let response;
 
   try {
@@ -121,4 +127,8 @@ async function safeReadJson(response) {
   } catch {
     return null;
   }
+}
+
+function hasToken(token) {
+  return typeof token === "string" && token.trim().length > 0;
 }

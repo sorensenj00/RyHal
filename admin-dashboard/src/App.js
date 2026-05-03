@@ -113,9 +113,16 @@ function AppContent() {
       }
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      resolveSession(session);
-    });
+    if (isPublicAuthRoute && !isResetPasswordRoute) {
+      setSession(null);
+      setAuthProfile(null);
+      setAuthError("");
+      setLoading(false);
+    } else {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        resolveSession(session);
+      });
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       resolveSession(nextSession);
@@ -125,7 +132,7 @@ function AppContent() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [isLoginRoute, isResetPasswordRoute, retryTick]);
+  }, [isLoginRoute, isPublicAuthRoute, isResetPasswordRoute, retryTick]);
 
   if (loading) {
     return <div className="loading-screen">Henter session...</div>;

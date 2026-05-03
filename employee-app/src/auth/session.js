@@ -17,6 +17,12 @@ export class AuthRequestError extends Error {
 }
 
 export async function fetchAuthMe(accessToken) {
+  if (!hasToken(accessToken)) {
+    throw new AuthRequestError("Manglende adgangstoken.", {
+      status: 401,
+    });
+  }
+
   let response;
 
   try {
@@ -103,4 +109,8 @@ async function safeReadJson(response) {
   } catch {
     return null;
   }
+}
+
+function hasToken(token) {
+  return typeof token === "string" && token.trim().length > 0;
 }
