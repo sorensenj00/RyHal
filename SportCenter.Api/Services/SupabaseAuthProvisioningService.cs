@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace SportCenter.Api.Services;
 
-public sealed class SupabaseAuthProvisioningService
+public sealed class SupabaseAuthProvisioningService : IEmployeeAuthProvisioningService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
@@ -285,5 +285,4 @@ public sealed class SupabaseAuthProvisioningService
         return child.GetString();
     }
 
-    public sealed record ProvisionedSupabaseUser(string UserId, string Email, bool InvitationSent, bool ProvisioningSkipped = false);
 }

@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using SportCenter.Api.DTOs;
 using SportCenter.Api.Models;
 using SportCenter.Api.Services;
+using Xunit;
 
 namespace SportCenter.Api.UnitTests;
 

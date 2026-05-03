@@ -29,7 +29,8 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
 );
 
 // 3. Registrér dine business logic services (Dependency Injection)
-builder.Services.AddScoped<SupabaseAuthProvisioningService>();
+builder.Services.AddScoped<IEmployeeRepository, SupabaseEmployeeRepository>();
+builder.Services.AddScoped<IEmployeeAuthProvisioningService, SupabaseAuthProvisioningService>();
 builder.Services.AddSingleton<AuthTransferService>();
 builder.Services.AddScoped<EmployeeService>();
 builder.Services.AddScoped<AuthContextService>();
