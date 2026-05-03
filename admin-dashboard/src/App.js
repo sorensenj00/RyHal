@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import './App.css';
-import { fetchAuthMe, getEmployeeAppTransferUrl, APP_ACCESS, isRetryableAuthError, shouldSignOutOnAuthError } from "./auth/session";
+import { fetchAuthMe, createEmployeeAppTransferUrl, getEmployeeAppUrl, APP_ACCESS, isRetryableAuthError, shouldSignOutOnAuthError } from "./auth/session";
 
 // Komponenter
 import NavBar from "./components/navbar/NavBar";
@@ -73,7 +73,8 @@ function AppContent() {
         setLoading(false);
 
         if (profile.appAccess !== APP_ACCESS.ADMIN && !isResetPasswordRoute && !isLoginRoute) {
-          window.location.replace(getEmployeeAppTransferUrl(nextSession));
+          const transferUrl = await createEmployeeAppTransferUrl(nextSession);
+          window.location.replace(transferUrl);
         }
       } catch (error) {
         if (!active) return;
@@ -161,7 +162,7 @@ function AppContent() {
         <Routes>
           {/* Login rute - Hvis man er logget ind, sendes man væk fra login */}
           <Route path="/login" element={<Login />} />
-          <Route path="/forgot" element={!session ? <ForgotPassword /> : <Navigate to={isAdminSession ? "/home" : getEmployeeAppTransferUrl(session)} replace />} />
+          <Route path="/forgot" element={!session ? <ForgotPassword /> : <Navigate to={isAdminSession ? "/home" : getEmployeeAppUrl()} replace />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Automatisk redirect ved rod-URL */}

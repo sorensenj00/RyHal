@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { APP_ACCESS, fetchAuthMe, getAdminAppHomeUrl, getApiBaseUrl, getLoginUrl, isRetryableAuthError, shouldSignOutOnAuthError } from "../auth/session";
+import { APP_ACCESS, fetchAuthMe, getAdminAppHomeUrl, getApiBaseUrl, getLoginUrl, isRetryableAuthError, redeemTransferCode, shouldSignOutOnAuthError } from "../auth/session";
 
 const DEFAULT_WEEK_DAYS = 7;
 const EmployeePortalContext = createContext(null);
@@ -31,23 +31,18 @@ function buildApiUrl(path, params = {}) {
   return url.toString();
 }
 
-function getTransferredSessionFromUrl() {
+async function getTransferredSessionFromUrl() {
   const url = new URL(window.location.href);
-  const accessToken = url.searchParams.get("access_token");
-  const refreshToken = url.searchParams.get("refresh_token");
+  const transferCode = url.searchParams.get("transfer_code");
 
-  if (!accessToken || !refreshToken) {
+  if (!transferCode) {
     return null;
   }
 
-  url.searchParams.delete("access_token");
-  url.searchParams.delete("refresh_token");
+  url.searchParams.delete("transfer_code");
   window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
 
-  return {
-    access_token: accessToken,
-    refresh_token: refreshToken,
-  };
+  return await redeemTransferCode(transferCode);
 }
 
 async function safeReadJson(response) {
@@ -250,7 +245,15 @@ export function EmployeePortalProvider({ children }) {
     }
 
     const bootstrapSession = async () => {
-      const transferredSession = getTransferredSessionFromUrl();
+      let transferredSession = null;
+
+      try {
+        transferredSession = await getTransferredSessionFromUrl();
+      } catch (transferError) {
+        hasBootstrappedAuthRef.current = true;
+        await redirectToLogin(transferError.message || "Transfer-koden er ugyldig eller udløbet.", { signOut: false });
+        return;
+      }
 
       if (transferredSession) {
         const { data, error } = await supabase.auth.setSession(transferredSession);

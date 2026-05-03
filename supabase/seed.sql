@@ -1,1 +1,2 @@
--- Seed
+-- Baseline lookup data is inserted by supabase/migrations/005_competences.sql.
+-- Keep environment-specific demo users out of seed files; create them through Supabase Auth.

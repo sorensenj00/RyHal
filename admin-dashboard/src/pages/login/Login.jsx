@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { Link } from "react-router-dom";
 import './Login.css'; 
-import { fetchAuthMe, getAdminAppUrl, getEmployeeAppTransferUrl } from "../../auth/session";
+import { fetchAuthMe, getAdminAppUrl, createEmployeeAppTransferUrl } from "../../auth/session";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -60,7 +60,8 @@ function Login() {
       try {
         const authMe = await fetchAuthMe(session.access_token);
         if (authMe.appAccess === "employee") {
-          window.location.assign(getEmployeeAppTransferUrl(session));
+          const transferUrl = await createEmployeeAppTransferUrl(session);
+          window.location.assign(transferUrl);
           return;
         }
 

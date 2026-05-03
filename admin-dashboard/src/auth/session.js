@@ -26,16 +26,35 @@ export function getEmployeeAppUrl() {
   return employeeAppUrl;
 }
 
-export function getEmployeeAppTransferUrl(session) {
+export async function createEmployeeAppTransferUrl(session) {
   const baseUrl = employeeAppUrl.replace(/\/$/, "");
 
   if (!session?.access_token || !session?.refresh_token) {
     return baseUrl;
   }
 
+  const response = await fetch(`${apiBaseUrl}/auth/transfer`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({
+      refreshToken: session.refresh_token,
+    }),
+  });
+
+  const payload = await safeReadJson(response);
+  if (!response.ok) {
+    const message = payload?.message || payload?.Message || "Kunne ikke oprette sikker app-overførsel.";
+    throw new AuthRequestError(message, {
+      status: response.status,
+      retryable: response.status >= 500,
+    });
+  }
+
   const url = new URL(baseUrl);
-  url.searchParams.set("access_token", session.access_token);
-  url.searchParams.set("refresh_token", session.refresh_token);
+  url.searchParams.set("transfer_code", payload.transferCode || payload.TransferCode);
   return url.toString();
 }
 

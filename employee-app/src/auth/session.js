@@ -44,6 +44,39 @@ export async function fetchAuthMe(accessToken) {
   return payload;
 }
 
+export async function redeemTransferCode(transferCode) {
+  let response;
+
+  try {
+    response = await fetch(`${apiBaseUrl}/auth/transfer/redeem`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ transferCode }),
+    });
+  } catch {
+    throw new AuthRequestError("Kunne ikke kontakte serveren for at overtage login.", {
+      retryable: true,
+    });
+  }
+
+  const payload = await safeReadJson(response);
+
+  if (!response.ok) {
+    const message = payload?.message || payload?.Message || "Transfer-koden er ugyldig eller udløbet.";
+    throw new AuthRequestError(message, {
+      status: response.status,
+      retryable: response.status >= 500,
+    });
+  }
+
+  return {
+    access_token: payload.accessToken || payload.AccessToken,
+    refresh_token: payload.refreshToken || payload.RefreshToken,
+  };
+}
+
 export function getApiBaseUrl() {
   return apiBaseUrl;
 }

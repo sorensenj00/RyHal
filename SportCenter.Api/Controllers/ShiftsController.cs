@@ -11,10 +11,12 @@ namespace SportCenter.Api.Controllers;
 public class ShiftsController : ControllerBase
 {
     private readonly ShiftService _shiftService;
+    private readonly AuthContextService _authContextService;
 
-    public ShiftsController(ShiftService shiftService)
+    public ShiftsController(ShiftService shiftService, AuthContextService authContextService)
     {
         _shiftService = shiftService;
+        _authContextService = authContextService;
     }
 
 
@@ -24,8 +26,7 @@ public class ShiftsController : ControllerBase
     {
         try
         {
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            var token = GetToken();
 
             var shifts = await _shiftService.GetAllShiftsAsync(token);
 
@@ -52,7 +53,7 @@ public class ShiftsController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.ToString());
+            return StatusCode(500, new { Message = "Kunne ikke hente vagter.", Details = ex.Message });
         }
     }
 
@@ -63,25 +64,34 @@ public class ShiftsController : ControllerBase
     {
         try
         {
-            if (id != shiftDto.ShiftId)
+            if (shiftDto == null)
             {
-                return BadRequest("ID i URL matcher ikke ID i objektet");
+                return BadRequest(new { Message = "Vagtdata mangler." });
             }
 
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            if (id != shiftDto.ShiftId)
+            {
+                return BadRequest(new { Message = "ID i URL matcher ikke ID i objektet." });
+            }
+
+            var token = GetToken();
+            await _authContextService.RequireAdminAsync(token);
 
             // Kald din service for at gemme i databasen
             var success = await _shiftService.UpdateShiftAsync(shiftDto, token);
 
             if (!success)
-                return NotFound($"Vagt med ID {id} blev ikke fundet");
+                return NotFound(new { Message = $"Vagt med ID {id} blev ikke fundet." });
 
             return Ok(shiftDto);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message);
+            return StatusCode(500, new { Message = "Kunne ikke opdatere vagten.", Details = ex.Message });
         }
     }
 
@@ -91,8 +101,7 @@ public class ShiftsController : ControllerBase
     {
         try
         {
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            var token = GetToken();
 
             var categories = await _shiftService.GetAllCategoriesAsync(token);
 
@@ -107,7 +116,7 @@ public class ShiftsController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message);
+            return StatusCode(500, new { Message = "Kunne ikke hente vagt-kategorier.", Details = ex.Message });
         }
     }
 
@@ -117,12 +126,20 @@ public class ShiftsController : ControllerBase
     {
         try
         {
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            if (shiftDto == null)
+            {
+                return BadRequest(new { Message = "Vagtdata mangler." });
+            }
+
+            var token = GetToken();
+            await _authContextService.RequireAdminAsync(token);
 
             var shifts = await _shiftService.CreateShiftAsync(shiftDto, token);
 
-            if (shifts == null || !shifts.Any()) return StatusCode(500, "Kunne ikke oprette vagt");
+            if (shifts == null || !shifts.Any())
+            {
+                return StatusCode(500, new { Message = "Kunne ikke oprette vagt." });
+            }
 
             var resultDtos = shifts.Select(shift => new ShiftDto
             {
@@ -137,11 +154,15 @@ public class ShiftsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message);
+            return StatusCode(500, new { Message = "Kunne ikke oprette vagt.", Details = ex.Message });
         }
     }
 
@@ -152,8 +173,8 @@ public class ShiftsController : ControllerBase
     {
         try
         {
-            var authHeader = Request.Headers["Authorization"].ToString();
-            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+            var token = GetToken();
+            await _authContextService.RequireAdminAsync(token);
 
             var success = await _shiftService.RemoveShiftAsync(id, token);
 
@@ -161,12 +182,23 @@ public class ShiftsController : ControllerBase
 
             return NoContent();
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message);
+            return StatusCode(500, new { Message = "Kunne ikke slette vagten.", Details = ex.Message });
         }
     }
 
+    private string? GetToken()
+    {
+        var authHeader = Request.Headers["Authorization"].ToString();
+        return authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? authHeader[7..]
+            : null;
+    }
 
 
 

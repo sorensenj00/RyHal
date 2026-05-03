@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { fetchAuthMe, getAppUrlForRedirectTarget } from "../../auth/session";
+import { APP_ACCESS, createEmployeeAppTransferUrl, fetchAuthMe, getAppUrlForRedirectTarget } from "../../auth/session";
 import "../login/Login.css";
 import "./AuthRecovery.css";
 
@@ -86,7 +86,9 @@ function ResetPassword() {
       }
 
       const authMe = await fetchAuthMe(session.access_token);
-      const targetUrl = getAppUrlForRedirectTarget(authMe.redirectTarget);
+      const targetUrl = authMe.appAccess === APP_ACCESS.EMPLOYEE
+        ? await createEmployeeAppTransferUrl(session)
+        : getAppUrlForRedirectTarget(authMe.redirectTarget);
 
       window.location.assign(targetUrl);
     } catch (redirectError) {

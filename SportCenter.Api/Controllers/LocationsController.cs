@@ -8,10 +8,12 @@ namespace SportCenter.Api.Controllers;
 public class LocationsController : ControllerBase
 {
 	private readonly LocationService _locationService;
+	private readonly AuthContextService _authContextService;
 
-	public LocationsController(LocationService locationService)
+	public LocationsController(LocationService locationService, AuthContextService authContextService)
 	{
 		_locationService = locationService;
+		_authContextService = authContextService;
 	}
 
 	[HttpGet]
@@ -19,15 +21,14 @@ public class LocationsController : ControllerBase
 	{
 		try
 		{
-			var authHeader = Request.Headers["Authorization"].ToString();
-			string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+			var token = GetToken();
 
 			var locations = await _locationService.GetAllLocationsAsync(token);
 			return Ok(locations);
 		}
 		catch (Exception ex)
 		{
-			return StatusCode(500, ex.Message);
+			return StatusCode(500, new { Message = "Kunne ikke hente lokationer.", Details = ex.Message });
 		}
 	}
 
@@ -39,15 +40,19 @@ public class LocationsController : ControllerBase
 
 		try
 		{
-			var authHeader = Request.Headers["Authorization"].ToString();
-			string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+			var token = GetToken();
+			await _authContextService.RequireAdminAsync(token);
 
 			var created = await _locationService.CreateLocationAsync(request.Name.Trim(), token);
 			return Ok(created);
 		}
+		catch (UnauthorizedAccessException ex)
+		{
+			return Unauthorized(new { Message = ex.Message });
+		}
 		catch (Exception ex)
 		{
-			return StatusCode(500, ex.Message);
+			return StatusCode(500, new { Message = "Kunne ikke oprette lokation.", Details = ex.Message });
 		}
 	}
 
@@ -59,15 +64,19 @@ public class LocationsController : ControllerBase
 
 		try
 		{
-			var authHeader = Request.Headers["Authorization"].ToString();
-			string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+			var token = GetToken();
+			await _authContextService.RequireAdminAsync(token);
 
 			await _locationService.UpdateLocationNameAsync(id, request.Name.Trim(), token);
 			return NoContent();
 		}
+		catch (UnauthorizedAccessException ex)
+		{
+			return Unauthorized(new { Message = ex.Message });
+		}
 		catch (Exception ex)
 		{
-			return StatusCode(500, ex.Message);
+			return StatusCode(500, new { Message = "Kunne ikke opdatere lokation.", Details = ex.Message });
 		}
 	}
 
@@ -76,16 +85,28 @@ public class LocationsController : ControllerBase
 	{
 		try
 		{
-			var authHeader = Request.Headers["Authorization"].ToString();
-			string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+			var token = GetToken();
+			await _authContextService.RequireAdminAsync(token);
 
 			await _locationService.DeleteLocationAsync(id, token);
 			return NoContent();
 		}
+		catch (UnauthorizedAccessException ex)
+		{
+			return Unauthorized(new { Message = ex.Message });
+		}
 		catch (Exception ex)
 		{
-			return StatusCode(500, ex.Message);
+			return StatusCode(500, new { Message = "Kunne ikke slette lokation.", Details = ex.Message });
 		}
+	}
+
+	private string? GetToken()
+	{
+		var authHeader = Request.Headers["Authorization"].ToString();
+		return authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+			? authHeader[7..]
+			: null;
 	}
 }
 
