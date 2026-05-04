@@ -20,6 +20,7 @@ import CreateNewEmployee from "./pages/create-new-employee/CreateNewEmployee";
 import Welcome from "./pages/home/Welcome";
 import ShowEmployee from "./pages/show-employee/ShowEmployee";
 import EventOverview from "./pages/activities/event-overview/EventOverview";
+import AllEvents from "./pages/activities/all-events/AllEvents";
 import CreateNewEvent from "./pages/activities/create-new-event/CreateNewEvent";
 import EditEvent from "./pages/activities/edit-event/EditEvent";
 import Drafts from "./pages/activities/drafts/Drafts";
@@ -191,6 +192,7 @@ function AppContent() {
           <Route path="/work-calendar" element={isAdminSession ? <WorkCalendar /> : <Navigate to="/login" />} />
           <Route path="/event-shift-overview" element={isAdminSession ? <EventShiftOverview /> : <Navigate to="/login" />} />
           <Route path="/create-employee" element={isAdminSession ? <CreateNewEmployee /> : <Navigate to="/login" />} />
+          <Route path="/all-events" element={isAdminSession ? <AllEvents /> : <Navigate to="/login" />} />
           <Route path="/event-overview" element={isAdminSession ? <EventOverview /> : <Navigate to="/login" />} />
           <Route path="/create-association" element={isAdminSession ? <CreateAssociation /> : <Navigate to="/login" />} />
           <Route path="/associations" element={isAdminSession ? <AllAssociations /> : <Navigate to="/login" />} />

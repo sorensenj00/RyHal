@@ -1,0 +1,77 @@
+.contact-window-block {
+  margin-top: 0.25rem;
+}
+
+.contact-window-caption {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--gray-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.contact-window-selected-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.contact-window-selected-chip {
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 20%, var(--white));
+  color: color-mix(in srgb, var(--primary-color) 74%, var(--black));
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.contact-window-selection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+  margin-top: 0.85rem;
+}
+
+.contact-window-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 12px;
+  background: var(--gray-100);
+  cursor: pointer;
+}
+
+.contact-window-option.selected {
+  border-color: color-mix(in srgb, var(--primary-color) 42%, var(--white));
+  background: color-mix(in srgb, var(--primary-color) 10%, var(--white));
+}
+
+.contact-window-option input {
+  margin-top: 0.2rem;
+}
+
+.contact-window-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.contact-window-option-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.contact-window-option-meta {
+  font-size: 0.78rem;
+  color: var(--gray-600);
+}

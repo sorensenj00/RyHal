@@ -1,0 +1,65 @@
+.association-window-picker {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.association-window-picker label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--gray-700);
+}
+
+.association-window-picker select {
+  border: 1px solid var(--gray-400);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.92rem;
+  color: var(--gray-900);
+  background: var(--gray-100);
+}
+
+.association-window-picker select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  background: var(--white);
+}
+
+.association-window-panel {
+  margin-top: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 28%, var(--white));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--white));
+}
+
+.association-window-caption {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--gray-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.association-window-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.association-window-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 20%, var(--white));
+  color: color-mix(in srgb, var(--primary-color) 74%, var(--black));
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
