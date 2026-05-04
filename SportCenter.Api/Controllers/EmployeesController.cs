@@ -124,8 +124,11 @@ public class EmployeesController : ControllerBase
             {
                 Message = "Medarbejder opdateret korrekt",
                 EmployeeId = id,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
                 Email = dto.Email,
-                Phone = dto.Phone
+                Phone = dto.Phone,
+                AppAccess = dto.AppAccess
             });
         }
         catch (UnauthorizedAccessException ex)

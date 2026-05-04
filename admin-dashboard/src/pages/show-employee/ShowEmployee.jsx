@@ -97,7 +97,7 @@ const ShowEmployee = () => {
     }
   }, [id, employees, navigate]);
 
-  const handleInputChange = (e) => {
+  const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setSelectedEmployee(prev => ({ ...prev, [name]: value }));
   };
@@ -136,8 +136,11 @@ const ShowEmployee = () => {
       setIsSaving(true);
 
       await api.put(`/employees/${selectedEmployee.employeeId}`, {
+        firstName: selectedEmployee.firstName,
+        lastName: selectedEmployee.lastName,
         email: selectedEmployee.email,
-        phone: selectedEmployee.phone
+        phone: selectedEmployee.phone,
+        appAccess: selectedEmployee.appAccess
       }, {
         skipCrudToast: true
       });
@@ -152,8 +155,12 @@ const ShowEmployee = () => {
         emp.employeeId === selectedEmployee.employeeId
           ? {
               ...emp,
+              ...selectedEmployee,
+              firstName: selectedEmployee.firstName,
+              lastName: selectedEmployee.lastName,
               email: selectedEmployee.email,
               phone: selectedEmployee.phone,
+              appAccess: selectedEmployee.appAccess,
               role: selectedEmployee.role || 'Ingen rolle',
               roleColor: selectedEmployee.roleColor || '--color-andet'
             }
@@ -215,14 +222,16 @@ const ShowEmployee = () => {
 
   return (
     <div className="show-employee-page">
-      <header className="page-header">
-        <div className="header-text">
-          <h1>Medarbejderprofil</h1>
-          <p>Dashboard for {selectedEmployee.firstName} {selectedEmployee.lastName}</p>
-        </div>
-        <div className="header-search">
-          <label className="search-label">Skift medarbejder</label>
-          <EmployeeSearchBar onSelect={handleEmployeeChange} />
+      <header className="show-employee-header-fixed">
+        <div className="show-employee-header">
+          <div className="header-text">
+            <h1>Medarbejderprofil</h1>
+            <p>Dashboard for {selectedEmployee.firstName} {selectedEmployee.lastName}</p>
+          </div>
+          <div className="header-search">
+            <label className="search-label">Skift medarbejder</label>
+            <EmployeeSearchBar onSelect={handleEmployeeChange} />
+          </div>
         </div>
       </header>
 
@@ -232,7 +241,7 @@ const ShowEmployee = () => {
           <EmployeeProfileCard
             employee={selectedEmployee}
             onRoleChange={handleRoleChange}
-            onContactChange={handleInputChange}
+            onProfileChange={handleProfileChange}
           />
         </aside>
 
@@ -247,43 +256,45 @@ const ShowEmployee = () => {
       </div>
 
       {/* BUTTON ROW */}
-      <footer className="employee-actions-footer">
-        <div className="button-row">
-          <div className="button-row-left">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              disabled={isDeleting}
-              onClick={handleToggleShiftPanel}
-            >
-              Se vagter i periode
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              disabled={isDeleting}
-              onClick={handleOpenHoursOverview}
-            >
-              Se timeoversigt
-            </button>
-          </div>
-          <div className="button-row-right">
-            <button 
-              type="button" 
-              className="btn btn-primary" 
-              onClick={handleSaveChanges} 
-              disabled={isSaving || isDeleting}
-            >
-              {isSaving ? 'Gemmer...' : 'Gem ændringer'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={openDeleteConfirm}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Sletter...' : 'Slet medarbejder'}
-            </button>
+      <footer className="show-employee-button-bar">
+        <div className="show-employee-button-bar-inner">
+          <div className="button-row">
+            <div className="button-row-left">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={isDeleting}
+                onClick={handleToggleShiftPanel}
+              >
+                Se vagter i periode
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={isDeleting}
+                onClick={handleOpenHoursOverview}
+              >
+                Se timeoversigt
+              </button>
+            </div>
+            <div className="button-row-right">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSaveChanges}
+                disabled={isSaving || isDeleting}
+              >
+                {isSaving ? 'Gemmer...' : 'Gem ændringer'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={openDeleteConfirm}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Sletter...' : 'Slet medarbejder'}
+              </button>
+            </div>
           </div>
         </div>
       </footer>

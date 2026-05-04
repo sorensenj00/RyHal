@@ -3,7 +3,7 @@ import { format, parseISO, differenceInMinutes, startOfDay, addMinutes, isSameDa
 import api from '../../api/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFutbol, faUsers, faTools, faEllipsisH } from '@fortawesome/free-solid-svg-icons';
+import { faFutbol, faUsers } from '@fortawesome/free-solid-svg-icons';
 import EventModal from './EventModal'; // Importér den nye modal
 import './EventHeatmap.css';
 
@@ -179,7 +179,7 @@ const buildUpdatePayload = (event) => {
   };
 };
 
-const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [], locations = [] }) => {
+const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [], locations = [], onOpenAdvancedEdit, refreshKey }) => {
   const navigate = useNavigate();
   const [allEvents, setAllEvents] = useState([]);
   const [allLocations, setAllLocations] = useState(Array.isArray(locations) ? locations : []);
@@ -224,12 +224,17 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
     }
 
     setSelectedEvent(null);
-    navigate('/edit-activity', {
-      state: {
-        draftEvent: eventForEdit,
-        returnTo: '/event-overview'
-      }
-    });
+
+    if (onOpenAdvancedEdit) {
+      onOpenAdvancedEdit(eventForEdit);
+    } else {
+      navigate('/edit-activity', {
+        state: {
+          draftEvent: eventForEdit,
+          returnTo: '/event-overview'
+        }
+      });
+    }
   };
 
   useEffect(() => {
@@ -259,7 +264,7 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
     };
 
     fetchData();
-  }, [locations]);
+  }, [locations, refreshKey]);
 
   useEffect(() => {
     if (isLoading || loadError || hasAutoCenteredRef.current) return;
@@ -548,7 +553,7 @@ const EventHeatmap = ({ selectedDate, activeCategories = [], activeLocations = [
                       key={evt.id}
                       draggable={!resizingEvent}
                       onDragStart={(e) => onDragStart(e, evt.id)}
-                      onClick={() => setSelectedEvent(evt)} // Åben modal ved klik
+                      onClick={() => handleOpenAdvancedEdit(evt)}
                       className={`event-item cat-${CATEGORY_CLASSNAME[evt.category] || 'andet'} ${resizingEvent?.id === evt.id ? 'resizing' : ''}`}
                       style={getEventStyle(evt.startTime, evt.endTime)}
                     >

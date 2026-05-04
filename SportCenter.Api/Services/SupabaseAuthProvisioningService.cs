@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 
 namespace SportCenter.Api.Services;
@@ -35,7 +36,7 @@ public sealed class SupabaseAuthProvisioningService : IEmployeeAuthProvisioningS
         }
 
         var supabaseUrl = GetSupabaseUrl();
-        var serviceRoleKey = GetServiceRoleKey()!;
+        var serviceRoleKey = GetValidatedServiceRoleKey();
         var normalizedEmail = NormalizeEmail(email);
         var recoveryRedirectUrl = GetRecoveryRedirectUrl();
         var userId = Guid.NewGuid().ToString();
@@ -93,7 +94,7 @@ public sealed class SupabaseAuthProvisioningService : IEmployeeAuthProvisioningS
         }
 
         var supabaseUrl = GetSupabaseUrl();
-        var serviceRoleKey = GetServiceRoleKey();
+        var serviceRoleKey = GetValidatedServiceRoleKey();
 
         var client = _httpClientFactory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Delete, $"{supabaseUrl}/auth/v1/admin/users/{normalizedUserId}");
@@ -114,7 +115,7 @@ public sealed class SupabaseAuthProvisioningService : IEmployeeAuthProvisioningS
     private async Task SendRecoveryEmailAsync(string email, string redirectUrl)
     {
         var supabaseUrl = GetSupabaseUrl();
-        var serviceRoleKey = GetServiceRoleKey();
+        var serviceRoleKey = GetValidatedServiceRoleKey();
 
         var recoverUrl = $"{supabaseUrl}/auth/v1/recover?redirect_to={Uri.EscapeDataString(redirectUrl)}";
         var client = _httpClientFactory.CreateClient();
@@ -167,6 +168,13 @@ public sealed class SupabaseAuthProvisioningService : IEmployeeAuthProvisioningS
     {
         var friendlyMessage = ExtractFriendlyMessage(responseBody);
 
+        if (friendlyMessage.Contains("invalid api key", StringComparison.OrdinalIgnoreCase))
+        {
+            return new InvalidOperationException(
+                $"Kunne ikke oprette Supabase-login for {email}: Ugyldig Supabase admin-nøgle. " +
+                "Sæt en gyldig `Supabase:ServiceRoleKey` (legacy JWT med role=service_role) eller `Supabase:SecretKey` (sb_secret_...) i backend-konfigurationen.");
+        }
+
         if (statusCode is HttpStatusCode.Conflict ||
             statusCode is HttpStatusCode.UnprocessableEntity ||
             friendlyMessage.Contains("already", StringComparison.OrdinalIgnoreCase) ||
@@ -192,12 +200,12 @@ public sealed class SupabaseAuthProvisioningService : IEmployeeAuthProvisioningS
     private string? GetServiceRoleKey()
     {
         var serviceRoleKey =
-            _configuration["Supabase:ServiceRoleKey"]?.Trim()
-            ?? _configuration["Supabase:SecretKey"]?.Trim()
-            ?? Environment.GetEnvironmentVariable("Supabase__ServiceRoleKey")?.Trim()
-            ?? Environment.GetEnvironmentVariable("Supabase__SecretKey")?.Trim()
-            ?? Environment.GetEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY")?.Trim()
-            ?? Environment.GetEnvironmentVariable("SUPABASE_SECRET_KEY")?.Trim();
+            NormalizeSecret(_configuration["Supabase:ServiceRoleKey"])
+            ?? NormalizeSecret(_configuration["Supabase:SecretKey"])
+            ?? NormalizeSecret(Environment.GetEnvironmentVariable("Supabase__ServiceRoleKey"))
+            ?? NormalizeSecret(Environment.GetEnvironmentVariable("Supabase__SecretKey"))
+            ?? NormalizeSecret(Environment.GetEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY"))
+            ?? NormalizeSecret(Environment.GetEnvironmentVariable("SUPABASE_SECRET_KEY"));
 
         if (IsPlaceholderSecret(serviceRoleKey))
         {
@@ -205,6 +213,34 @@ public sealed class SupabaseAuthProvisioningService : IEmployeeAuthProvisioningS
         }
 
         return serviceRoleKey;
+    }
+
+    private string GetValidatedServiceRoleKey()
+    {
+        var key = GetServiceRoleKey();
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            throw new InvalidOperationException(
+                "Supabase admin-nøgle mangler. Sæt `Supabase:ServiceRoleKey` eller `Supabase:SecretKey` i backend-konfigurationen.");
+        }
+
+        // Supabase secret keys are prefixed and valid for admin APIs.
+        if (key.StartsWith("sb_secret_", StringComparison.Ordinal))
+        {
+            return key;
+        }
+
+        // Legacy keys are JWTs. If role claim is present and not service_role, it's the wrong key.
+        var jwtRole = TryReadJwtRoleClaim(key);
+        if (!string.IsNullOrWhiteSpace(jwtRole) &&
+            !string.Equals(jwtRole, "service_role", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "Forkert Supabase admin-nøgle: den konfigurerede JWT har ikke role=service_role. " +
+                "Brug en service_role key eller en sb_secret_ key i backend.");
+        }
+
+        return key;
     }
 
     private string GetRecoveryRedirectUrl()
@@ -222,6 +258,53 @@ public sealed class SupabaseAuthProvisioningService : IEmployeeAuthProvisioningS
     {
         return string.Equals(value, "DIN_SUPABASE_SERVICE_ROLE_KEY_HER", StringComparison.OrdinalIgnoreCase)
             || string.Equals(value, "DIN_SUPABASE_SECRET_KEY_HER", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string? NormalizeSecret(string? value)
+    {
+        return value?.Trim().Trim('\"').Trim('\'');
+    }
+
+    private static string? TryReadJwtRoleClaim(string key)
+    {
+        var parts = key.Split('.');
+        if (parts.Length < 2)
+        {
+            return null;
+        }
+
+        try
+        {
+            var payloadBytes = Base64UrlDecode(parts[1]);
+            var payload = JsonSerializer.Deserialize<JwtPayload>(payloadBytes);
+            return payload?.Role;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static byte[] Base64UrlDecode(string input)
+    {
+        var base64 = input.Replace('-', '+').Replace('_', '/');
+        switch (base64.Length % 4)
+        {
+            case 2:
+                base64 += "==";
+                break;
+            case 3:
+                base64 += "=";
+                break;
+        }
+
+        return Convert.FromBase64String(base64);
+    }
+
+    private sealed class JwtPayload
+    {
+        [JsonPropertyName("role")]
+        public string? Role { get; init; }
     }
 
     private static string NormalizeEmail(string email)

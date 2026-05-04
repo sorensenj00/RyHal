@@ -1,35 +1,49 @@
 /* Layout & Grundlæggende */
 .show-employee-page {
-  padding: 2rem;
+  min-height: 100%;
+  padding: 0 20px 10px;
   max-width: 1600px; /* Øget for at give plads til 3 kolonner */
   margin: 0 auto;
   background-color: #f8fafc;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
-  
 }
 
-.page-header {
+.show-employee-header-fixed {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0;
+  border-bottom: 1px solid var(--gray-300);
+  backdrop-filter: blur(6px);
+}
+
+.show-employee-header {
+  max-width: 1600px;
+  margin: 0 auto;
+  margin-bottom: 0.65rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--white);
-  border-radius: 16px;
-  border: 1px solid var(--gray-100);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
+  padding: 0.65rem 0;
   gap: 1.5rem;
-  position: relative;
-  z-index: 200;
-  overflow: visible;
 }
 
-.header-text h1 { margin: 0; font-size: 1.75rem; color: #1e293b; font-weight: 800; }
-.header-text p { margin: 0.25rem 0 0; color: #64748b; font-size: 0.9rem; }
+.show-employee-header h1 {
+  margin: 0;
+  color: var(--gray-900);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.show-employee-header p {
+  margin: 0.3rem 0 0;
+  color: var(--gray-600);
+  font-size: 0.92rem;
+}
 
 .header-search {
   display: flex;
@@ -51,11 +65,22 @@
 }
 
 /* Button Row Footer */
-.employee-actions-footer {
-  margin-top: 2rem;
+.show-employee-button-bar {
   margin-top: auto;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--gray-200);
+  padding-top: 0;
+  padding-bottom: 0;
+  border-top: 1px solid var(--gray-300);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  box-sizing: border-box;
+}
+
+.show-employee-button-bar-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0.6rem 0;
 }
 
 .button-row {
@@ -115,7 +140,10 @@
   align-items: start;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
+  margin: 0.65rem auto 0;
+  width: 100%;
+  padding-bottom: 0.3rem;
   position: relative;
   z-index: 1;
 }
@@ -133,7 +161,7 @@
   grid-column: 2;
   grid-row: 1 / -1;
   min-height: 0;
-  overflow: auto;
+  overflow: visible;
 }
 
 /* Fælles kort-styling */
@@ -274,17 +302,16 @@
 }
 
 /* Responsivt design */
-@media (max-width: 1100px) {
+@media (max-width: 768px) {
   .employee-profile-container {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 600px) {
 
   .profile-sidebar {
     grid-row: auto;
-  }
-
-  .profile-main {
-    grid-column: auto;
     grid-row: auto;
   }
 
@@ -310,10 +337,10 @@
 
 @media (max-width: 600px) {
   .show-employee-page {
-    padding: 1rem;
+    padding: 0 14px 12px;
   }
 
-  .page-header {
+  .show-employee-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
