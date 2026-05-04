@@ -13,4 +13,5 @@ public class EmployeeHoursRowDto
     public double AverageHoursPerShift => ShiftCount == 0 ? 0 : Math.Round(TotalHours / ShiftCount, 2);
     public DateTime? FirstShiftStart { get; set; }
     public DateTime? LastShiftEnd { get; set; }
+    public List<ShiftDto> Shifts { get; set; } = new();
 }

@@ -1,5 +1,6 @@
 import { useEmployeePortal } from "../portal/EmployeePortalContext";
 import { formatDate, formatMinutes } from "./portalUtils";
+import WeekCalendar from "../components/calendar/WeekCalendar";
 
 function OverviewPage() {
   const { hoursOverview, profile, swapRequests, weekRange } = useEmployeePortal();
@@ -41,24 +42,30 @@ function OverviewPage() {
 
           <div className="panel-content">
             {firstRow ? (
-              <div className="info-list">
-                <div>
-                  <span>Navn</span>
-                  <strong>{firstRow.fullName}</strong>
+              <>
+                <div className="info-list">
+                  <div>
+                    <span>Navn</span>
+                    <strong>{firstRow.fullName}</strong>
+                  </div>
+                  <div>
+                    <span>Rolle</span>
+                    <strong>{firstRow.roleName}</strong>
+                  </div>
+                  <div>
+                    <span>Første vagt</span>
+                    <strong>{formatDate(firstRow.firstShiftStart)}</strong>
+                  </div>
+                  <div>
+                    <span>Sidste vagt</span>
+                    <strong>{formatDate(firstRow.lastShiftEnd)}</strong>
+                  </div>
                 </div>
-                <div>
-                  <span>Rolle</span>
-                  <strong>{firstRow.roleName}</strong>
+
+                <div style={{ marginTop: "2rem" }}>
+                  <WeekCalendar shifts={firstRow.shifts} weekRange={weekRange} />
                 </div>
-                <div>
-                  <span>Første vagt</span>
-                  <strong>{formatDate(firstRow.firstShiftStart)}</strong>
-                </div>
-                <div>
-                  <span>Sidste vagt</span>
-                  <strong>{formatDate(firstRow.lastShiftEnd)}</strong>
-                </div>
-              </div>
+              </>
             ) : (
               <p className="empty-state">Ingen timer fundet for den valgte periode.</p>
             )}

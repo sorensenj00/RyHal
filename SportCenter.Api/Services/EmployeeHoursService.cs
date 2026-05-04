@@ -21,7 +21,7 @@ public class EmployeeHoursService
         }
 
         var employeesResponse = await _supabase.From<Employee>().Select("*").Get();
-        var shiftsResponse = await _supabase.From<Shift>().Select("*").Get();
+        var shiftsResponse = await _supabase.From<Shift>().Select("*, category:shift_categories(*)").Get();
 
         return EmployeeHoursCalculator.BuildOverview(
             employeesResponse.Models ?? new List<Employee>(),

@@ -90,7 +90,17 @@ public static class EmployeeHoursCalculator
             ShiftCount = employeeShifts.Count,
             TotalMinutes = totalMinutes,
             FirstShiftStart = employeeShifts.FirstOrDefault()?.StartTime,
-            LastShiftEnd = employeeShifts.LastOrDefault()?.EndTime
+            LastShiftEnd = employeeShifts.LastOrDefault()?.EndTime,
+            Shifts = employeeShifts.Select(s => new ShiftDto
+            {
+                ShiftId = s.ShiftId,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                EmployeeId = s.EmployeeId,
+                CategoryId = s.ShiftCategoryId,
+                CategoryName = s.Category?.Name ?? "Ukendt",
+                CategoryColor = s.Category?.Color ?? "#94a3b8"
+            }).ToList()
         };
     }
 
