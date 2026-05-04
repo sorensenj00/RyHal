@@ -24,11 +24,6 @@
   color: #1e293b;
 }
 
-.header-title-section p {
-  margin: 0.5rem 0 0;
-  color: #64748b;
-}
-
 /* Dato Navigation */
 .header-controls {
   display: flex;

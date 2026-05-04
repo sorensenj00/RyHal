@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../../api/axiosConfig';
-import { useLocation, useNavigate } from 'react-router-dom';
-import ContactsSearchBar from '../../../components/search/ContactsSearchBar';
+import AddAssociationWindow from '../../../components/activities/AddAssociationWindow';
+import AddContactWindow from '../../../components/activities/AddContactWindow';
+import AddLocationWindow from '../../../components/activities/AddLocationWindow';
+import AddCateringWindow from '../../../components/activities/AddCateringWindow';
+import ActivityPreview from '../../../components/activities/ActivityPreview';
+import { notifySuccess } from '../../../components/toast/toastBus';
 import './CreateNewEvent.css';
 
 const EVENT_CATEGORIES = ['SPORT', 'MØDE', 'VEDLIGEHOLDELSE', 'ANDET'];
@@ -25,40 +29,8 @@ const pickValue = (obj, ...keys) => {
   return null;
 };
 
-const toLocalDateInput = (dateTime) => {
-  if (!dateTime) return '';
-
-  const date = new Date(dateTime);
-  if (Number.isNaN(date.getTime())) {
-    const str = String(dateTime);
-    return str.includes('T') ? str.split('T')[0] : str;
-  }
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const toLocalTimeInput = (dateTime) => {
-  if (!dateTime) return '';
-
-  const date = new Date(dateTime);
-  if (Number.isNaN(date.getTime())) {
-    const str = String(dateTime);
-    if (str.includes('T')) return str.split('T')[1]?.slice(0, 5) || '';
-    return str.slice(0, 5);
-  }
-
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
-};
-
 const toApiLocalDateTime = (datePart, timePart) => {
   if (!datePart || !timePart) return null;
-
-  // Keep local wall-clock time to avoid timezone drift between frontend and backend.
   return `${datePart}T${timePart}:00`;
 };
 
@@ -101,14 +73,77 @@ const normalizeIdList = (values) => [...new Set(
     .filter((value) => Number.isInteger(value) && value > 0)
 )];
 
-const CreateNewEvent = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const draftEvent = location.state?.draftEvent || null;
-  const isEditMode = Boolean(draftEvent?.id);
-  const returnTo = location.state?.returnTo || '/activities/drafts';
-  const isEditingDraft = Boolean(pickValue(draftEvent, 'isDraft', 'IsDraft'));
+const toMinuteKey = (value) => {
+  if (!value) return '';
+  return String(value).replace('Z', '').slice(0, 16);
+};
 
+const resolveEventIdAfterSave = async ({ savedEvent, payload }) => {
+  const responseEventId = Number(pickValue(savedEvent, 'id', 'Id', 'eventId', 'EventId')) || null;
+  const responseSeriesId = Number(pickValue(savedEvent, 'seriesId', 'SeriesId')) || null;
+
+  if (responseEventId || responseSeriesId) {
+    return { eventId: responseEventId, seriesId: responseSeriesId };
+  }
+
+  try {
+    const listResponse = await api.get('/events');
+    const events = Array.isArray(listResponse.data) ? listResponse.data : [];
+    const expectedName = String(payload?.Name || '').trim().toLowerCase();
+    const expectedCategory = ENUM_TO_CATEGORY[payload?.Category] || 'ANDET';
+    const expectedStart = toMinuteKey(payload?.StartTime);
+    const expectedEnd = toMinuteKey(payload?.EndTime);
+    const expectedDate = String(payload?.Date || '').slice(0, 10);
+
+    const candidates = events.filter((evt) => {
+      const evtName = String(pickValue(evt, 'name', 'Name') || '').trim().toLowerCase();
+      if (!evtName || evtName !== expectedName) {
+        return false;
+      }
+
+      const rawCategory = pickValue(evt, 'category', 'Category');
+      const evtCategory = typeof rawCategory === 'number'
+        ? (ENUM_TO_CATEGORY[rawCategory] || 'ANDET')
+        : String(rawCategory || 'ANDET').toUpperCase();
+
+      if (evtCategory !== expectedCategory) {
+        return false;
+      }
+
+      const evtStart = toMinuteKey(pickValue(evt, 'startTime', 'StartTime'));
+      const evtEnd = toMinuteKey(pickValue(evt, 'endTime', 'EndTime'));
+      const evtDate = String(pickValue(evt, 'date', 'Date') || '').slice(0, 10);
+
+      if (expectedStart && evtStart !== expectedStart) {
+        return false;
+      }
+
+      if (expectedEnd && evtEnd !== expectedEnd) {
+        return false;
+      }
+
+      if (expectedDate && evtDate && evtDate !== expectedDate) {
+        return false;
+      }
+
+      return true;
+    });
+
+    const bestMatch = [...candidates]
+      .sort((a, b) => (Number(pickValue(b, 'id', 'Id', 'eventId', 'EventId')) || 0)
+        - (Number(pickValue(a, 'id', 'Id', 'eventId', 'EventId')) || 0))[0] || null;
+
+    return {
+      eventId: Number(pickValue(bestMatch, 'id', 'Id', 'eventId', 'EventId')) || null,
+      seriesId: Number(pickValue(bestMatch, 'seriesId', 'SeriesId')) || null
+    };
+  } catch (lookupError) {
+    console.warn('Kunne ikke slå oprettet event op til relation-sync:', lookupError);
+    return { eventId: null, seriesId: null };
+  }
+};
+
+const CreateNewEvent = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('SPORT');
@@ -119,22 +154,34 @@ const CreateNewEvent = () => {
   const [recurrenceFrequency, setRecurrenceFrequency] = useState('WEEKLY');
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
   const [isDraft, setIsDraft] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
+
   const [errorMsg, setErrorMsg] = useState('');
+
   const [availableLocations, setAvailableLocations] = useState([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [isLoadingRelations, setIsLoadingRelations] = useState(true);
   const [availableAssociations, setAvailableAssociations] = useState([]);
   const [availableContacts, setAvailableContacts] = useState([]);
+
   const [selectedAssociationId, setSelectedAssociationId] = useState(0);
   const [selectedContactIds, setSelectedContactIds] = useState([]);
   const [contactSearchTerm, setContactSearchTerm] = useState('');
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
   const [locations, setLocations] = useState([]);
 
-  const selectedAssociation = availableAssociations.find(
-    (association) => Number(pickValue(association, 'associationId', 'AssociationId')) === Number(selectedAssociationId)
-  ) || null;
+  const [isAssociationWindowOpen, setIsAssociationWindowOpen] = useState(false);
+  const [isContactWindowOpen, setIsContactWindowOpen] = useState(false);
+  const [isLocationWindowOpen, setIsLocationWindowOpen] = useState(false);
+  const [isCateringWindowOpen, setIsCateringWindowOpen] = useState(false);
+
+  const selectedAssociation = useMemo(
+    () => (
+      availableAssociations.find(
+        (association) => Number(pickValue(association, 'associationId', 'AssociationId')) === Number(selectedAssociationId)
+      ) || null
+    ),
+    [availableAssociations, selectedAssociationId]
+  );
 
   const associationContacts = Array.isArray(selectedAssociation?.contacts)
     ? selectedAssociation.contacts
@@ -144,113 +191,86 @@ const CreateNewEvent = () => {
     associationContacts.map((contact) => pickValue(contact, 'contactId', 'ContactId'))
   );
 
-  const contactAssociationNamesById = availableAssociations.reduce((lookup, association) => {
-    const associationName = pickValue(association, 'name', 'Name');
-    const contacts = Array.isArray(association?.contacts) ? association.contacts : [];
+  const contactAssociationNamesById = useMemo(
+    () => availableAssociations.reduce((lookup, association) => {
+      const associationName = pickValue(association, 'name', 'Name');
+      const contacts = Array.isArray(association?.contacts) ? association.contacts : [];
 
-    contacts.forEach((contact) => {
-      const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
-      if (!contactId || !associationName) {
-        return;
+      contacts.forEach((contact) => {
+        const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
+        if (!contactId || !associationName) {
+          return;
+        }
+
+        if (!lookup[contactId]) {
+          lookup[contactId] = [];
+        }
+
+        if (!lookup[contactId].includes(associationName)) {
+          lookup[contactId].push(associationName);
+        }
+      });
+
+      return lookup;
+    }, {}),
+    [availableAssociations]
+  );
+
+  const filteredContacts = useMemo(
+    () => availableContacts.filter((contact) => {
+      const normalizedSearchTerm = contactSearchTerm.trim().toLowerCase();
+
+      if (!normalizedSearchTerm) {
+        return true;
       }
 
-      if (!lookup[contactId]) {
-        lookup[contactId] = [];
-      }
+      const haystack = [
+        pickValue(contact, 'name', 'Name'),
+        pickValue(contact, 'title', 'Title'),
+        pickValue(contact, 'phone', 'Phone'),
+        pickValue(contact, 'email', 'Email'),
+        ...(contactAssociationNamesById[Number(pickValue(contact, 'contactId', 'ContactId')) || 0] || [])
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
 
-      if (!lookup[contactId].includes(associationName)) {
-        lookup[contactId].push(associationName);
-      }
-    });
+      return haystack.includes(normalizedSearchTerm);
+    }),
+    [availableContacts, contactAssociationNamesById, contactSearchTerm]
+  );
 
-    return lookup;
-  }, {});
+  const completeLocationsCount = locations.filter(
+    (loc) => loc.locationId && loc.startTime && loc.endTime
+  ).length;
 
-  const filteredContacts = availableContacts.filter((contact) => {
-    const normalizedSearchTerm = contactSearchTerm.trim().toLowerCase();
+  const selectedContacts = useMemo(
+    () => availableContacts.filter((contact) => (
+      selectedContactIds.includes(Number(pickValue(contact, 'contactId', 'ContactId')) || 0)
+    )),
+    [availableContacts, selectedContactIds]
+  );
 
-    if (!normalizedSearchTerm) {
-      return true;
-    }
+  const previewLocations = useMemo(
+    () => locations
+      .filter((loc) => loc.locationId && loc.startTime && loc.endTime)
+      .map((loc) => {
+        const locationMatch = availableLocations.find(
+          (candidate) => Number(candidate.id) === Number(loc.locationId)
+        );
 
-    const haystack = [
-      pickValue(contact, 'name', 'Name'),
-      pickValue(contact, 'title', 'Title'),
-      pickValue(contact, 'phone', 'Phone'),
-      pickValue(contact, 'email', 'Email'),
-      ...(contactAssociationNamesById[Number(pickValue(contact, 'contactId', 'ContactId')) || 0] || [])
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase();
-
-    return haystack.includes(normalizedSearchTerm);
-  });
+        return {
+          name: locationMatch?.name || `Lokation #${loc.locationId}`,
+          startTime: loc.startTime,
+          endTime: loc.endTime
+        };
+      }),
+    [locations, availableLocations]
+  );
 
   const closeMessageModal = () => {
-    setSuccessMsg('');
     setErrorMsg('');
   };
-
-  const closeContactModal = () => {
-    setIsContactModalOpen(false);
-  };
-
-  useEffect(() => {
-    if (!draftEvent) return;
-
-    const rawCategory = pickValue(draftEvent, 'category', 'Category');
-    const mappedCategory = typeof rawCategory === 'number'
-      ? (ENUM_TO_CATEGORY[rawCategory] || 'ANDET')
-      : String(rawCategory || 'ANDET').toUpperCase();
-
-    const rawLocations =
-      pickValue(draftEvent, 'locations', 'Locations', 'eventLocations', 'EventLocations') || [];
-    const sourceLocations = Array.isArray(rawLocations) ? rawLocations : [];
-    const firstLocation = sourceLocations[0] || null;
-
-    const rawDate =
-      pickValue(draftEvent, 'date', 'Date') ||
-      pickValue(firstLocation, 'date', 'Date');
-
-    const rawStartTime =
-      pickValue(draftEvent, 'startTime', 'StartTime') ||
-      pickValue(firstLocation, 'startTime', 'StartTime');
-    const rawEndTime =
-      pickValue(draftEvent, 'endTime', 'EndTime') ||
-      pickValue(firstLocation, 'endTime', 'EndTime');
-
-    setTitle(pickValue(draftEvent, 'name', 'Name') || '');
-    setDescription(pickValue(draftEvent, 'description', 'Description') || '');
-    setCategory(mappedCategory);
-    setStartDate(toLocalDateInput(rawStartTime || rawDate));
-    setStartTime(toLocalTimeInput(rawStartTime));
-    setEndTime(toLocalTimeInput(rawEndTime));
-    setIsDraft(Boolean(pickValue(draftEvent, 'isDraft', 'IsDraft')));
-    setIsRecurring(Boolean(pickValue(draftEvent, 'isRecurring', 'IsRecurring')));
-    setRecurrenceFrequency(String(pickValue(draftEvent, 'recurrenceFrequency', 'RecurrenceFrequency') || 'WEEKLY'));
-    setRecurrenceEndDate(toLocalDateInput(pickValue(draftEvent, 'recurrenceEndDate', 'RecurrenceEndDate')));
-    setSelectedAssociationId(Number(pickValue(draftEvent, 'associationId', 'AssociationId')) || 0);
-
-    const mappedLocations = sourceLocations.length
-      ? sourceLocations.map((loc) => ({
-        locationId: Number(pickValue(loc, 'locationId', 'LocationId')) || 0,
-        startTime: toLocalTimeInput(pickValue(loc, 'startTime', 'StartTime')),
-        endTime: toLocalTimeInput(pickValue(loc, 'endTime', 'EndTime'))
-      }))
-      : (() => {
-        const topLocationId = Number(pickValue(draftEvent, 'locationId', 'LocationId')) || 0;
-        if (!topLocationId) return [];
-
-        return [{
-          locationId: topLocationId,
-          startTime: toLocalTimeInput(rawStartTime),
-          endTime: toLocalTimeInput(rawEndTime)
-        }];
-      })();
-
-    setLocations(mappedLocations);
-  }, [draftEvent]);
 
   useEffect(() => {
     const fetchFormData = async () => {
@@ -299,28 +319,6 @@ const CreateNewEvent = () => {
   }, []);
 
   useEffect(() => {
-    const fetchExistingEventContacts = async () => {
-      if (!isEditMode || !draftEvent?.id) {
-        setSelectedContactIds([]);
-        return;
-      }
-
-      try {
-        const response = await api.get(`/contacts/events/${draftEvent.id}`);
-        const contactIds = normalizeIdList(
-          (Array.isArray(response.data) ? response.data : []).map((contact) => pickValue(contact, 'contactId', 'ContactId'))
-        );
-        setSelectedContactIds(contactIds);
-      } catch (error) {
-        console.error('Kunne ikke hente event-kontakter:', error);
-        setSelectedContactIds([]);
-      }
-    };
-
-    fetchExistingEventContacts();
-  }, [draftEvent?.id, isEditMode]);
-
-  useEffect(() => {
     if (isRecurring && !recurrenceEndDate) {
       setRecurrenceEndDate(getDefaultRecurrenceEndDate(startDate));
     }
@@ -334,6 +332,12 @@ const CreateNewEvent = () => {
 
   const addLocation = () => {
     setLocations((prev) => [...prev, { locationId: 0, startTime: '', endTime: '' }]);
+  };
+
+  const removeLocation = (index) => {
+    if (locations.length > 1) {
+      setLocations((prev) => prev.filter((_, i) => i !== index));
+    }
   };
 
   const toggleContactSelection = (contactId) => {
@@ -350,24 +354,24 @@ const CreateNewEvent = () => {
   const syncAssociationSelection = async ({ associationId, eventId, seriesId }) => {
     if (associationId) {
       if (seriesId) {
-        await api.post(`/associations/${associationId}/series/${seriesId}`);
+        await api.post(`/associations/${associationId}/series/${seriesId}`, null, { skipCrudToast: true });
         return;
       }
 
       if (eventId) {
-        await api.post(`/associations/${associationId}/events/${eventId}`);
+        await api.post(`/associations/${associationId}/events/${eventId}`, null, { skipCrudToast: true });
       }
 
       return;
     }
 
     if (seriesId) {
-      await api.delete(`/associations/series/${seriesId}`);
+      await api.delete(`/associations/series/${seriesId}`, { skipCrudToast: true });
       return;
     }
 
     if (eventId) {
-      await api.delete(`/associations/events/${eventId}`);
+      await api.delete(`/associations/events/${eventId}`, { skipCrudToast: true });
     }
   };
 
@@ -384,17 +388,11 @@ const CreateNewEvent = () => {
 
     await Promise.all(existingIds
       .filter((contactId) => !targetIds.includes(contactId))
-      .map((contactId) => api.delete(`/contacts/${contactId}/events/${eventId}`)));
+      .map((contactId) => api.delete(`/contacts/${contactId}/events/${eventId}`, { skipCrudToast: true })));
 
     await Promise.all(targetIds
       .filter((contactId) => !existingIds.includes(contactId))
-      .map((contactId) => api.post(`/contacts/${contactId}/events/${eventId}`)));
-  };
-
-  const removeLocation = (index) => {
-    if (locations.length > 1) {
-      setLocations((prev) => prev.filter((_, i) => i !== index));
-    }
+      .map((contactId) => api.post(`/contacts/${contactId}/events/${eventId}`, null, { skipCrudToast: true })));
   };
 
   const resetForm = () => {
@@ -410,101 +408,15 @@ const CreateNewEvent = () => {
     setIsDraft(false);
     setSelectedAssociationId(0);
     setSelectedContactIds([]);
+    setContactSearchTerm('');
     setLocations([]);
-  };
-
-  const toMinuteKey = (value) => {
-    if (!value) return '';
-    return String(value).replace('Z', '').slice(0, 16);
-  };
-
-  const resolveTargetIdsAfterSave = async ({
-    savedEvent,
-    fallbackEventId,
-    fallbackSeriesId,
-    payload,
-    isEdit
-  }) => {
-    const responseEventId = Number(pickValue(savedEvent, 'id', 'Id', 'eventId', 'EventId')) || null;
-    const responseSeriesId = Number(pickValue(savedEvent, 'seriesId', 'SeriesId')) || null;
-
-    if (responseEventId || responseSeriesId) {
-      return { eventId: responseEventId, seriesId: responseSeriesId };
-    }
-
-    if (fallbackEventId || fallbackSeriesId) {
-      return { eventId: fallbackEventId, seriesId: fallbackSeriesId };
-    }
-
-    if (isEdit) {
-      return { eventId: null, seriesId: null };
-    }
-
-    try {
-      const listResponse = await api.get('/events');
-      const events = Array.isArray(listResponse.data) ? listResponse.data : [];
-      const expectedName = String(payload?.Name || '').trim().toLowerCase();
-      const expectedCategory = ENUM_TO_CATEGORY[payload?.Category] || 'ANDET';
-      const expectedStart = toMinuteKey(payload?.StartTime);
-      const expectedEnd = toMinuteKey(payload?.EndTime);
-      const expectedDate = String(payload?.Date || '').slice(0, 10);
-
-      const candidates = events.filter((evt) => {
-        const evtName = String(pickValue(evt, 'name', 'Name') || '').trim().toLowerCase();
-        if (!evtName || evtName !== expectedName) {
-          return false;
-        }
-
-        const rawCategory = pickValue(evt, 'category', 'Category');
-        const evtCategory = typeof rawCategory === 'number'
-          ? (ENUM_TO_CATEGORY[rawCategory] || 'ANDET')
-          : String(rawCategory || 'ANDET').toUpperCase();
-
-        if (evtCategory !== expectedCategory) {
-          return false;
-        }
-
-        const evtStart = toMinuteKey(pickValue(evt, 'startTime', 'StartTime'));
-        const evtEnd = toMinuteKey(pickValue(evt, 'endTime', 'EndTime'));
-        const evtDate = String(pickValue(evt, 'date', 'Date') || '').slice(0, 10);
-
-        if (expectedStart && evtStart !== expectedStart) {
-          return false;
-        }
-
-        if (expectedEnd && evtEnd !== expectedEnd) {
-          return false;
-        }
-
-        if (expectedDate && evtDate && evtDate !== expectedDate) {
-          return false;
-        }
-
-        return true;
-      });
-
-      const bestMatch = [...candidates]
-        .sort((a, b) => (Number(pickValue(b, 'id', 'Id', 'eventId', 'EventId')) || 0)
-          - (Number(pickValue(a, 'id', 'Id', 'eventId', 'EventId')) || 0))[0] || null;
-
-      return {
-        eventId: Number(pickValue(bestMatch, 'id', 'Id', 'eventId', 'EventId')) || null,
-        seriesId: Number(pickValue(bestMatch, 'seriesId', 'SeriesId')) || null
-      };
-    } catch (lookupError) {
-      console.warn('Kunne ikke slå oprettet event op til relation-sync:', lookupError);
-      return { eventId: null, seriesId: null };
-    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccessMsg('');
     setErrorMsg('');
 
-    const hasSelectedLocation = locations.some((loc) => loc.locationId);
-
-    const autoDraft = !startDate || !startTime || !endTime || !hasSelectedLocation;
+    const autoDraft = !startDate || !startTime || !endTime;
     const draftToSave = isDraft || autoDraft;
 
     if (isRecurring && !recurrenceEndDate) {
@@ -519,7 +431,7 @@ const CreateNewEvent = () => {
 
     try {
       const locationsPayload = locations
-        .filter((loc) => startDate && loc.locationId)
+        .filter((loc) => startDate && loc.locationId && loc.startTime && loc.endTime)
         .map((loc) => ({
           LocationId: Number(loc.locationId),
           StartTime: toApiLocalDateTime(startDate, loc.startTime),
@@ -543,35 +455,25 @@ const CreateNewEvent = () => {
         IsDraft: draftToSave
       };
 
-      const response = isEditMode
-        ? await api.put(`/events/${draftEvent.id}`, payload)
-        : await api.post('/events', payload);
-
+      const response = await api.post('/events', payload, { skipCrudToast: true });
       const savedEvent = response?.data || {};
-      const fallbackEventId = Number(pickValue(draftEvent, 'id', 'Id', 'eventId', 'EventId')) || null;
-      const fallbackSeriesId = Number(pickValue(draftEvent, 'seriesId', 'SeriesId')) || null;
-      const resolvedIds = await resolveTargetIdsAfterSave({
+      const { eventId, seriesId } = await resolveEventIdAfterSave({
         savedEvent,
-        fallbackEventId,
-        fallbackSeriesId,
-        payload,
-        isEdit: isEditMode
+        payload
       });
-      const targetEventId = resolvedIds.eventId;
-      const targetSeriesId = resolvedIds.seriesId;
 
       try {
-        if ((Number(selectedAssociationId) || 0) > 0 && !targetEventId && !targetSeriesId) {
+        if ((Number(selectedAssociationId) || 0) > 0 && !eventId && !seriesId) {
           throw new Error('Kunne ikke finde event-id til at gemme foreningskoblingen. Prøv igen.');
         }
 
         await syncAssociationSelection({
           associationId: Number(selectedAssociationId) || 0,
-          eventId: targetEventId,
-          seriesId: targetSeriesId
+          eventId,
+          seriesId
         });
 
-        await syncDirectContacts(targetEventId, selectedContactIds);
+        await syncDirectContacts(eventId, selectedContactIds);
       } catch (relationError) {
         const relationApiError = relationError?.response?.data;
         const relationMessage = toFriendlyApiMessage(
@@ -584,21 +486,8 @@ const CreateNewEvent = () => {
         return;
       }
 
-      if (isEditMode) {
-        setSuccessMsg(
-          draftToSave
-            ? (isEditingDraft ? 'Kladde opdateret!' : 'Aktivitet opdateret som kladde!')
-            : (isEditingDraft ? 'Kladde publiceret!' : 'Aktivitet opdateret!')
-        );
-        setTimeout(() => {
-          setSuccessMsg('');
-          navigate(returnTo);
-        }, 1200);
-      } else {
-        setSuccessMsg(draftToSave ? 'Aktivitet gemt som kladde!' : 'Aktivitet oprettet succesfuldt!');
-        resetForm();
-        setTimeout(() => setSuccessMsg(''), 3000);
-      }
+      notifySuccess(draftToSave ? 'Aktivitet gemt som kladde!' : 'Aktivitet oprettet succesfuldt!');
+      resetForm();
     } catch (err) {
       const apiError = err?.response?.data;
       const message = toFriendlyApiMessage(apiError, err.message || 'Kunne ikke oprette aktivitet.');
@@ -610,26 +499,18 @@ const CreateNewEvent = () => {
 
   return (
     <div className="create-event-page">
-      <header className="create-event-header">
-        <h1>
-          {isEditMode
-            ? (isEditingDraft ? 'Rediger Kladde' : 'Rediger Aktivitet')
-            : 'Opret Ny Aktivitet'}
-        </h1>
-        <p>
-          {isEditMode
-            ? (isEditingDraft
-              ? 'Rediger kladde og publicer direkte til backend.'
-              : 'Opdater aktivitet med tid, kategori, lokationer og relationer.')
-            : 'Planlaeg aktiviteter med tid, kategori, lokation og eventuel gentagelse.'}
-        </p>
+      <header className="create-event-header create-event-header-fixed">
+        <div className="create-event-header-inner">
+          <h1>Opret Ny Aktivitet</h1>
+          <p>Start med de rå event-data til venstre og se live preview til højre.</p>
+        </div>
       </header>
 
-      <form className="create-event-form" onSubmit={handleSubmit}>
-        <div className="create-event-columns">
-          <div className="event-left-column">
-            <section className="form-card">
-              <h2>Grundoplysninger</h2>
+      <div className="create-event-body-grid">
+        <section className="create-event-left-panel">
+          <form id="create-event-form" className="create-event-form" onSubmit={handleSubmit}>
+            <section className="form-card raw-data-card">
+              <h2>1) Rå event-data</h2>
               <div className="field-grid single">
                 <label>
                   Titel
@@ -660,11 +541,8 @@ const CreateNewEvent = () => {
                   </select>
                 </label>
               </div>
-            </section>
 
-            <section className="form-card">
-              <h2>Tidspunkt</h2>
-              <div className="field-grid three">
+              <div className="field-grid three raw-time-grid">
                 <label>
                   Startdato
                   <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -678,10 +556,7 @@ const CreateNewEvent = () => {
                   <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
                 </label>
               </div>
-            </section>
 
-            <section className="form-card">
-              <h2>Opsætning</h2>
               <div className="toggle-row">
                 <label className="toggle-item">
                   <input
@@ -718,7 +593,7 @@ const CreateNewEvent = () => {
                     >
                       <option value="DAILY">Dagligt</option>
                       <option value="WEEKLY">Ugentligt</option>
-                      <option value="MONTHLY">Maanedligt</option>
+                      <option value="MONTHLY">Månedligt</option>
                     </select>
                   </label>
                   <label>
@@ -733,270 +608,144 @@ const CreateNewEvent = () => {
                 </div>
               )}
             </section>
-          </div>
 
-          <div className="event-right-column">
-            <section className="form-card">
-              <h2>Forening og kontaktpersoner</h2>
+            <section className="form-card optional-data-card">
+              <h2>2) Tilføj valgfri data</h2>
+              <p className="muted">Klik på en knap for at åbne et pop-out vindue.</p>
 
-              {isLoadingRelations && <p className="muted">Henter foreninger og kontaktpersoner...</p>}
-
-              {!isLoadingRelations && availableAssociations.length === 0 && (
-                <p className="muted">Ingen foreninger fundet endnu.</p>
-              )}
-
-              <div className="field-grid single">
-                <label>
-                  Forening
-                  <select
-                    value={selectedAssociationId}
-                    onChange={(e) => setSelectedAssociationId(Number(e.target.value) || 0)}
-                  >
-                    <option value={0}>Ingen forening</option>
-                    {availableAssociations.map((association) => {
-                      const associationId = Number(pickValue(association, 'associationId', 'AssociationId')) || 0;
-                      const associationName = pickValue(association, 'name', 'Name') || 'Ukendt forening';
-
-                      return (
-                        <option key={associationId} value={associationId}>{associationName}</option>
-                      );
-                    })}
-                  </select>
-                </label>
+              <div className="optional-actions-grid">
+                <button
+                  type="button"
+                  className="btn btn-secondary optional-action-btn"
+                  onClick={() => setIsAssociationWindowOpen(true)}
+                >
+                  Tilføj forening
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary optional-action-btn"
+                  onClick={() => setIsContactWindowOpen(true)}
+                >
+                  Tilføj kontaktpersoner
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary optional-action-btn"
+                  onClick={() => {
+                    if (locations.length === 0) {
+                      addLocation();
+                    }
+                    setIsLocationWindowOpen(true);
+                  }}
+                >
+                  Tilføj lokation (valgfrit)
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary optional-action-btn"
+                  onClick={() => setIsCateringWindowOpen(true)}
+                >
+                  Tilføj forplejning
+                </button>
               </div>
 
-              {selectedAssociation && (
-                <div className="association-panel">
-                  {pickValue(selectedAssociation, 'websiteUrl', 'WebsiteUrl') && (
-                    <a
-                      className="association-link"
-                      href={pickValue(selectedAssociation, 'websiteUrl', 'WebsiteUrl')}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Åbn foreningens hjemmeside
-                    </a>
-                  )}
-
-                  <div>
-                    <p className="section-caption">Kontakter på valgt forening</p>
-                    {associationContacts.length > 0 ? (
-                      <div className="chip-list">
-                        {associationContacts.map((contact) => {
-                          const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
-                          const contactName = pickValue(contact, 'name', 'Name') || 'Ukendt kontakt';
-
-                          return <span key={contactId} className="info-chip">{contactName}</span>;
-                        })}
-                      </div>
-                    ) : (
-                      <p className="muted">Den valgte forening har ingen kontaktpersoner endnu.</p>
-                    )}
-                  </div>
+              <div className="optional-summary-grid">
+                <div className="summary-pill">
+                  <span className="summary-label">Forening</span>
+                  <strong>{selectedAssociation ? (pickValue(selectedAssociation, 'name', 'Name') || 'Valgt') : 'Ingen'}</strong>
                 </div>
-              )}
-
-              <div className="contact-picker-block">
-                <p className="section-caption">Direkte kontaktpersoner på event</p>
-                <p className="muted">Disse kontakter kobles direkte til eventet og kan godt være uafhængige af den valgte forening.</p>
-
-                {availableContacts.length === 0 ? (
-                  <p className="muted">Ingen kontaktpersoner fundet endnu.</p>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className="btn-add"
-                      onClick={() => setIsContactModalOpen(true)}
-                    >
-                      Tilføj kontaktperson
-                    </button>
-
-                    {selectedContactIds.length > 0 && (
-                      <div className="contact-selected-chips">
-                        {availableContacts
-                          .filter((contact) => selectedContactIds.includes(Number(pickValue(contact, 'contactId', 'ContactId')) || 0))
-                          .map((contact) => {
-                            const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
-                            const contactName = pickValue(contact, 'name', 'Name') || 'Ukendt kontakt';
-
-                            return (
-                              <button
-                                key={contactId}
-                                type="button"
-                                className="contact-selected-chip"
-                                onClick={() => toggleContactSelection(contactId)}
-                              >
-                                {contactName} ×
-                              </button>
-                            );
-                          })}
-                      </div>
-                    )}
-                  </>
-                )}
+                <div className="summary-pill">
+                  <span className="summary-label">Kontaktpersoner</span>
+                  <strong>{selectedContactIds.length}</strong>
+                </div>
+                <div className="summary-pill">
+                  <span className="summary-label">Lokationer</span>
+                  <strong>{completeLocationsCount}</strong>
+                </div>
               </div>
             </section>
+          </form>
+        </section>
 
-            <section className="form-card">
-              <div className="section-head">
-                <h2>Lokationer</h2>
-                <button type="button" className="btn-add" onClick={addLocation}>Tilføj lokation til event</button>
-              </div>
+        <aside className="create-event-right-panel">
+          <ActivityPreview
+            title={title}
+            description={description}
+            category={category}
+            startDate={startDate}
+            startTime={startTime}
+            endTime={endTime}
+            isRecurring={isRecurring}
+            recurrenceFrequency={recurrenceFrequency}
+            recurrenceEndDate={recurrenceEndDate}
+            isDraft={isDraft}
+            associationName={selectedAssociation ? (pickValue(selectedAssociation, 'name', 'Name') || 'Valgt forening') : ''}
+            contacts={selectedContacts}
+            locations={previewLocations}
+          />
+        </aside>
+      </div>
 
-              {isLoadingLocations && <p className="muted">Henter lokationer...</p>}
-              {!isLoadingLocations && availableLocations.length === 0 && (
-                <p className="muted error-text">Ingen lokationer fundet fra backend.</p>
-              )}
-
-              {locations.length === 0 && (
-                <p className="muted">Ingen lokationer tilføjet endnu. Brug knappen ovenfor for at tilføje en lokation.</p>
-              )}
-
-              <div className="location-list">
-                {locations.map((loc, index) => (
-                  <div key={index} className="location-card">
-                    <h3>Lokation {index + 1}</h3>
-                    <div className="location-row">
-                    <label>
-                      Lokation
-                      <select
-                        value={loc.locationId}
-                        onChange={(e) => handleLocationChange(index, 'locationId', Number(e.target.value))}
-                      >
-                        <option value={0}>Vælg...</option>
-                        {availableLocations.map((backendLocation) => (
-                          <option key={backendLocation.id} value={backendLocation.id}>
-                            {backendLocation.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label>
-                      Starttid
-                      <input
-                        type="time"
-                        value={loc.startTime}
-                        onChange={(e) => handleLocationChange(index, 'startTime', e.target.value)}
-                      />
-                    </label>
-
-                    <label>
-                      Sluttid
-                      <input
-                        type="time"
-                        value={loc.endTime}
-                        onChange={(e) => handleLocationChange(index, 'endTime', e.target.value)}
-                      />
-                    </label>
-                    </div>
-
-                    {locations.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn-remove"
-                        onClick={() => removeLocation(index)}
-                      >
-                        Fjern
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="form-card catering-card">
-              <h2>Forplejning</h2>
-              <p className="muted">Forplejning til event bliver tilføjet i næste trin.</p>
-              <button type="button" className="btn-add" disabled>
-                Tilføj forplejning (kommer snart)
-              </button>
-            </section>
-
-            <div className="submit-row">
-              <button type="submit" className="btn-submit">
-                {isEditMode ? (isDraft ? 'Opdater kladde' : 'Opdater og publicer') : (isDraft ? 'Gem kladde' : 'Opret aktivitet')}
-              </button>
-            </div>
-          </div>
+      <footer className="create-event-button-bar">
+        <div className="create-event-button-bar-inner">
+          <p className="button-bar-note">
+            {isDraft ? 'Aktiviteten gemmes som kladde.' : 'Aktiviteten oprettes direkte.'}
+          </p>
+          <button type="submit" form="create-event-form" className="btn btn-primary btn-submit">
+            {isDraft ? 'Gem Kladde' : 'Opret Aktivitet'}
+          </button>
         </div>
-      </form>
+      </footer>
 
-      {(successMsg || errorMsg) && (
+      <AddAssociationWindow
+        isOpen={isAssociationWindowOpen}
+        onClose={() => setIsAssociationWindowOpen(false)}
+        isLoadingRelations={isLoadingRelations}
+        availableAssociations={availableAssociations}
+        selectedAssociationId={selectedAssociationId}
+        setSelectedAssociationId={setSelectedAssociationId}
+        associationContacts={associationContacts}
+      />
+
+      <AddContactWindow
+        isOpen={isContactWindowOpen}
+        onClose={() => setIsContactWindowOpen(false)}
+        availableContacts={availableContacts}
+        selectedContactIds={selectedContactIds}
+        toggleContactSelection={toggleContactSelection}
+        contactSearchTerm={contactSearchTerm}
+        setContactSearchTerm={setContactSearchTerm}
+        filteredContacts={filteredContacts}
+        associationContactIds={associationContactIds}
+        contactAssociationNamesById={contactAssociationNamesById}
+      />
+
+      <AddLocationWindow
+        isOpen={isLocationWindowOpen}
+        onClose={() => setIsLocationWindowOpen(false)}
+        isLoadingLocations={isLoadingLocations}
+        availableLocations={availableLocations}
+        locations={locations}
+        addLocation={addLocation}
+        removeLocation={removeLocation}
+        handleLocationChange={handleLocationChange}
+      />
+
+      <AddCateringWindow
+        isOpen={isCateringWindowOpen}
+        onClose={() => setIsCateringWindowOpen(false)}
+      />
+
+      {errorMsg && (
         <div className="event-message-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="event-message-title">
-          <div className={`event-message-modal ${errorMsg ? 'error' : 'success'}`}>
-            <h3 id="event-message-title">{errorMsg ? 'Kunne ikke gemme' : 'Gemt'}</h3>
-            <p>{errorMsg || successMsg}</p>
+          <div className="event-message-modal error">
+            <h3 id="event-message-title">Kunne ikke gemme</h3>
+            <p>{errorMsg}</p>
             <div className="event-message-modal-actions">
-              <button type="button" className="event-message-close-btn" onClick={closeMessageModal}>
+              <button type="button" className="btn btn-primary event-message-close-btn" onClick={closeMessageModal}>
                 Luk
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {isContactModalOpen && (
-        <div className="contact-modal-overlay" onClick={closeContactModal}>
-          <div
-            className="contact-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="contact-modal-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="contact-modal-header">
-              <h3 id="contact-modal-title">Tilføj kontaktperson</h3>
-              <button type="button" className="contact-modal-close" onClick={closeContactModal}>
-                Luk
-              </button>
-            </div>
-
-            <ContactsSearchBar
-              searchTerm={contactSearchTerm}
-              onSearchTermChange={setContactSearchTerm}
-              inputId="event-contacts-search"
-            />
-
-            {filteredContacts.length === 0 ? (
-              <p className="muted">Ingen kontaktpersoner matcher din søgning.</p>
-            ) : (
-              <div className="contact-selection-list">
-                {filteredContacts.map((contact) => {
-                  const contactId = Number(pickValue(contact, 'contactId', 'ContactId')) || 0;
-                  const contactName = pickValue(contact, 'name', 'Name') || 'Ukendt kontakt';
-                  const contactTitle = pickValue(contact, 'title', 'Title');
-                  const contactEmail = pickValue(contact, 'email', 'Email');
-                  const isSelected = selectedContactIds.includes(contactId);
-                  const belongsToSelectedAssociation = associationContactIds.includes(contactId);
-                  const associationNames = contactAssociationNamesById[contactId] || [];
-
-                  return (
-                    <label key={contactId} className={`contact-option ${isSelected ? 'selected' : ''}`}>
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleContactSelection(contactId)}
-                      />
-                      <div className="contact-option-text">
-                        <span className="contact-option-name">{contactName}</span>
-                        <span className="contact-option-meta">
-                          {[
-                            contactTitle,
-                            contactEmail,
-                            associationNames.length > 0 ? `Foreninger: ${associationNames.join(', ')}` : null,
-                            belongsToSelectedAssociation ? 'også på valgt forening' : null
-                          ]
-                            .filter(Boolean)
-                            .join(' · ') || 'Ingen ekstra oplysninger'}
-                        </span>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
           </div>
         </div>
       )}

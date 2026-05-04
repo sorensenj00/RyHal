@@ -121,9 +121,28 @@ namespace SportCenter.Api.Services
                 hasUpdates = true;
             }
 
+            if (dto.FirstName != null)
+            {
+                updateQuery = updateQuery.Set(x => (object)x.FirstName, dto.FirstName.Trim());
+                hasUpdates = true;
+            }
+
+            if (dto.LastName != null)
+            {
+                updateQuery = updateQuery.Set(x => (object)x.LastName, dto.LastName.Trim());
+                hasUpdates = true;
+            }
+
             if (dto.Phone != null)
             {
                 updateQuery = updateQuery.Set(x => (object)x.Phone!, dto.Phone);
+                hasUpdates = true;
+            }
+
+            if (dto.AppAccess != null)
+            {
+                var normalizedAppAccess = NormalizeAppAccess(dto.AppAccess);
+                updateQuery = updateQuery.Set(x => (object)x.AppAccess!, normalizedAppAccess);
                 hasUpdates = true;
             }
 

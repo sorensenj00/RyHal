@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import EventHeatmap from '../../../components/heatmap/EventHeatmap';
+import EditEventWindow from '../../../components/activities/EditEventWindow';
 import api from '../../../api/axiosConfig';
 
 import { format, addDays, subDays } from 'date-fns';
@@ -30,6 +31,8 @@ const EventOverview = () => {
 
   const [activeCategories, setActiveCategories] = useState(CATEGORIES);
   const [activeLocations, setActiveLocations] = useState([]);
+  const [editEvent, setEditEvent] = useState(null);
+  const [heatmapRefreshKey, setHeatmapRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -86,7 +89,6 @@ const EventOverview = () => {
       <header className="overview-header">
         <div className="header-title-section">
           <h1>Event Heatmap</h1>
-          <p>Administrer bookinger og lokationer</p>
         </div>
 
         <div className="header-controls">
@@ -177,9 +179,18 @@ const EventOverview = () => {
           activeCategories={activeCategories}
           activeLocations={activeLocations}
           locations={locations}
+          onOpenAdvancedEdit={(event) => setEditEvent(event)}
+          refreshKey={heatmapRefreshKey}
         />
         )}
       </main>
+
+      <EditEventWindow
+        isOpen={editEvent !== null}
+        onClose={() => setEditEvent(null)}
+        eventData={editEvent}
+        onSaved={() => { setEditEvent(null); setHeatmapRefreshKey((k) => k + 1); }}
+      />
 
     </div>
   );

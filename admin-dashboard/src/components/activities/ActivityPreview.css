@@ -1,0 +1,120 @@
+.activity-preview-shell {
+	position: sticky;
+	top: 10px;
+}
+
+.activity-preview-title {
+	margin: 0 0 0.45rem;
+	color: var(--gray-700);
+	font-weight: 700;
+	font-size: 0.9rem;
+}
+
+.activity-preview-card {
+	border: 1px solid var(--gray-300);
+	border-radius: 12px;
+	padding: 0.72rem;
+	background: var(--gray-100);
+}
+
+.activity-preview-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.55rem;
+}
+
+.activity-preview-card-header h3 {
+	margin: 0;
+	color: var(--gray-900);
+	font-size: 1rem;
+}
+
+.activity-preview-badge {
+	border-radius: 999px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	padding: 0.2rem 0.55rem;
+}
+
+.activity-preview-badge.draft {
+	background: var(--warning-color);
+	color: var(--gray-900);
+}
+
+.activity-preview-badge.ready {
+	background: var(--success-color);
+	color: var(--white);
+}
+
+.activity-preview-description {
+	margin: 0.42rem 0 0;
+	color: var(--gray-700);
+	font-size: 0.88rem;
+}
+
+.activity-preview-meta-grid {
+	margin-top: 0.55rem;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.55rem;
+}
+
+.activity-preview-meta-label {
+	display: block;
+	color: var(--gray-600);
+	font-size: 0.72rem;
+	margin-bottom: 0.2rem;
+}
+
+.activity-preview-meta-value {
+	color: var(--gray-900);
+	font-weight: 600;
+}
+
+.activity-preview-extra-grid {
+	margin-top: 0.6rem;
+}
+
+.activity-preview-extra-grid p {
+	margin: 0.25rem 0;
+	color: var(--gray-700);
+	font-size: 0.86rem;
+}
+
+.activity-preview-extra-grid strong {
+	color: var(--gray-900);
+}
+
+.activity-preview-contacts,
+.activity-preview-locations {
+	margin-top: 0.62rem;
+	border-top: 1px dashed var(--gray-400);
+	padding-top: 0.55rem;
+}
+
+.activity-preview-contacts h4,
+.activity-preview-locations h4 {
+	margin: 0 0 0.25rem;
+	font-size: 0.82rem;
+	color: var(--gray-700);
+}
+
+.activity-preview-contacts ul,
+.activity-preview-locations ul {
+	margin: 0;
+	padding-left: 1.1rem;
+	color: var(--gray-700);
+}
+
+@media (max-width: 1024px) {
+	.activity-preview-shell {
+		position: static;
+	}
+}
+
+@media (max-width: 680px) {
+	.activity-preview-meta-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

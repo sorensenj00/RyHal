@@ -1,0 +1,7 @@
+.catering-window-panel {
+  width: min(560px, 96vw);
+}
+
+.catering-window-note {
+  line-height: 1.5;
+}

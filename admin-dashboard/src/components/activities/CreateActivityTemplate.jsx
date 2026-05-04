@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
+import './CreateActivityTemplate.css';
 
 const EVENT_CATEGORIES = ['SPORT', 'MØDE', 'VEDLIGEHOLDELSE', 'ANDET'];
 const CATEGORY_TO_ENUM = {
@@ -136,20 +137,21 @@ const CreateActivityTemplate = () => {
   };
 
   return (
-    <div className="create-activity-container" style={{ padding: '20px' }}>
+    <div className="create-activity-container">
       <h1>Opret ny aktivitet</h1>
       {successMsg && (
-        <div style={{ backgroundColor: '#d4edda', color: '#155724', padding: '10px', borderRadius: '5px', marginBottom: '15px', maxWidth: '400px' }}>
+        <div className="template-alert success">
           {successMsg}
         </div>
       )}
       {errorMsg && (
-        <div style={{ backgroundColor: '#f8d7da', color: '#721c24', padding: '10px', borderRadius: '5px', marginBottom: '15px', maxWidth: '400px' }}>
+        <div className="template-alert error">
           {errorMsg}
         </div>
       )}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', maxWidth: '400px', gap: '15px' }}>
-        <div>
+
+      <form onSubmit={handleSubmit} className="template-form">
+        <div className="template-field span-2">
           <label htmlFor="title">Titel</label>
           <input
             type="text"
@@ -157,27 +159,27 @@ const CreateActivityTemplate = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+            className="template-input"
           />
         </div>
 
-        <div>
+        <div className="template-field span-2">
           <label htmlFor="description">Beskrivelse</label>
           <textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            style={{ padding: '8px', marginTop: '5px', minHeight: '100px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+            className="template-input template-textarea"
           />
         </div>
 
-        <div>
+        <div className="template-field">
           <label htmlFor="category">Kategori</label>
           <select
             id="category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+            className="template-input"
           >
             {EVENT_CATEGORIES.map((item) => (
               <option key={item} value={item}>{item}</option>
@@ -185,76 +187,80 @@ const CreateActivityTemplate = () => {
           </select>
         </div>
 
-        <div>
+        <div className="template-field">
           <label htmlFor="startDate">Startdato (valgfri for kladde)</label>
           <input
             type="date"
             id="startDate"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+            className="template-input"
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ flex: 1 }}>
-            <label htmlFor="startTime">Starttidspunkt (valgfri for kladde)</label>
-            <input
-              type="time"
-              id="startTime"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label htmlFor="endTime">Sluttidspunkt (valgfri for kladde)</label>
-            <input
-              type="time"
-              id="endTime"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="template-field">
+          <label htmlFor="startTime">Starttidspunkt (valgfri for kladde)</label>
           <input
-            type="checkbox"
-            id="isDraft"
-            checked={isDraft}
-            onChange={(e) => setIsDraft(e.target.checked)}
+            type="time"
+            id="startTime"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className="template-input"
           />
-          <label htmlFor="isDraft" style={{ fontWeight: 'bold' }}>Gem som kladde</label>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="template-field">
+          <label htmlFor="endTime">Sluttidspunkt (valgfri for kladde)</label>
           <input
-            type="checkbox"
-            id="isRecurring"
-            checked={isRecurring}
-            onChange={(e) => setIsRecurring(e.target.checked)}
+            type="time"
+            id="endTime"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            className="template-input"
           />
-          <label htmlFor="isRecurring" style={{ fontWeight: 'bold' }}>Er dette en fast/gentagende aktivitet?</label>
+        </div>
+
+        <div className="template-checkbox-group span-2">
+          <label htmlFor="isDraft" className="template-checkbox">
+            <input
+              type="checkbox"
+              id="isDraft"
+              checked={isDraft}
+              onChange={(e) => setIsDraft(e.target.checked)}
+            />
+            <span className="template-checkbox-mark" aria-hidden="true" />
+            <span className="template-checkbox-label">Gem som kladde</span>
+          </label>
+
+          <label htmlFor="isRecurring" className="template-checkbox">
+            <input
+              type="checkbox"
+              id="isRecurring"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+            />
+            <span className="template-checkbox-mark" aria-hidden="true" />
+            <span className="template-checkbox-label">Er dette en fast/gentagende aktivitet?</span>
+          </label>
         </div>
 
         {isRecurring && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '15px', backgroundColor: '#f0f4f8', borderRadius: '5px' }}>
-            <div>
+          <div className="template-recurrence-box span-2">
+            <div className="template-field">
               <label htmlFor="frequency">Gentagelsesfrekvens</label>
               <select
                 id="frequency"
                 value={recurrenceFrequency}
                 onChange={(e) => setRecurrenceFrequency(e.target.value)}
-                style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+                className="template-input"
               >
                 <option value="DAILY">Dagligt</option>
                 <option value="WEEKLY">Ugentligt</option>
                 <option value="MONTHLY">Månedligt</option>
               </select>
             </div>
-            <div>
+
+            <div className="template-field">
               <label htmlFor="recurrenceEndDate">Slutdato for serien</label>
               <input
                 type="date"
@@ -262,27 +268,28 @@ const CreateActivityTemplate = () => {
                 value={recurrenceEndDate}
                 onChange={(e) => setRecurrenceEndDate(e.target.value)}
                 required={isRecurring}
-                style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+                className="template-input"
               />
             </div>
           </div>
         )}
 
-        <div style={{ marginTop: '10px' }}>
-          <label style={{ fontWeight: 'bold' }}>Lokationer (valgfri for kladde)</label>
-          {isLoadingLocations && <p style={{ marginTop: '8px' }}>Henter lokationer...</p>}
+        <div className="template-locations span-2">
+          <label className="template-locations-label">Lokationer (valgfri for kladde)</label>
+          {isLoadingLocations && <p className="template-muted">Henter lokationer...</p>}
           {!isLoadingLocations && availableLocations.length === 0 && (
-            <p style={{ marginTop: '8px', color: '#721c24' }}>Ingen lokationer fundet fra backend.</p>
+            <p className="template-error">Ingen lokationer fundet fra backend.</p>
           )}
+
           {locations.map((loc, index) => (
-            <div key={index} style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}>
+            <div key={index} className="template-location-row">
+              <div className="template-field">
                 <label htmlFor={`loc-id-${index}`}>Lokation</label>
                 <select
                   id={`loc-id-${index}`}
                   value={loc.locationId}
                   onChange={(e) => handleLocationChange(index, 'locationId', Number(e.target.value))}
-                  style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+                  className="template-input"
                 >
                   <option value={0}>Vælg...</option>
                   {availableLocations.map((backendLocation) => (
@@ -290,39 +297,43 @@ const CreateActivityTemplate = () => {
                   ))}
                 </select>
               </div>
-              <div style={{ flex: 1 }}>
+
+              <div className="template-field">
                 <label htmlFor={`loc-start-${index}`}>Starttid</label>
                 <input
                   type="time"
                   id={`loc-start-${index}`}
                   value={loc.startTime}
                   onChange={(e) => handleLocationChange(index, 'startTime', e.target.value)}
-                  style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+                  className="template-input"
                 />
               </div>
-              <div style={{ flex: 1 }}>
+
+              <div className="template-field">
                 <label htmlFor={`loc-end-${index}`}>Sluttid</label>
                 <input
                   type="time"
                   id={`loc-end-${index}`}
                   value={loc.endTime}
                   onChange={(e) => handleLocationChange(index, 'endTime', e.target.value)}
-                  style={{ padding: '8px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }}
+                  className="template-input"
                 />
               </div>
+
               {locations.length > 1 && (
-                <button type="button" onClick={() => removeLocation(index)} style={{ padding: '8px 12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '20px' }}>
+                <button type="button" onClick={() => removeLocation(index)} className="btn btn-danger location-remove-btn">
                   Fjern
                 </button>
               )}
             </div>
           ))}
-          <button type="button" onClick={addLocation} style={{ marginTop: '10px', padding: '6px 10px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+
+          <button type="button" onClick={addLocation} className="btn btn-secondary location-add-btn">
             Tilføj lokation
           </button>
         </div>
 
-        <button type="submit" style={{ marginTop: '10px', padding: '10px', backgroundColor: '#0056b3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+        <button type="submit" className="btn btn-primary template-submit-btn span-2">
           {isDraft ? 'Gem kladde' : 'Opret Aktivitet'}
         </button>
       </form>

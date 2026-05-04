@@ -2,12 +2,13 @@ import React from 'react';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
 import RoleSearchBar from '../search/RoleSearchBar';
 import { resolveRoleColorValue } from '../../data/roleColors';
+import { APP_ACCESS } from '../../auth/session';
 import './EmployeeProfileCard.css';
 
 const EmployeeProfileCard = ({
 	employee,
 	onRoleChange,
-	onContactChange
+	onProfileChange
 }) => {
 	if (!employee) return null;
 
@@ -102,6 +103,43 @@ const EmployeeProfileCard = ({
 				{/* Contact Information */}
 				<div className="profile-info">
 					<div className="info-row">
+						<label className="info-label" htmlFor="employee-first-name">Fornavn</label>
+						<input
+							id="employee-first-name"
+							name="firstName"
+							type="text"
+							className="info-input"
+							value={employee.firstName || ''}
+							onChange={onProfileChange}
+							placeholder="Indtast fornavn"
+						/>
+					</div>
+					<div className="info-row">
+						<label className="info-label" htmlFor="employee-last-name">Efternavn</label>
+						<input
+							id="employee-last-name"
+							name="lastName"
+							type="text"
+							className="info-input"
+							value={employee.lastName || ''}
+							onChange={onProfileChange}
+							placeholder="Indtast efternavn"
+						/>
+					</div>
+					<div className="info-row">
+						<label className="info-label" htmlFor="employee-app-access">App-adgang</label>
+						<select
+							id="employee-app-access"
+							name="appAccess"
+							className="info-input"
+							value={employee.appAccess || APP_ACCESS.EMPLOYEE}
+							onChange={onProfileChange}
+						>
+							<option value={APP_ACCESS.EMPLOYEE}>Medarbejder</option>
+							<option value={APP_ACCESS.ADMIN}>Admin</option>
+						</select>
+					</div>
+					<div className="info-row">
 						<label className="info-label" htmlFor="employee-email">Email</label>
 						<input
 							id="employee-email"
@@ -109,7 +147,7 @@ const EmployeeProfileCard = ({
 							type="email"
 							className="info-input"
 							value={employee.email || ''}
-							onChange={onContactChange}
+							onChange={onProfileChange}
 							placeholder="Indtast email"
 						/>
 					</div>
@@ -121,7 +159,7 @@ const EmployeeProfileCard = ({
 							type="tel"
 							className="info-input"
 							value={employee.phone || ''}
-							onChange={onContactChange}
+							onChange={onProfileChange}
 							placeholder="Indtast telefonnummer"
 						/>
 					</div>

@@ -46,9 +46,10 @@ export const ActivePagesForNavBar  = [
     label: "Events",
     children: [
       { to: "/create-activity", label: "Opret Event" },
-      { to: "/event-overview", label: "Event Oversigt" },
+      { to: "/all-events", label: "Alle Events" },
       { to: "/activities/drafts", label: "Kladder" },
       { to: "/locations", label: "Lokationer" },
+      { to: "/event-overview", label: "Lokation booking" },
     ],
   },
   {
