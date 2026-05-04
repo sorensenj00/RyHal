@@ -8,3 +8,5 @@ obj/
 .user
 *.user
 .appdata/
+.env
+SportCenter.Api/appsettings.json
