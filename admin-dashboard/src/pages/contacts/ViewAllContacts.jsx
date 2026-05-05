@@ -65,9 +65,10 @@ const ViewAllContacts = () => {
     fetchContacts();
   }, []);
 
-  const contactAssociationNamesById = useMemo(() => {
+  const contactAssociationsByContactId = useMemo(() => {
     return associations.reduce((lookup, association) => {
       const associationName = pickValue(association, 'name', 'Name');
+      const associationColor = pickValue(association, 'color', 'Color') || '';
       const linkedContacts = Array.isArray(association?.contacts) ? association.contacts : [];
 
       linkedContacts.forEach((contact) => {
@@ -80,8 +81,9 @@ const ViewAllContacts = () => {
           lookup[contactId] = [];
         }
 
-        if (!lookup[contactId].includes(associationName)) {
-          lookup[contactId].push(associationName);
+        const alreadyAdded = lookup[contactId].some((a) => a.name === associationName);
+        if (!alreadyAdded) {
+          lookup[contactId].push({ name: associationName, color: associationColor });
         }
       });
 
@@ -103,7 +105,7 @@ const ViewAllContacts = () => {
         pickValue(contact, 'title', 'Title'),
         pickValue(contact, 'phone', 'Phone'),
         pickValue(contact, 'email', 'Email'),
-        ...(contactAssociationNamesById[contactId] || [])
+        ...(contactAssociationsByContactId[contactId] || []).map((a) => a.name)
       ]
         .filter(Boolean)
         .join(' ')
@@ -111,7 +113,7 @@ const ViewAllContacts = () => {
 
       return haystack.includes(normalizedSearch);
     });
-  }, [contactAssociationNamesById, contacts, searchTerm]);
+  }, [contactAssociationsByContactId, contacts, searchTerm]);
 
   return (
     <div className="view-contacts-page">
@@ -137,7 +139,7 @@ const ViewAllContacts = () => {
       <div className="view-contacts-content">
         <AllContactsTable
           contacts={filteredContacts}
-          contactAssociationNamesById={contactAssociationNamesById}
+          contactAssociationsByContactId={contactAssociationsByContactId}
           loading={loadingContacts}
           error={contactsError}
           onDeleteContact={handleDeleteContact}

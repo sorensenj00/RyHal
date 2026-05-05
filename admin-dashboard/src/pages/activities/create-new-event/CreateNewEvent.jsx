@@ -6,6 +6,7 @@ import AddLocationWindow from '../../../components/activities/AddLocationWindow'
 import AddCateringWindow from '../../../components/activities/AddCateringWindow';
 import ActivityPreview from '../../../components/activities/ActivityPreview';
 import { notifySuccess } from '../../../components/toast/toastBus';
+import { toApiLocalDateTime, getDefaultRecurrenceEndDate } from '../../../utils/dateUtils';
 import './CreateNewEvent.css';
 
 const EVENT_CATEGORIES = ['SPORT', 'MØDE', 'VEDLIGEHOLDELSE', 'ANDET'];
@@ -29,27 +30,6 @@ const pickValue = (obj, ...keys) => {
   return null;
 };
 
-const toApiLocalDateTime = (datePart, timePart) => {
-  if (!datePart || !timePart) return null;
-  return `${datePart}T${timePart}:00`;
-};
-
-const getDefaultRecurrenceEndDate = (baseDate) => {
-  let seed;
-
-  if (baseDate) {
-    const [year, month, day] = String(baseDate).split('-').map(Number);
-    seed = new Date(year, (month || 1) - 1, day || 1);
-  } else {
-    seed = new Date();
-  }
-
-  seed.setDate(seed.getDate() + 30);
-  const year = seed.getFullYear();
-  const month = String(seed.getMonth() + 1).padStart(2, '0');
-  const day = String(seed.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 const toFriendlyApiMessage = (apiError, fallbackMessage) => {
   const validationErrors = apiError?.errors
@@ -151,11 +131,12 @@ const CreateNewEvent = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
-  const [recurrenceFrequency, setRecurrenceFrequency] = useState('WEEKLY');
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState('UGENTLIG');
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
   const [isDraft, setIsDraft] = useState(false);
 
   const [errorMsg, setErrorMsg] = useState('');
+  const [confirmNoLocation, setConfirmNoLocation] = useState(false);
 
   const [availableLocations, setAvailableLocations] = useState([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
@@ -403,7 +384,7 @@ const CreateNewEvent = () => {
     setStartTime('');
     setEndTime('');
     setIsRecurring(false);
-    setRecurrenceFrequency('WEEKLY');
+    setRecurrenceFrequency('UGENTLIG');
     setRecurrenceEndDate('');
     setIsDraft(false);
     setSelectedAssociationId(0);
@@ -412,22 +393,9 @@ const CreateNewEvent = () => {
     setLocations([]);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg('');
-
+  const performSave = async () => {
     const autoDraft = !startDate || !startTime || !endTime;
     const draftToSave = isDraft || autoDraft;
-
-    if (isRecurring && !recurrenceEndDate) {
-      setErrorMsg('Vælg en slutdato for serie ved gentagende aktivitet.');
-      return;
-    }
-
-    if (isRecurring && startDate && recurrenceEndDate < startDate) {
-      setErrorMsg('Slutdato for serie kan ikke være før startdato.');
-      return;
-    }
 
     try {
       const locationsPayload = locations
@@ -497,12 +465,38 @@ const CreateNewEvent = () => {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setConfirmNoLocation(false);
+
+    const autoDraft = !startDate || !startTime || !endTime;
+    const draftToSave = isDraft || autoDraft;
+
+    if (isRecurring && !recurrenceEndDate) {
+      setErrorMsg('Vælg en slutdato for serie ved gentagende aktivitet.');
+      return;
+    }
+
+    if (isRecurring && startDate && recurrenceEndDate < startDate) {
+      setErrorMsg('Slutdato for serie kan ikke være før startdato.');
+      return;
+    }
+
+    const validLocations = locations.filter((loc) => startDate && loc.locationId && loc.startTime && loc.endTime);
+    if (!draftToSave && validLocations.length === 0) {
+      setConfirmNoLocation(true);
+      return;
+    }
+
+    await performSave();
+  };
+
   return (
     <div className="create-event-page">
       <header className="create-event-header create-event-header-fixed">
         <div className="create-event-header-inner">
           <h1>Opret Ny Aktivitet</h1>
-          <p>Start med de rå event-data til venstre og se live preview til højre.</p>
         </div>
       </header>
 
@@ -510,7 +504,7 @@ const CreateNewEvent = () => {
         <section className="create-event-left-panel">
           <form id="create-event-form" className="create-event-form" onSubmit={handleSubmit}>
             <section className="form-card raw-data-card">
-              <h2>1) Rå event-data</h2>
+              <h2 className="form-section-title">Grundoplysninger</h2>
               <div className="field-grid single">
                 <label>
                   Titel
@@ -591,9 +585,9 @@ const CreateNewEvent = () => {
                       value={recurrenceFrequency}
                       onChange={(e) => setRecurrenceFrequency(e.target.value)}
                     >
-                      <option value="DAILY">Dagligt</option>
-                      <option value="WEEKLY">Ugentligt</option>
-                      <option value="MONTHLY">Månedligt</option>
+                      <option value="DAGLIG">Dagligt</option>
+                      <option value="UGENTLIG">Ugentligt</option>
+                      <option value="MAANEDLIG">Månedligt</option>
                     </select>
                   </label>
                   <label>
@@ -610,8 +604,7 @@ const CreateNewEvent = () => {
             </section>
 
             <section className="form-card optional-data-card">
-              <h2>2) Tilføj valgfri data</h2>
-              <p className="muted">Klik på en knap for at åbne et pop-out vindue.</p>
+              <h2 className="form-section-title">Tilføj Relationer</h2>
 
               <div className="optional-actions-grid">
                 <button
@@ -638,7 +631,7 @@ const CreateNewEvent = () => {
                     setIsLocationWindowOpen(true);
                   }}
                 >
-                  Tilføj lokation (valgfrit)
+                  Tilføj lokation
                 </button>
                 <button
                   type="button"
@@ -667,7 +660,10 @@ const CreateNewEvent = () => {
           </form>
         </section>
 
-        <aside className="create-event-right-panel">
+        <aside className="create-event-right-panel create-event-preview-sticky">
+          <div className="preview-header">
+            <h2 className="preview-title">Aktivitets-preview</h2>
+          </div>
           <ActivityPreview
             title={title}
             description={description}
@@ -735,6 +731,23 @@ const CreateNewEvent = () => {
         isOpen={isCateringWindowOpen}
         onClose={() => setIsCateringWindowOpen(false)}
       />
+
+      {confirmNoLocation && (
+        <div className="event-message-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-no-location-title">
+          <div className="event-message-modal">
+            <h3 id="confirm-no-location-title">Ingen lokation tilknyttet</h3>
+            <p>Du er ved at oprette et event uden en lokation. Er du sikker på, at du vil fortsætte?</p>
+            <div className="event-message-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setConfirmNoLocation(false)}>
+                Annuller
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => { setConfirmNoLocation(false); performSave(); }}>
+                Ja, fortsæt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {errorMsg && (
         <div className="event-message-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="event-message-title">

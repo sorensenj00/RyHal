@@ -4,6 +4,7 @@ import { notifyError, notifySuccess } from '../toast/toastBus';
 import AddAssociationWindow from './AddAssociationWindow';
 import AddContactWindow from './AddContactWindow';
 import AddLocationWindow from './AddLocationWindow';
+import { toLocalDateInput, toLocalTimeInput, toApiLocalDateTime } from '../../utils/dateUtils';
 import './AddWindowSlide.css';
 import './EditEventWindow.css';
 
@@ -34,24 +35,6 @@ const normalizeIdList = (values) => [...new Set(
     .filter((v) => Number.isInteger(v) && v > 0)
 )];
 
-const toLocalDateInput = (dateTime) => {
-  if (!dateTime) return '';
-  const raw = String(dateTime);
-  const datePart = raw.includes('T') ? raw.split('T')[0] : raw;
-  return datePart;
-};
-
-const toLocalTimeInput = (dateTime) => {
-  if (!dateTime) return '';
-  const raw = String(dateTime);
-  const timePart = raw.includes('T') ? raw.split('T')[1] : raw;
-  return timePart.slice(0, 5);
-};
-
-const toApiLocalDateTime = (datePart, timePart) => {
-  if (!datePart || !timePart) return null;
-  return `${datePart}T${timePart}:00`;
-};
 
 const normalizeCategory = (category) => {
   if (typeof category === 'number') {
@@ -71,6 +54,9 @@ const EditEventWindow = ({ isOpen, onClose, eventData, onSaved }) => {
   const [isDraft, setIsDraft] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [confirmNoLocation, setConfirmNoLocation] = useState(false);
+  const [updateEntireSeries, setUpdateEntireSeries] = useState(false);
+  const [seriesId, setSeriesId] = useState(null);
 
   // Relations
   const [availableAssociations, setAvailableAssociations] = useState([]);
@@ -143,6 +129,8 @@ const EditEventWindow = ({ isOpen, onClose, eventData, onSaved }) => {
     setStartTime(toLocalTimeInput(rawStartTime));
     setEndTime(toLocalTimeInput(rawEndTime));
     setIsDraft(Boolean(pickValue(eventData, 'isDraft', 'IsDraft')));
+    setSeriesId(Number(pickValue(eventData, 'seriesId', 'SeriesId')) || null);
+    setUpdateEntireSeries(false);
     setErrorMsg('');
 
     // Association
@@ -159,6 +147,8 @@ const EditEventWindow = ({ isOpen, onClose, eventData, onSaved }) => {
     setLocations(mappedLocs);
 
     setContactSearchTerm('');
+    setConfirmNoLocation(false);
+    setUpdateEntireSeries(false);
     setIsAssociationWindowOpen(false);
     setIsContactWindowOpen(false);
     setIsLocationWindowOpen(false);
@@ -260,15 +250,7 @@ const EditEventWindow = ({ isOpen, onClose, eventData, onSaved }) => {
     );
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg('');
-
-    if (!eventId) {
-      setErrorMsg('Event-id mangler. Prøv at åbne eventet igen.');
-      return;
-    }
-
+  const performSave = async () => {
     setIsSaving(true);
 
     try {
@@ -296,6 +278,14 @@ const EditEventWindow = ({ isOpen, onClose, eventData, onSaved }) => {
         RecurrenceEndDate: pickValue(eventData, 'recurrenceEndDate', 'RecurrenceEndDate') || null,
         IsDraft: isDraft
       };
+
+      if (updateEntireSeries && seriesId) {
+        await api.put(`/events/series/${seriesId}`, payload, { skipCrudToast: true });
+        notifySuccess('Alle events i serien er opdateret.');
+        onSaved?.(null);
+        onClose();
+        return;
+      }
 
       await api.put(`/events/${eventId}`, payload, { skipCrudToast: true });
 
@@ -347,6 +337,25 @@ const EditEventWindow = ({ isOpen, onClose, eventData, onSaved }) => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setConfirmNoLocation(false);
+
+    if (!eventId) {
+      setErrorMsg('Event-id mangler. Prøv at åbne eventet igen.');
+      return;
+    }
+
+    const validLocations = locations.filter((loc) => loc.locationId > 0 && startDate && loc.startTime && loc.endTime);
+    if (!isDraft && validLocations.length === 0) {
+      setConfirmNoLocation(true);
+      return;
+    }
+
+    await performSave();
   };
 
   return (
@@ -403,9 +412,8 @@ const EditEventWindow = ({ isOpen, onClose, eventData, onSaved }) => {
           </div>
 
           <div className="add-window-body">
-            <form className="edit-event-window-form" onSubmit={handleSubmit}>
+            <form id="edit-event-form" className="edit-event-window-form" onSubmit={handleSubmit}>
               <div className="edit-event-window-badges">
-                <span className="edit-event-window-badge">ID: {eventId}</span>
                 <span className={`edit-event-window-badge ${isDraft ? 'warning' : 'success'}`}>
                   {isDraft ? 'Kladde' : 'Aktiv'}
                 </span>
@@ -487,61 +495,102 @@ const EditEventWindow = ({ isOpen, onClose, eventData, onSaved }) => {
                 Gem som kladde
               </label>
 
-              {/* Relations section */}
-              <div className="edit-event-window-relations">
-                <p className="edit-event-window-relations-label">Relationer</p>
-                <div className="edit-event-window-relation-btns">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setIsAssociationWindowOpen(true)}
-                  >
-                    Forening
-                    {selectedAssociationId > 0 && (
-                      <span className="edit-event-window-rel-badge">
-                        {pickValue(selectedAssociation, 'name', 'Name') || '1'}
-                      </span>
-                    )}
-                  </button>
+              {seriesId && (
+                <label className="toggle-item edit-event-window-series-toggle" htmlFor="edit-event-series-toggle">
+                  <input
+                    id="edit-event-series-toggle"
+                    type="checkbox"
+                    checked={updateEntireSeries}
+                    onChange={(e) => setUpdateEntireSeries(e.target.checked)}
+                  />
+                  Ret alle events i serien
+                  <span className="edit-event-window-series-badge">Serie #{seriesId}</span>
+                </label>
+              )}
 
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setIsContactWindowOpen(true)}
-                  >
-                    Kontakter
-                    {selectedContactIds.length > 0 && (
-                      <span className="edit-event-window-rel-badge">{selectedContactIds.length}</span>
-                    )}
-                  </button>
+            </form>
+          </div>
 
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setIsLocationWindowOpen(true)}
-                  >
-                    Lokationer
-                    {locations.filter((l) => l.locationId > 0).length > 0 && (
-                      <span className="edit-event-window-rel-badge">
-                        {locations.filter((l) => l.locationId > 0).length}
-                      </span>
-                    )}
+          <footer className="add-window-footer">
+            <div className="add-window-footer-relations">
+              <p className="edit-event-window-relations-label">Tilføj relationer</p>
+              <div className="add-window-footer-relation-btns">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setIsAssociationWindowOpen(true);
+                    setIsContactWindowOpen(false);
+                    setIsLocationWindowOpen(false);
+                  }}
+                >
+                  Tilføj Forening
+                  {selectedAssociationId > 0 && (
+                    <span className="edit-event-window-rel-badge">
+                      {pickValue(selectedAssociation, 'name', 'Name') || '1'}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setIsContactWindowOpen(true);
+                    setIsAssociationWindowOpen(false);
+                    setIsLocationWindowOpen(false);
+                  }}
+                >
+                  Tilføj Kontakt
+                  {selectedContactIds.length > 0 && (
+                    <span className="edit-event-window-rel-badge">{selectedContactIds.length}</span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setIsLocationWindowOpen(true);
+                    setIsAssociationWindowOpen(false);
+                    setIsContactWindowOpen(false);
+                  }}
+                >
+                  Tilføj Lokation
+                  {locations.filter((l) => l.locationId > 0).length > 0 && (
+                    <span className="edit-event-window-rel-badge">
+                      {locations.filter((l) => l.locationId > 0).length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {errorMsg && <p className="edit-event-window-inline-status error">{errorMsg}</p>}
+
+            {confirmNoLocation ? (
+              <div className="edit-event-window-confirm">
+                <p className="edit-event-window-inline-status">Ingen lokation tilknyttet. Er du sikker på, at du vil gemme eventet uden lokation?</p>
+                <div className="add-window-footer-actions">
+                  <button type="button" className="btn btn-secondary" onClick={() => setConfirmNoLocation(false)}>
+                    Annuller
+                  </button>
+                  <button type="button" className="btn btn-primary" onClick={() => { setConfirmNoLocation(false); performSave(); }}>
+                    Ja, gem
                   </button>
                 </div>
               </div>
-
-              {errorMsg && <p className="edit-event-window-inline-status error">{errorMsg}</p>}
-
-              <div className="edit-event-window-actions">
+            ) : (
+              <div className="add-window-footer-actions">
                 <button type="button" className="btn btn-secondary" onClick={onClose}>
                   Annuller
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                <button type="submit" form="edit-event-form" className="btn btn-primary" disabled={isSaving}>
                   {isSaving ? 'Gemmer...' : 'Gem ændringer'}
                 </button>
               </div>
-            </form>
-          </div>
+            )}
+          </footer>
         </aside>
     </div>
   );

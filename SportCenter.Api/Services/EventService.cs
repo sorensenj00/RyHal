@@ -123,7 +123,7 @@ public class EventService
             return requested;
         }
 
-        var frequency = Enum.Parse<RecurrenceFrequency>(dto.RecurrenceFrequency, true);
+        var frequency = ParseRecurrenceFrequency(dto.RecurrenceFrequency);
         var rule = new RecurrenceRule(frequency, dto.RecurrenceEndDate.Value);
         var baseStart = dto.StartTime.Value;
         var occurrences = rule.GenerateOccurrences(baseStart);
@@ -275,9 +275,6 @@ public class EventService
     {
         if (!isDraft)
         {
-            if (locations == null || locations.Count == 0)
-                throw new ArgumentException("Der skal være mindst én lokation for ikke-kladde events.");
-
             foreach (var loc in locations)
             {
                 if (loc.LocationId == null)
@@ -313,6 +310,13 @@ public class EventService
         }
     }
 
+    private static RecurrenceFrequency ParseRecurrenceFrequency(string value)
+    {
+        if (!Enum.TryParse<RecurrenceFrequency>(value, true, out var result))
+            throw new ArgumentException($"Ugyldig RecurrenceFrequency: {value}");
+        return result;
+    }
+
     private static void ValidateRecurrence(CreateEventDto dto)
     {
         if (!dto.IsRecurring) return;
@@ -324,7 +328,7 @@ public class EventService
             throw new ArgumentException("RecurrenceEndDate er påkrævet for gentagende aktiviteter.");
 
         if (!Enum.TryParse<RecurrenceFrequency>(dto.RecurrenceFrequency, true, out _))
-            throw new ArgumentException("Ugyldig RecurrenceFrequency. Brug DAILY, WEEKLY eller MONTHLY.");
+            throw new ArgumentException("Ugyldig RecurrenceFrequency. Brug DAGLIG, UGENTLIG eller MAANEDLIG.");
 
         if (dto.StartTime.HasValue && dto.RecurrenceEndDate.Value.Date < dto.StartTime.Value.Date)
             throw new ArgumentException("RecurrenceEndDate skal være samme dato eller efter StartTime.");
@@ -337,9 +341,6 @@ public class EventService
 
         if (dto.StartTime >= dto.EndTime)
             throw new ArgumentException("Eventets StartTime skal være før EndTime.");
-
-        if (dto.Locations == null || dto.Locations.Count == 0 || !dto.Locations.Any(l => l.LocationId.HasValue))
-            throw new ArgumentException("Mindst én lokation er påkrævet for at publicere en kladde.");
 
         foreach (var loc in dto.Locations)
         {
@@ -426,7 +427,7 @@ public class EventService
                 );
             }
 
-            var frequency = Enum.Parse<RecurrenceFrequency>(dto.RecurrenceFrequency, true);
+            var frequency = ParseRecurrenceFrequency(dto.RecurrenceFrequency);
             var rule = new RecurrenceRule(frequency, dto.RecurrenceEndDate.Value);
             var baseStart = dto.StartTime ?? DateTime.Now;
             var baseEnd = dto.EndTime ?? baseStart.AddHours(1);
@@ -597,7 +598,7 @@ public class EventService
         }
         else // Gentagende event (Event Series)
         {
-            var frequency = Enum.Parse<RecurrenceFrequency>(dto.RecurrenceFrequency, true);
+            var frequency = ParseRecurrenceFrequency(dto.RecurrenceFrequency);
             var rule = new RecurrenceRule(frequency, dto.RecurrenceEndDate.Value);
 
             // Brug første lokation som standard lokation for serien (hvis nogen)
@@ -963,6 +964,121 @@ public class EventService
         return ToEventResponseDto(existingEventDb);
     }
 
+    public async Task<List<EventResponseDto>> UpdateSeriesAsync(int seriesId, CreateEventDto updateDto, string? accessToken = null)
+    {
+        updateDto = NormalizeForStorage(updateDto);
+
+        if (_supabase != null && _context == null)
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+                await _supabase.Auth.SetSession(accessToken, "refresh-token-not-needed");
+
+            var seriesEventsResponse = await _supabase.From<Event>()
+                .Where(x => x.SeriesId == seriesId)
+                .Get();
+
+            var seriesEvents = seriesEventsResponse.Models;
+            if (!seriesEvents.Any())
+                throw new KeyNotFoundException($"Ingen events fundet i serie med ID {seriesId}.");
+
+            var results = new List<EventResponseDto>();
+
+            foreach (var ev in seriesEvents)
+            {
+                await _supabase.From<Event>()
+                    .Where(x => x.Id == ev.Id)
+                    .Set(x => x.Name, updateDto.Name)
+                    .Set(x => x.Description, updateDto.Description)
+                    .Set(x => x.Category, updateDto.Category)
+                    .Set(x => x.IsDraft, updateDto.IsDraft)
+                    .Update();
+
+                var existingLocations = (await _supabase.From<EventLocation>()
+                    .Where(x => x.EventId == ev.Id)
+                    .Get()).Models;
+
+                foreach (var row in existingLocations)
+                    await _supabase.From<EventLocation>().Where(x => x.Id == row.Id).Delete();
+
+                var nextId = await GetNextSupabaseEventLocationIdAsync();
+                var createdLocations = new List<LocationBookingDto>();
+
+                foreach (var loc in updateDto.Locations)
+                {
+                    var eventLocation = new EventLocation
+                    {
+                        Id = nextId,
+                        EventId = ev.Id,
+                        LocationId = loc.LocationId,
+                        StartTime = PinForSupabase(loc.StartTime),
+                        EndTime = PinForSupabase(loc.EndTime),
+                        Date = loc.Date ?? updateDto.Date ?? loc.StartTime?.Date ?? ev.Date
+                    };
+                    await _supabase.From<EventLocation>().Insert(eventLocation);
+                    nextId++;
+                    createdLocations.Add(new LocationBookingDto(loc.LocationId, loc.StartTime, loc.EndTime, loc.Date ?? updateDto.Date));
+                }
+
+                results.Add(new EventResponseDto(ev.Id, updateDto.Name, updateDto.Description ?? string.Empty,
+                    ev.StartTime, ev.EndTime, ev.Date, updateDto.Category.ToString(),
+                    ev.SeriesId, ev.IsModifiedFromSeries ?? false, ev.IsCancelled ?? false,
+                    updateDto.IsDraft, createdLocations, ev.TemplateId, ev.AssociationId));
+            }
+
+            return results;
+        }
+
+        if (_context == null)
+        {
+            var seriesEvents = _testEvents.Where(e => e.SeriesId == seriesId).ToList();
+            if (!seriesEvents.Any())
+                throw new KeyNotFoundException($"Ingen events fundet i serie med ID {seriesId}.");
+
+            foreach (var ev in seriesEvents)
+            {
+                ev.Name = updateDto.Name;
+                ev.Description = updateDto.Description;
+                ev.Category = updateDto.Category;
+                ev.IsDraft = updateDto.IsDraft;
+            }
+
+            return seriesEvents.Select(ToEventResponseDto).ToList();
+        }
+
+        var dbEvents = await _context.Events
+            .Include(e => e.EventLocations)
+            .Where(e => e.SeriesId == seriesId)
+            .ToListAsync();
+
+        if (!dbEvents.Any())
+            throw new KeyNotFoundException($"Ingen events fundet i serie med ID {seriesId}.");
+
+        foreach (var ev in dbEvents)
+        {
+            ev.Name = updateDto.Name;
+            ev.Description = updateDto.Description;
+            ev.Category = updateDto.Category;
+            ev.IsDraft = updateDto.IsDraft;
+
+            _context.EventLocations.RemoveRange(ev.EventLocations);
+            ev.EventLocations.Clear();
+
+            foreach (var loc in updateDto.Locations)
+            {
+                ev.EventLocations.Add(new EventLocation
+                {
+                    LocationId = loc.LocationId ?? 0,
+                    StartTime = loc.StartTime,
+                    EndTime = loc.EndTime,
+                    Date = loc.Date ?? updateDto.Date ?? loc.StartTime?.Date ?? ev.Date
+                });
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return dbEvents.Select(ToEventResponseDto).ToList();
+    }
+
     public async Task<EventResponseDto> PublishDraftAsync(int eventId, CreateEventDto updateDto)
     {
         updateDto = NormalizeForStorage(updateDto);
@@ -1151,7 +1267,7 @@ public class EventService
         }
         else
         {
-            var frequency = Enum.Parse<RecurrenceFrequency>(recurrenceFrequency, true);
+            var frequency = ParseRecurrenceFrequency(recurrenceFrequency);
             var rule = new RecurrenceRule(frequency, recurrenceEndDate.Value);
 
             int? seriesLocationId = locations.FirstOrDefault()?.LocationId;

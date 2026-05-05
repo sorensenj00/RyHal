@@ -17,7 +17,7 @@ public class EventsController : ControllerBase
     private static EventResponseDto ToResponseDto(Event evt)
     {
         var locations = (evt.EventLocations ?? new List<EventLocation>())
-            .Select(loc => new LocationBookingDto(loc.LocationId, loc.StartTime, loc.EndTime, loc.Date))
+            .Select(loc => new LocationBookingDto(loc.LocationId, loc.StartTime, loc.EndTime, loc.Date, loc.Location?.Name))
             .ToList();
 
         return new EventResponseDto(
@@ -111,6 +111,31 @@ public class EventsController : ControllerBase
 
             var result = await _service.UpdateAsync(id, dto, token);
             return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPut("series/{seriesId}")]
+    public async Task<IActionResult> UpdateSeries(int seriesId, [FromBody] CreateEventDto dto)
+    {
+        try
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+            string? token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+            var results = await _service.UpdateSeriesAsync(seriesId, dto, token);
+            return Ok(results);
         }
         catch (KeyNotFoundException ex)
         {

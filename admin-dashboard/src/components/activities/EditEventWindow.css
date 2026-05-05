@@ -3,6 +3,25 @@
   gap: 0.75rem;
 }
 
+.edit-event-window-series-toggle {
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--white));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 30%, var(--gray-300));
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+}
+
+.edit-event-window-series-badge {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 14%, var(--white));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 30%, var(--gray-300));
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  white-space: nowrap;
+}
+
 .edit-event-window-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -85,14 +104,27 @@
   color: var(--success-color);
 }
 
-.edit-event-window-actions {
+.edit-event-window-confirm {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  margin-top: 0.25rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--warning-color) 40%, var(--gray-300));
+  background: color-mix(in srgb, var(--warning-color) 10%, var(--white));
 }
 
-.edit-event-window-relations {
+/* Footer — sticky bottom bar */
+.add-window-footer {
+  border-top: 1px solid var(--gray-300);
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: var(--white);
+}
+
+.add-window-footer-relations {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -105,10 +137,17 @@
   color: var(--gray-700);
 }
 
-.edit-event-window-relation-btns {
+.add-window-footer-relation-btns {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.add-window-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
 }
 
 .edit-event-window-rel-badge {

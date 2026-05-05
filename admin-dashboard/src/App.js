@@ -11,7 +11,6 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 
 // Sider
-import EmployeeBigCard from './components/employee/EmployeeBigCard';
 import EmployeeListOverview from './pages/employee-list/EmployeeListOverview';
 import CreateNewShift from './components/shift/CreateNewShift';
 import WorkCalendar from "./pages/work-calendar/WorkCalendar";
@@ -183,7 +182,6 @@ function AppContent() {
           <Route path="/employee-roles" element={isAdminSession ? <EmployeeRoles /> : <Navigate to="/login" />} />
           <Route path="/employee/:id" element={isAdminSession ? <ShowEmployee /> : <Navigate to="/login" />} />
           <Route path="/show-employee" element={isAdminSession ? <ShowEmployee /> : <Navigate to="/login" />} />
-          <Route path="/employee-card" element={isAdminSession ? <EmployeeBigCard /> : <Navigate to="/login" />} />
           <Route path="/create-shift" element={isAdminSession ? <CreateNewShift /> : <Navigate to="/login" />} />
           <Route path="/staffing-overview" element={isAdminSession ? <StaffingOverview /> : <Navigate to="/login" />} />
           <Route path="/activities/drafts" element={isAdminSession ? <Drafts /> : <Navigate to="/login" />} />

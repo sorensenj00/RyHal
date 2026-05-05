@@ -1,14 +1,7 @@
 import React from 'react';
-import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
 import { toCssColorValue } from '../../data/roleColors';
+import { formatDateTime } from '../../utils/dateUtils';
 
-const formatDateTime = (value) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return format(date, 'dd.MM.yyyy HH:mm', { locale: da });
-};
 
 const formatHours = (minutes) => `${(minutes / 60).toFixed(2)} timer`;
 

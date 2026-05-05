@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toAssociationCssColorValue, getAssociationTextColor } from '../../data/associationColors';
 import './AllContactsTable.css';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
 
@@ -14,7 +15,7 @@ const pickValue = (obj, ...keys) => {
 
 const AllContactsTable = ({
   contacts = [],
-  contactAssociationNamesById = {},
+  contactAssociationsByContactId = {},
   loading = false,
   error = '',
   onDeleteContact = async () => {}
@@ -77,8 +78,7 @@ const AllContactsTable = ({
               const phone = pickValue(contact, 'phone', 'Phone');
               const email = pickValue(contact, 'email', 'Email');
               const profileImageUrl = pickValue(contact, 'profileImageUrl', 'ProfileImageUrl');
-              const associationNames = contactAssociationNamesById[contactId] || [];
-              const associationNameText = associationNames.join(', ');
+              const associations = contactAssociationsByContactId[contactId] || [];
 
               return (
                 <tr key={contactId}>
@@ -94,7 +94,24 @@ const AllContactsTable = ({
                   </td>
 
                   <td>
-                    <span className="contact-association">{associationNameText}</span>
+                    {associations.length > 0 ? (
+                      <div className="contact-association-badges">
+                        {associations.map((assoc) => (
+                          <span
+                            key={assoc.name}
+                            className="contact-association-badge"
+                            style={{
+                              backgroundColor: toAssociationCssColorValue(assoc.color),
+                              color: getAssociationTextColor(assoc.color),
+                            }}
+                          >
+                            {assoc.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="contact-cell-empty">—</span>
+                    )}
                   </td>
 
                   <td>
@@ -111,11 +128,11 @@ const AllContactsTable = ({
 
                   <td className="text-right">
                     <div className="action-buttons">
-                      <Link to={`/view-contact/${contactId}`} className="btn-action view">
+                      <Link to={`/view-contact/${contactId}`} className="btn btn-sm btn-secondary">
                         Se
                       </Link>
                       <button
-                        className="btn-action delete"
+                        className="btn btn-sm btn-danger"
                         onClick={() => openDeleteConfirm(contactId, name)}
                         disabled={deletingId === contactId}
                       >
@@ -148,7 +165,7 @@ const AllContactsTable = ({
             <div className="delete-modal-actions">
               <button
                 type="button"
-                className="btn-action"
+                className="btn btn-sm btn-secondary"
                 onClick={closeDeleteConfirm}
                 disabled={deletingId !== null}
               >
@@ -156,7 +173,7 @@ const AllContactsTable = ({
               </button>
               <button
                 type="button"
-                className="btn-action delete"
+                className="btn btn-sm btn-danger"
                 onClick={confirmDelete}
                 disabled={deletingId !== null}
               >

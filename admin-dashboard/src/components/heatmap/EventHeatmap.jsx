@@ -27,12 +27,15 @@ const CATEGORY_TO_ENUM = {
 const toApiDateTimeString = (value) => {
   if (!value) return null;
   if (typeof value === 'string') return value;
-  return format(new Date(value), "yyyy-MM-dd'T'HH:mm:ss");
+  // value is a Date object — format in local time (ingen new Date() på strings for at undgå UTC-shift)
+  return format(value, "yyyy-MM-dd'T'HH:mm:ss");
 };
 
 const toLocalDateTimeString = (value) => {
   if (!value) return null;
-  return format(new Date(value), "yyyy-MM-dd'T'HH:mm:ss");
+  // Hvis string: parseISO bevarer lokal tid korrekt (new Date() ville tolke Z/offset forkert)
+  const dateObj = typeof value === 'string' ? parseISO(value) : value;
+  return format(dateObj, "yyyy-MM-dd'T'HH:mm:ss");
 };
 
 const normalizeEventsForHeatmap = (apiEvents) => {

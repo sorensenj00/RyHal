@@ -1,38 +1,6 @@
 import React from 'react';
-import { format, parseISO } from 'date-fns';
+import { formatDateTime, formatDateOnly, formatTimeOnly } from '../../../utils/dateUtils';
 
-const formatDateTime = (value) => {
-  if (!value) return 'Ikke angivet';
-
-  try {
-    return format(parseISO(value), 'dd-MM-yyyy HH:mm');
-  } catch {
-    return value;
-  }
-};
-
-const formatDateOnly = (value) => {
-  if (!value) return 'Ikke angivet';
-
-  try {
-    return format(parseISO(value), 'dd-MM-yyyy');
-  } catch {
-    const str = String(value);
-    return str.includes('T') ? str.split('T')[0] : str;
-  }
-};
-
-const formatTimeOnly = (value) => {
-  if (!value) return 'Ikke angivet';
-
-  try {
-    return format(parseISO(value), 'HH:mm');
-  } catch {
-    const str = String(value);
-    if (str.includes('T')) return str.split('T')[1]?.slice(0, 5) || 'Ikke angivet';
-    return str.slice(0, 5);
-  }
-};
 
 const DraftActivitiesList = ({ drafts = [], onPublish, onEdit, actionLoadingId = null }) => {
   if (!drafts.length) {

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import api from '../../api/axiosConfig';
 import {
 	normalizeAssociationColorToken,
@@ -63,7 +63,7 @@ const openColorPicker = (input) => {
 	input.click();
 };
 
-const CreateNewAssociationTemplate = ({ onCreated }) => {
+const CreateNewAssociationTemplate = ({ onCreated, onPreviewChange, onLoadingStateChange }) => {
 	const [name, setName] = useState('');
 	const [websiteUrl, setWebsiteUrl] = useState('');
 	const [logoUrl, setLogoUrl] = useState('');
@@ -72,6 +72,35 @@ const CreateNewAssociationTemplate = ({ onCreated }) => {
 	const [successMsg, setSuccessMsg] = useState('');
 	const [errorMsg, setErrorMsg] = useState('');
 	const colorInputRef = useRef(null);
+
+	useEffect(() => {
+		if (!onPreviewChange) {
+			return;
+		}
+
+		const normalizedName = name.trim();
+		const normalizedUrl = normalizeUrl(websiteUrl);
+
+		if (!normalizedName && !normalizedUrl && !color) {
+			onPreviewChange(null);
+			return;
+		}
+
+		const draft = {
+			name: normalizedName,
+			websiteUrl: normalizedUrl || null,
+			color: color,
+			colorValue: toAssociationCssColorValue(color)
+		};
+
+		onPreviewChange(draft);
+	}, [name, websiteUrl, color, onPreviewChange]);
+
+	useEffect(() => {
+		if (onLoadingStateChange) {
+			onLoadingStateChange(loading);
+		}
+	}, [loading, onLoadingStateChange]);
 
 	const resetMessages = () => {
 		setSuccessMsg('');
@@ -127,7 +156,7 @@ const CreateNewAssociationTemplate = ({ onCreated }) => {
 			{successMsg && <div className="association-feedback success">{successMsg}</div>}
 			{errorMsg && <div className="association-feedback error">{errorMsg}</div>}
 
-			<form className="association-form" onSubmit={handleSubmit}>
+			<form id="create-association-form" className="association-form" onSubmit={handleSubmit}>
 				<label>
 					Foreningsnavn
 					<input
@@ -210,11 +239,6 @@ const CreateNewAssociationTemplate = ({ onCreated }) => {
 					<strong>Bemærk:</strong> Kontaktpersoner og kobling til events sættes op efter oprettelsen.
 				</div>
 
-				<div className="association-form-actions">
-					<button type="submit" disabled={loading}>
-						{loading ? 'Opretter...' : 'Opret forening'}
-					</button>
-				</div>
 			</form>
 		</section>
 	);

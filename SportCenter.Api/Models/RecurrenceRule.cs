@@ -4,7 +4,7 @@ public enum RecurrenceFrequency
 {
     DAGLIG,
     UGENTLIG,
-    MÅNEDLIG
+    MAANEDLIG
 }
 
 public class RecurrenceRule
@@ -34,7 +34,7 @@ public class RecurrenceRule
             {
                 RecurrenceFrequency.DAGLIG => current.AddDays(1),
                 RecurrenceFrequency.UGENTLIG => current.AddDays(7),
-                RecurrenceFrequency.MÅNEDLIG => current.AddMonths(1),
+                RecurrenceFrequency.MAANEDLIG => current.AddMonths(1),
                 _ => current.AddDays(1)
             };
         }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../../api/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ContactsSearchBar from '../../../components/search/ContactsSearchBar';
+import { toLocalDateInput, toLocalTimeInput, toApiLocalDateTime, getDefaultRecurrenceEndDate } from '../../../utils/dateUtils';
 import '../create-new-event/CreateNewEvent.css';
 
 const EVENT_CATEGORIES = ['SPORT', 'MØDE', 'VEDLIGEHOLDELSE', 'ANDET'];
@@ -25,59 +26,7 @@ const pickValue = (obj, ...keys) => {
   return null;
 };
 
-const toLocalDateInput = (dateTime) => {
-  if (!dateTime) return '';
 
-  const date = new Date(dateTime);
-  if (Number.isNaN(date.getTime())) {
-    const str = String(dateTime);
-    return str.includes('T') ? str.split('T')[0] : str;
-  }
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const toLocalTimeInput = (dateTime) => {
-  if (!dateTime) return '';
-
-  const date = new Date(dateTime);
-  if (Number.isNaN(date.getTime())) {
-    const str = String(dateTime);
-    if (str.includes('T')) return str.split('T')[1]?.slice(0, 5) || '';
-    return str.slice(0, 5);
-  }
-
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
-};
-
-const toApiLocalDateTime = (datePart, timePart) => {
-  if (!datePart || !timePart) return null;
-
-  // Keep local wall-clock time to avoid timezone drift between frontend and backend.
-  return `${datePart}T${timePart}:00`;
-};
-
-const getDefaultRecurrenceEndDate = (baseDate) => {
-  let seed;
-
-  if (baseDate) {
-    const [year, month, day] = String(baseDate).split('-').map(Number);
-    seed = new Date(year, (month || 1) - 1, day || 1);
-  } else {
-    seed = new Date();
-  }
-
-  seed.setDate(seed.getDate() + 30);
-  const year = seed.getFullYear();
-  const month = String(seed.getMonth() + 1).padStart(2, '0');
-  const day = String(seed.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 const toFriendlyApiMessage = (apiError, fallbackMessage) => {
   const validationErrors = apiError?.errors

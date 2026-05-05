@@ -9,39 +9,93 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 18px;
 }
 
-/* Rækken til grafer */
-.dashboard-top-row {
+.welcome-title {
+  margin: 0;
+}
+
+.welcome-inline-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.welcome-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.welcome-col-main,
+.welcome-col-side {
   display: flex;
-  gap: 20px;
-  width: 100%;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.dashboard-item {
-  flex: 1; /* Gør at alle kasser fylder lige meget i bredden */
-  min-width: 300px;
-}
-
-.placeholder-item {
-  background: var(--gray-100);
-  border: 2px dashed var(--gray-300);
+.welcome-section-card,
+.team-section {
+  background: var(--white);
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
+  box-shadow: var(--box-shadow-sm);
+  padding: 16px;
+}
+
+.welcome-section-heading {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.welcome-quick-actions-card {
+  padding-bottom: 14px;
+}
+
+.welcome-quick-actions-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+}
+
+.welcome-quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.welcome-quick-action-btn {
+  min-height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: var(--gray-800);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.welcome-quick-action-btn:hover {
+  border-color: #94a3b8;
+  box-shadow: var(--box-shadow-sm);
+  transform: translateY(-1px);
 }
 
 .team-section {
-  background: var(--white);
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: var(--box-shadow-sm);
+  padding-top: 14px;
 }
 
 .welcome-team-header {
-  margin-bottom: 20px;
+  margin: 0 0 16px;
   font-size: 1.25rem;
   color: var(--gray-800);
 }
@@ -49,6 +103,50 @@
 .welcome-sidebar {
   flex-shrink: 0;
   width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-left: 24px;
+  border-left: 1px solid #e2e8f0;
   position: sticky; /* Gør at kalenderen bliver stående når man scroller */
   top: 20px;
+}
+
+.welcome-quick-actions-grid--sidebar {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 1300px) {
+  .welcome-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-sidebar {
+    width: 280px;
+  }
+}
+
+@media (max-width: 700px) {
+  .welcome-quick-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .welcome-page-layout {
+    flex-direction: column;
+  }
+
+  .welcome-sidebar {
+    width: 100%;
+    padding-left: 0;
+    padding-top: 18px;
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+    position: static;
+  }
+
+  .welcome-quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
 }

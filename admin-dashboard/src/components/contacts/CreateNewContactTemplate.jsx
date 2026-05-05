@@ -32,6 +32,7 @@ const pickValue = (obj, ...keys) => {
 const CreateNewContactTemplate = ({
 	onCreated,
 	onPreviewChange,
+	onLoadingStateChange,
 	associationOptions = [],
 	selectedAssociationId = 0,
 	onSelectedAssociationIdChange,
@@ -75,6 +76,12 @@ const CreateNewContactTemplate = ({
 
 		onPreviewChange(draft);
 	}, [name, title, email, phone, profileImageUrl, onPreviewChange]);
+
+	useEffect(() => {
+		if (onLoadingStateChange) {
+			onLoadingStateChange(loading);
+		}
+	}, [loading, onLoadingStateChange]);
 
 	useEffect(() => {
 		if ((Number(selectedAssociationId) || 0) > 0) {
@@ -149,7 +156,7 @@ const CreateNewContactTemplate = ({
 			{successMsg && <div className="create-contact-feedback success">{successMsg}</div>}
 			{errorMsg && <div className="create-contact-feedback error">{errorMsg}</div>}
 
-			<form className="create-contact-form" onSubmit={handleSubmit}>
+		<form id="create-contact-form" className="create-contact-form" onSubmit={handleSubmit}>
 				<label>
 					Navn
 					<input
@@ -237,12 +244,6 @@ const CreateNewContactTemplate = ({
 							{associationLoadError && <p className="create-contact-association-status error">{associationLoadError}</p>}
 						</>
 					)}
-				</div>
-
-				<div className="create-contact-form-actions">
-					<button type="submit" disabled={loading}>
-						{loading ? 'Opretter...' : 'Opret kontakt'}
-					</button>
 				</div>
 			</form>
 		</section>

@@ -1,5 +1,6 @@
 using Supabase;
 using SportCenter.Api.Services;
+using SportCenter.Api.Models.Converters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,13 @@ builder.Services.AddScoped<SwapRequestService>();
 
 
 // 4. Registrér controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        // Serialisér altid DateTime? uden tidszone-suffiks (ingen Z, ingen +02:00).
+        // Forhindrer at browser-siden forskyder datoer ved UTC-fortolkning.
+        opts.JsonSerializerOptions.Converters.Add(new SystemTextJsonDateTimeConverter());
+    });
 
 var app = builder.Build();
 

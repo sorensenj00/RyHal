@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCakeCandles } from '@fortawesome/free-solid-svg-icons';
-import api from '../../api/axiosConfig'; // Din nye Axios instans
+import api from '../../api/axiosConfig';
 import EmployeeTable from '../../components/employee/EmployeeTable';
 import TotalEmployeeCard from '../../components/employee/data-cards/TotalEmployeeCard';
 import RoleDistributionGraph from '../../components/employee/data-cards/RoleDistributionGraph';
@@ -107,30 +105,7 @@ const EmployeeListOverview = () => {
         </div>
 
         <div className="div2">
-          <div className="stat-card stat-card-warning">
-            <div className="stat-card-inner">
-              <div className="stat-icon-wrapper" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-                <FontAwesomeIcon icon={faCakeCandles} className="stat-icon-main" />
-              </div>
-              <div className="stat-content">
-                <p className="stat-label">Kommende fødselsdage</p>
-                <div className="stat-value-group">
-                  <h3 className="stat-number">
-                    {employees.filter((e) => {
-                      if (!e.birthday) return false;
-                      const today = new Date(); today.setHours(0,0,0,0);
-                      const bday = new Date(e.birthday);
-                      let next = new Date(bday); next.setFullYear(today.getFullYear());
-                      if (next < today) next.setFullYear(today.getFullYear() + 1);
-                      const diff = Math.round((next - today) / 86400000);
-                      return diff <= 30;
-                    }).length}
-                  </h3>
-                </div>
-                <small className="stat-sublabel">inden for 30 dage</small>
-              </div>
-            </div>
-          </div>
+          <UpcomingBirthdaysWidget employees={employees} />
         </div>
 
         <div className="div3">

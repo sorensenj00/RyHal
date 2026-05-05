@@ -1,0 +1,247 @@
+/* ============================================================
+   CreateNewEmployee page
+   ============================================================ */
+
+.create-employee-page {
+	min-height: 100%;
+	padding: 0 20px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Header ---------------------------------------------------- */
+
+.create-employee-header-fixed {
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	margin: 0.65rem -20px 0;
+	border-bottom: 1px solid var(--gray-300);
+	background: rgba(255, 255, 255, 0.95);
+	backdrop-filter: blur(6px);
+}
+
+.create-employee-header-inner {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 0.6rem 0;
+}
+
+.create-employee-header-inner h1 {
+	margin: 0;
+	color: var(--gray-900);
+	font-size: 1.5rem;
+	font-weight: 800;
+}
+
+/* Body ------------------------------------------------------ */
+
+.create-employee-body {
+	max-width: 1100px;
+	margin: 0.65rem auto 0;
+	padding: 0 var(--spacer);
+	width: 100%;
+	box-sizing: border-box;
+	flex: 1;
+}
+
+/* Card ------------------------------------------------------ */
+
+.create-employee-card {
+	background: var(--white);
+	border: var(--border-width) solid var(--gray-300);
+	border-left: 4px solid var(--primary-color);
+	border-radius: 14px;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+	padding: 0.9rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.create-employee-card-header {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+}
+
+.create-employee-card-header h2 {
+	margin: 0;
+	color: var(--gray-900);
+	font-size: 0.9rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.create-employee-card-header p {
+	margin: 0;
+	color: var(--gray-600);
+	font-size: 0.75rem;
+}
+
+/* Feedback banner ------------------------------------------- */
+
+.create-employee-feedback {
+	border-radius: 0.75rem;
+	padding: 0.7rem 0.8rem;
+	font-size: 0.8rem;
+	font-weight: 700;
+}
+
+.create-employee-feedback.error {
+	background: color-mix(in srgb, var(--danger-color) 14%, var(--white));
+	border: var(--border-width) solid color-mix(in srgb, var(--danger-color) 42%, var(--white));
+	color: var(--danger-color);
+}
+
+/* Form ------------------------------------------------------ */
+
+.create-employee-form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.create-employee-form label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	color: var(--gray-700);
+	font-size: 0.78rem;
+	font-weight: 700;
+	margin-bottom: 0.4rem;
+}
+
+.create-employee-form input,
+.create-employee-form select {
+	border: var(--border-width) solid var(--gray-400);
+	border-radius: 10px;
+	padding: 0.35rem 0.5rem;
+	background: var(--gray-100);
+	color: var(--gray-900);
+	font-size: 0.82rem;
+	font-family: var(--font-family-base);
+	transition: var(--transition-base);
+	width: 100%;
+	box-sizing: border-box;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.create-employee-form select {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 0.5rem center;
+	padding-right: 1.8rem;
+}
+
+.create-employee-form input:focus,
+.create-employee-form select:focus {
+	outline: none;
+	border-color: var(--primary-color);
+	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+	background: var(--white);
+}
+
+/* Two-column name row --------------------------------------- */
+
+.create-employee-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.5rem;
+}
+
+/* Field hint text ------------------------------------------- */
+
+.create-employee-field-hint {
+	font-size: 0.7rem;
+	font-weight: 400;
+	color: var(--gray-600);
+	margin-top: 0.15rem;
+}
+
+/* Button bar ------------------------------------------------ */
+
+.create-employee-button-bar {
+	position: sticky;
+	bottom: -20px;
+	z-index: 30;
+	margin: 0.65rem -20px 0;
+	border-top: 1px solid var(--gray-300);
+	background: rgba(255, 255, 255, 0.95);
+	backdrop-filter: blur(6px);
+}
+
+.create-employee-button-bar-inner {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 0.6rem var(--spacer);
+	display: flex;
+	gap: 0.6rem;
+	justify-content: flex-end;
+}
+
+/* Success state --------------------------------------------- */
+
+.create-employee-success-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+	text-align: center;
+	padding: 0.8rem 0;
+}
+
+.create-employee-success-icon {
+	width: 2.8rem;
+	height: 2.8rem;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--success-color) 14%, var(--white));
+	border: var(--border-width) solid color-mix(in srgb, var(--success-color) 42%, var(--white));
+	color: var(--success-color);
+	font-size: 1.3rem;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.create-employee-success-state h2 {
+	margin: 0;
+	color: var(--gray-900);
+	font-size: 1.1rem;
+}
+
+.create-employee-success-sub {
+	margin: 0;
+	color: var(--gray-600);
+	font-size: 0.8rem;
+	max-width: 400px;
+}
+
+.create-employee-success-actions {
+	display: flex;
+	gap: 0.5rem;
+	margin-top: 0.8rem;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+/* Responsive ----------------------------------------------- */
+
+@media (max-width: 600px) {
+	.create-employee-row {
+		grid-template-columns: 1fr;
+	}
+
+	.create-employee-button-bar-inner {
+		flex-direction: column;
+	}
+
+	.create-employee-button-bar-inner .btn {
+		width: 100%;
+	}
+}
+

@@ -3,6 +3,7 @@ import api from '../../../api/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import DraftActivitiesList from '../../../components/activities/drafts/DraftActivitiesList';
 import DraftsSearchBar from '../../../components/search/DraftsSearchBar';
+import EditEventWindow from '../../../components/activities/EditEventWindow';
 import './Draft.css';
 
 const CATEGORY_TO_ENUM = {
@@ -76,6 +77,8 @@ const Drafts = () => {
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('ALL');
 	const [timeFilter, setTimeFilter] = useState('ALL');
+	const [selectedDraft, setSelectedDraft] = useState(null);
+	const [isEditWindowOpen, setIsEditWindowOpen] = useState(false);
 
 	const fetchDrafts = async () => {
 		try {
@@ -132,11 +135,22 @@ const Drafts = () => {
 	};
 
 	const handleEdit = (draft) => {
-		navigate('/create-activity', {
-			state: {
-				draftEvent: draft
-			}
-		});
+		setSelectedDraft(draft);
+		setIsEditWindowOpen(true);
+	};
+
+	const handleCloseEditWindow = () => {
+		setIsEditWindowOpen(false);
+		setSelectedDraft(null);
+	};
+
+	const handleDraftSaved = (updatedDraft) => {
+		const updatedId = updatedDraft?.id || updatedDraft?.Id;
+		if (!updatedId) return;
+		setDrafts((prev) => prev.map((draft) => {
+			const currentId = draft?.id || draft?.Id;
+			return currentId === updatedId ? { ...draft, ...updatedDraft } : draft;
+		}));
 	};
 
 	useEffect(() => {
@@ -313,6 +327,13 @@ const Drafts = () => {
 					</div>
 				</div>
 			)}
+
+			<EditEventWindow
+				isOpen={isEditWindowOpen}
+				onClose={handleCloseEditWindow}
+				eventData={selectedDraft}
+				onSaved={handleDraftSaved}
+			/>
 		</div>
 	);
 };

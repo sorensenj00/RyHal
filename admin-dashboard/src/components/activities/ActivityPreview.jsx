@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatDateOnly, formatTimeOnly } from '../../utils/dateUtils';
 import './ActivityPreview.css';
 
 const ActivityPreview = ({
@@ -16,21 +17,6 @@ const ActivityPreview = ({
 	contacts,
 	locations
 }) => {
-	const formatDateOnly = (value) => {
-		if (!value) return 'Ikke angivet';
-		const [year, month, day] = String(value).split('T')[0].split('-');
-		if (year && month && day) return `${day}-${month}-${year}`;
-		return String(value);
-	};
-
-	const formatTimeOnly = (value) => {
-		if (!value) return 'Ikke angivet';
-		const timePart = String(value).includes('T')
-			? String(value).split('T')[1]
-			: String(value);
-		return timePart.slice(0, 5);
-	};
-
 	const contactName = (contact) => (
 		contact?.name
 		|| contact?.Name

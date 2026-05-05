@@ -6,6 +6,7 @@ import EmployeeProfileCard from '../../components/employee/EmployeeProfileCard';
 import QualificationBox from '../../components/employee/qualifications/QualificationBox';
 import EmployeeShiftList from '../../components/employee/EmployeeShiftList';
 import { notifyError, notifySuccess } from '../../components/toast/toastBus';
+import { isOver18 } from '../../utils/dateUtils';
 import defaultAvatar from '../../Assets/images/default-avatar.png';
 import './ShowEmployee.css';
 
@@ -21,22 +22,6 @@ const ShowEmployee = () => {
   const [isShiftPanelOpen, setIsShiftPanelOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
 
-  const calculateIsOver18 = (birthday) => {
-    if (!birthday) return null;
-
-    const birthDate = new Date(birthday);
-    if (Number.isNaN(birthDate.getTime())) return null;
-
-    const now = new Date();
-    let age = now.getFullYear() - birthDate.getFullYear();
-    const monthDiff = now.getMonth() - birthDate.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
-      age -= 1;
-    }
-
-    return age >= 18;
-  };
 
   const normalizeEmployee = (emp) => {
     const primaryRole = emp.roles?.[0] || null;
@@ -47,7 +32,7 @@ const ShowEmployee = () => {
       roleColor: primaryRole?.color || '--color-andet',
       image: emp.profileImageURL || defaultAvatar,
       qualifications: emp.qualifications || [],
-      isOver18: calculateIsOver18(emp.birthday)
+      isOver18: isOver18(emp.birthday)
     };
   };
 

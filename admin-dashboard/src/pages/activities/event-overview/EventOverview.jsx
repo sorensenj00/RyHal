@@ -3,7 +3,7 @@ import EventHeatmap from '../../../components/heatmap/EventHeatmap';
 import EditEventWindow from '../../../components/activities/EditEventWindow';
 import api from '../../../api/axiosConfig';
 
-import { format, addDays, subDays } from 'date-fns';
+import { format, addDays, subDays, parseISO } from 'date-fns';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -109,7 +109,7 @@ const EventOverview = () => {
               <input
                 type="date"
                 value={format(selectedDate, 'yyyy-MM-dd')}
-                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                onChange={(e) => setSelectedDate(parseISO(e.target.value))}
                 className="date-input"
               />
             </div>

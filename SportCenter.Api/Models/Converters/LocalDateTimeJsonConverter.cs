@@ -41,16 +41,14 @@ public sealed class LocalDateTimeJsonConverter : JsonConverter<DateTime?>
 
         if (DateTime.TryParseExact(raw, ParseFormats, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
         {
-            return parsed.Kind == DateTimeKind.Utc
-                ? DateTime.SpecifyKind(parsed.ToLocalTime(), DateTimeKind.Unspecified)
-                : DateTime.SpecifyKind(parsed, DateTimeKind.Unspecified);
+            // Bevar altid den numeriske værdi som-is. timestamp without time zone har ingen tidszone,
+            // så vi fortolker aldrig værdien som UTC og konverterer aldrig til lokal tid.
+            return DateTime.SpecifyKind(parsed, DateTimeKind.Unspecified);
         }
 
         if (DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out parsed))
         {
-            return parsed.Kind == DateTimeKind.Utc
-                ? DateTime.SpecifyKind(parsed.ToLocalTime(), DateTimeKind.Unspecified)
-                : DateTime.SpecifyKind(parsed, DateTimeKind.Unspecified);
+            return DateTime.SpecifyKind(parsed, DateTimeKind.Unspecified);
         }
 
         throw new JsonSerializationException($"Kunne ikke parse datetime-værdi '{raw}'.");

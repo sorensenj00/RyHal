@@ -2,7 +2,7 @@ using SportCenter.Api.Models;
 
 namespace SportCenter.Api.DTOs;
 
-public record LocationBookingDto(int? LocationId, DateTime? StartTime, DateTime? EndTime, DateTime? Date);
+public record LocationBookingDto(int? LocationId, DateTime? StartTime, DateTime? EndTime, DateTime? Date, string? LocationName = null);
 
 public record EventResponseDto(
     int Id,

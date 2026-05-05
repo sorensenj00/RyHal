@@ -1,50 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { format } from 'date-fns';
 import api from '../../api/axiosConfig';
+import { toDateKey, formatTimeRange, parseDateSafe } from '../../utils/dateUtils';
 import './EventLocation.css';
-
-const toDate = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
-
-const toDateKey = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  // If timestamp has timezone info, convert to local calendar day.
-  // If no timezone info is provided, keep the raw YYYY-MM-DD part unchanged.
-  const asString = String(value);
-  const hasTimeZone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(asString);
-  if (hasTimeZone) {
-    const parsedWithZone = toDate(asString);
-    return parsedWithZone ? format(parsedWithZone, 'yyyy-MM-dd') : null;
-  }
-
-  const isoMatch = asString.match(/^(\d{4}-\d{2}-\d{2})/);
-  if (isoMatch) {
-    return isoMatch[1];
-  }
-
-  const parsed = toDate(value);
-  return parsed ? format(parsed, 'yyyy-MM-dd') : null;
-};
-
-const toTimeRange = (startValue, endValue) => {
-  const start = toDate(startValue);
-  const end = toDate(endValue);
-
-  if (!start || !end) {
-    return 'Tid ikke angivet';
-  }
-
-  return `${format(start, 'HH:mm')} - ${format(end, 'HH:mm')}`;
-};
 
 const toAssociationId = (eventItem, booking) => {
   const value =
@@ -200,8 +157,8 @@ const EventLocation = ({ selectedDate }) => {
       .map((group) => ({
         ...group,
         events: [...group.events].sort((a, b) => {
-          const aTime = toDate(a.startTime)?.getTime() || 0;
-          const bTime = toDate(b.startTime)?.getTime() || 0;
+          const aTime = parseDateSafe(a.startTime)?.getTime() || 0;
+          const bTime = parseDateSafe(b.startTime)?.getTime() || 0;
           return aTime - bTime;
         }),
       }));
@@ -272,7 +229,7 @@ const EventLocation = ({ selectedDate }) => {
                         <div className="event-location-event-line">
                           <strong>{eventItem.name}</strong>
                           <span className="event-location-separator">|</span>
-                          <span>{toTimeRange(eventItem.startTime, eventItem.endTime)}</span>
+                          <span>{formatTimeRange(eventItem.startTime, eventItem.endTime)}</span>
                           {eventItem.associationId ? (
                             <>
                               <span className="event-location-separator">|</span>

@@ -6,6 +6,7 @@ import api from '../../api/axiosConfig';
 import EmployeeHoursFilters from '../../components/employee-hours/EmployeeHoursFilters';
 import EmployeeHoursSummaryCards from '../../components/employee-hours/EmployeeHoursSummaryCards';
 import EmployeeHoursTable from '../../components/employee-hours/EmployeeHoursTable';
+import { parseDateSafe } from '../../utils/dateUtils';
 import './EmployeeHoursOverview.css';
 
 const getMonthRange = (date = new Date()) => {
@@ -132,8 +133,8 @@ const EmployeeHoursOverview = () => {
   const periodLabel = useMemo(() => {
     if (!overview?.startDate || !overview?.endDate) return '';
 
-    const start = new Date(overview.startDate);
-    const end = new Date(overview.endDate);
+    const start = parseDateSafe(overview.startDate);
+    const end = parseDateSafe(overview.endDate);
 
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
       return '';

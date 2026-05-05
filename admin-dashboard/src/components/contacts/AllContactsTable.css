@@ -1,8 +1,8 @@
 .contacts-table-card {
-  background: var(--white, #fff);
+  background: var(--white);
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--gray-100, #f1f5f9);
+  box-shadow: var(--box-shadow);
+  border: var(--border-width) solid var(--gray-200);
   overflow: hidden;
 }
 
@@ -21,19 +21,19 @@
 .contacts-table thead th {
   position: sticky;
   top: 0;
-  background: #f8fafc;
-  padding: 1rem 1.5rem;
+  background: var(--gray-100);
+  padding: var(--spacer) var(--spacer-lg);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--secondary-color);
   z-index: 10;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: var(--border-width) solid var(--border-color);
 }
 
 .contacts-table tbody td {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  padding: var(--spacer) var(--spacer-lg);
+  border-bottom: var(--border-width) solid var(--gray-100);
   vertical-align: middle;
 }
 
@@ -49,30 +49,49 @@
 }
 
 .user-name {
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-800);
   font-size: 0.9rem;
 }
 
 .contact-title {
   font-size: 0.85rem;
-  color: #475569;
-  font-weight: 600;
+  color: var(--secondary-color);
+  font-weight: var(--font-weight-bold);
 }
 
-.contact-association {
+/* Association badges — samme stil som .view-association-colored-title */
+.contact-association-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.contact-association-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 10px;
+  padding: 0.32rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.12);
+  white-space: nowrap;
+}
+
+.contact-cell-empty {
+  color: var(--gray-400);
   font-size: 0.85rem;
-  color: #334155;
 }
 
 .contact-phone {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--secondary-color);
 }
 
 .contact-email {
   font-size: 0.85rem;
-  color: #0f5bbd;
+  color: var(--primary-color);
   word-break: break-word;
 }
 
@@ -86,34 +105,6 @@
   text-align: right;
 }
 
-.btn-action {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid #e2e8f0;
-  background: white;
-  transition: all 0.2s;
-}
-
-.btn-action.delete:hover {
-  background: #fee2e2;
-  color: #991b1b;
-  border-color: #fecaca;
-}
-
-.btn-action.view:hover {
-  background: #dbeafe;
-  color: #1e40af;
-  border-color: #bfdbfe;
-}
-
-.btn-action:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .contact-avatar {
   width: 40px;
   height: 40px;
@@ -122,52 +113,52 @@
 }
 
 .contacts-table-status {
-  padding: 2rem 1.5rem;
-  color: #475569;
+  padding: 2rem var(--spacer-lg);
+  color: var(--secondary-color);
   text-align: center;
   margin: 0;
 }
 
 .contacts-table-status.error {
-  color: #991b1b;
+  color: var(--danger-color);
 }
 
 .delete-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.48);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1300;
-  padding: 1rem;
+  padding: var(--spacer);
 }
 
 .delete-modal {
   width: 100%;
   max-width: 440px;
-  background: #ffffff;
+  background: var(--white);
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.24);
-  padding: 1.1rem 1.1rem 1rem;
+  border: var(--border-width) solid var(--border-color);
+  box-shadow: var(--box-shadow-lg);
+  padding: 1.1rem 1.1rem var(--spacer);
 }
 
 .delete-modal h3 {
   margin: 0 0 0.55rem;
-  font-size: 1rem;
-  color: #0f172a;
+  font-size: var(--font-size-base);
+  color: var(--gray-900);
 }
 
 .delete-modal p {
   margin: 0;
-  color: #334155;
+  color: var(--gray-700);
   font-size: 0.9rem;
-  line-height: 1.45;
+  line-height: var(--line-height-base);
 }
 
 .delete-modal-actions {
-  margin-top: 1rem;
+  margin-top: var(--spacer);
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;

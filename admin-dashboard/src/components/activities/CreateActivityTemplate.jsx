@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
+import { toApiLocalDateTime } from '../../utils/dateUtils';
 import './CreateActivityTemplate.css';
 
 const EVENT_CATEGORIES = ['SPORT', 'MØDE', 'VEDLIGEHOLDELSE', 'ANDET'];
@@ -10,10 +11,6 @@ const CATEGORY_TO_ENUM = {
   ANDET: 3
 };
 
-const toApiLocalDateTime = (datePart, timePart) => {
-  if (!datePart || !timePart) return null;
-  return `${datePart}T${timePart}:00`;
-};
 
 const CreateActivityTemplate = () => {
   const [title, setTitle] = useState('');

@@ -5,47 +5,9 @@ import api from '../../api/axiosConfig';
 import StaffingShiftOverview from '../../components/shift-management/StaffingShiftOverview';
 import EventLocation from '../../components/shift-management/EventLocation';
 import ShiftOverview from '../../components/shift-management/ShiftOverview';
+import { toDateKey, shiftDurationHours } from '../../utils/dateUtils';
 import './StaffingOverview.css';
 
-const toStableDateKey = (value) => {
-	if (!value) {
-		return null;
-	}
-
-	const asString = String(value);
-	const hasTimeZone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(asString);
-	if (hasTimeZone) {
-		const parsedWithZone = new Date(asString);
-		if (Number.isNaN(parsedWithZone.getTime())) {
-			return null;
-		}
-
-		return format(parsedWithZone, 'yyyy-MM-dd');
-	}
-
-	const isoMatch = asString.match(/^(\d{4}-\d{2}-\d{2})/);
-	if (isoMatch) {
-		return isoMatch[1];
-	}
-
-	const parsed = new Date(value);
-	if (Number.isNaN(parsed.getTime())) {
-		return null;
-	}
-
-	return format(parsed, 'yyyy-MM-dd');
-};
-
-const getShiftDurationHours = (shift) => {
-	const start = new Date(shift.startTime);
-	const end = new Date(shift.endTime);
-
-	if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-		return 0;
-	}
-
-	return Math.max((end - start) / 3600000, 0);
-};
 
 const StaffingOverview = () => {
 	const location = useLocation();
@@ -81,7 +43,7 @@ const StaffingOverview = () => {
 	const shiftsForSelectedDate = useMemo(() => {
 		return shifts.filter((shift) => {
 			const shiftStart = shift.startTime ?? shift.StartTime;
-			return toStableDateKey(shiftStart) === selectedDate;
+			return toDateKey(shiftStart) === selectedDate;
 		});
 	}, [selectedDate, shifts]);
 
@@ -89,7 +51,7 @@ const StaffingOverview = () => {
 		const staffedShifts = shiftsForSelectedDate.filter((shift) => Boolean(shift.employeeId));
 		const openShifts = shiftsForSelectedDate.length - staffedShifts.length;
 		const totalWorkHours = shiftsForSelectedDate.reduce(
-			(sum, shift) => sum + getShiftDurationHours(shift),
+			(sum, shift) => sum + shiftDurationHours(shift.startTime, shift.endTime),
 			0
 		);
 

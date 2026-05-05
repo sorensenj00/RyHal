@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import CreateNewShift from '../shift/CreateNewShift';
 import EditShift from '../shift/EditShift';
+import { parseDateSafe } from '../../utils/dateUtils';
 import './ShiftOverview.css';
 
 const normalizeRoleName = (value) => {
@@ -30,14 +31,9 @@ const getRoleColor = (roleName) => {
   return ROLE_COLOR_BY_KEY[key] || 'var(--color-andet)';
 };
 
-const toDate = (value) => {
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
-
 const toTimeRange = (startValue, endValue) => {
-  const start = toDate(startValue);
-  const end = toDate(endValue);
+  const start = parseDateSafe(startValue);
+  const end = parseDateSafe(endValue);
 
   if (!start || !end) {
     return 'Tid ukendt';
@@ -93,8 +89,8 @@ const ShiftOverview = ({
         }
       }
 
-      const aTime = toDate(a.startTime)?.getTime() || 0;
-      const bTime = toDate(b.startTime)?.getTime() || 0;
+      const aTime = parseDateSafe(a.startTime)?.getTime() || 0;
+      const bTime = parseDateSafe(b.startTime)?.getTime() || 0;
       return aTime - bTime;
     });
   }, [filteredShifts, sortMode]);

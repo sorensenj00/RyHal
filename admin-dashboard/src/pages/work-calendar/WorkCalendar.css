@@ -9,7 +9,6 @@
   display: flex;
   justify-content: center;
   padding: var(--spacer);
-  background-color: var(--light-color);
   border-bottom: var(--border-width) solid var(--border-color);
 }
 
